@@ -8,7 +8,9 @@ package main
 import (
 	"flag"
 	"fmt"
+	"net/url"
 	"os"
+	"regexp"
 	"github.com/thoj/go-ircevent"
 )
 
@@ -32,6 +34,25 @@ func getOptions() (nick, server, channel, channelKey string, success bool) {
 	return
 }
 
+func findUrls(message string) (urls []*url.URL) {
+	const maxUrlsCount int = 10
+
+	// Source of the regular expression:
+	// http://daringfireball.net/2010/07/improved_regex_for_matching_urls
+	re := regexp.MustCompile("(?:https?://|www\\d{0,3}[.]|[a-z0-9.\\-]+[.][a-z]{2,4}/)(?:[^\\s()<>]+|\\(([^\\s()<>]+|(\\([^\\s()<>]+\\)))*\\))+(?:\\(([^\\s()<>]+|(\\([^\\s()<>]+\\)))*\\)|[^\\s`!()\\[\\]{};:'\".,<>?«»“”‘’])")
+	urlCandidates := re.FindAllString(message, maxUrlsCount)
+
+	for _, candidate := range urlCandidates {
+		url, err := url.Parse(candidate)
+		if err != nil {
+			break
+		}
+		urls = append(urls, url)
+	}
+
+	return
+}
+
 func main() {
 	nick, server, channel, channelKey, success := getOptions()
 
@@ -43,7 +64,13 @@ func main() {
 	ircConn.UseTLS = true
 	ircConn.Connect(server)
 	ircConn.Join(channel + " " +  channelKey)
-	ircConn.Privmsg(channel, "Hello world")
+	ircConn.AddCallback("PRIVMSG", func(event *irc.Event) {
+		allUrls := findUrls(event.Message())
+		for _, url := range allUrls {
+			// TODO Query the URL to retrieve associated content
+			fmt.Println(url)
+		}
+	})
 
 	ircConn.Loop()
 }
