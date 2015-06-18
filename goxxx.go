@@ -8,10 +8,12 @@ package main
 import (
 	"flag"
 	"fmt"
+	"net/http"
 	"net/url"
 	"os"
 	"regexp"
 	"github.com/thoj/go-ircevent"
+	"golang.org/x/net/html"
 )
 
 func getOptions() (nick, server, channel, channelKey string, success bool) {
@@ -34,6 +36,51 @@ func getOptions() (nick, server, channel, channelKey string, success bool) {
 	return
 }
 
+func getTitleFromHTML(document *html.Node) (title string, found bool) {
+	if document.Type != html.DocumentNode {
+		// Didn't find a document node as first node, exit
+		return
+	}
+
+	// Try to find the <html> inside the document
+	child := document.FirstChild
+	for child != nil && !(child.Type == html.ElementNode && child.Data == "html") {
+		child = child.NextSibling
+	}
+	if child == nil {
+		// Didn't find <html>, exit
+		return
+	}
+
+	// Try to find the <head> inside the document
+	currentNode := child
+	for child = currentNode.FirstChild;
+	    child != nil && !(child.Type == html.ElementNode && child.Data == "head");
+	    child = child.NextSibling {
+	}
+	if child == nil {
+		// Didn't find <head>, exit
+		return
+	}
+
+	// Try to find the <title> inside the <head>
+	currentNode = child
+	for child = currentNode.FirstChild;
+	    child != nil && !(child.Type == html.ElementNode && child.Data == "title");
+	    child = child.NextSibling {
+	}
+	if child == nil || child.FirstChild == nil {
+		// Didn't find <title> or it is empty, exit
+		return
+	}
+
+	// Retrieve the content inside the <title>
+	title = child.FirstChild.Data
+	found = true
+
+	return
+}
+
 func findUrls(message string) (urls []*url.URL) {
 	const maxUrlsCount int = 10
 
@@ -46,6 +93,9 @@ func findUrls(message string) (urls []*url.URL) {
 		url, err := url.Parse(candidate)
 		if err != nil {
 			break
+		}
+		if url.Scheme == "" {
+			url.Scheme = "https"
 		}
 		urls = append(urls, url)
 	}
@@ -60,6 +110,7 @@ func main() {
 		return
 	}
 
+
 	ircConn := irc.IRC(nick, nick)
 	ircConn.UseTLS = true
 	ircConn.Connect(server)
@@ -67,8 +118,24 @@ func main() {
 	ircConn.AddCallback("PRIVMSG", func(event *irc.Event) {
 		allUrls := findUrls(event.Message())
 		for _, url := range allUrls {
-			// TODO Query the URL to retrieve associated content
-			fmt.Println(url)
+			fmt.Println("Detected URL:", url.String())
+			response, err := http.Get(url.String())
+			if err != nil {
+				// TODO Do proper logging
+				fmt.Println(err)
+				return
+			}
+			doc, err := html.Parse(response.Body)
+			response.Body.Close()
+			if err != nil {
+				// TODO Do proper logging
+				fmt.Println(err)
+				return
+			}
+			title, found := getTitleFromHTML(doc)
+			if found {
+				ircConn.Privmsg(channel, title)
+			}
 		}
 	})
 
