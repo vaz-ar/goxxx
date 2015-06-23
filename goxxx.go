@@ -57,9 +57,7 @@ func getTitleFromHTML(document *html.Node) (title string, found bool) {
 
 	// Try to find the <head> inside the document
 	currentNode := child
-	for child = currentNode.FirstChild;
-	    child != nil && !(child.Type == html.ElementNode && child.Data == "head");
-	    child = child.NextSibling {
+	for child = currentNode.FirstChild; child != nil && !(child.Type == html.ElementNode && child.Data == "head"); child = child.NextSibling {
 	}
 	if child == nil {
 		// Didn't find <head>, exit
@@ -68,9 +66,7 @@ func getTitleFromHTML(document *html.Node) (title string, found bool) {
 
 	// Try to find the <title> inside the <head>
 	currentNode = child
-	for child = currentNode.FirstChild;
-	    child != nil && !(child.Type == html.ElementNode && child.Data == "title");
-	    child = child.NextSibling {
+	for child = currentNode.FirstChild; child != nil && !(child.Type == html.ElementNode && child.Data == "title"); child = child.NextSibling {
 	}
 	if child == nil || child.FirstChild == nil {
 		// Didn't find <title> or it is empty, exit
