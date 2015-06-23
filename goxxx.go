@@ -8,12 +8,12 @@ package main
 import (
 	"flag"
 	"fmt"
+	"github.com/thoj/go-ircevent"
+	"golang.org/x/net/html"
 	"net/http"
 	"net/url"
 	"os"
 	"regexp"
-	"github.com/thoj/go-ircevent"
-	"golang.org/x/net/html"
 )
 
 func getOptions() (nick, server, channel, channelKey string, success bool) {
@@ -21,13 +21,16 @@ func getOptions() (nick, server, channel, channelKey string, success bool) {
 	flag.StringVar(&channelKey, "key", "", "IRC channel key (optional)")
 	flag.StringVar(&nick, "nick", "goxxx", "the bot's nickname (optional)")
 	flag.StringVar(&server, "server", "chat.freenode.net:6697", "IRC_SERVER[:PORT] (optional)")
-	flag.Parse()
-
-	if channel == "" {
+	flag.Usage = func() {
 		fmt.Println("Usage:", os.Args[0], "-channel CHANNEL [ARGUMENTS]")
 		fmt.Println()
 		fmt.Println("Arguments description:")
 		flag.PrintDefaults()
+	}
+	flag.Parse()
+
+	if channel == "" {
+		flag.Usage()
 		success = false
 	} else {
 		success = true
@@ -110,11 +113,10 @@ func main() {
 		return
 	}
 
-
 	ircConn := irc.IRC(nick, nick)
 	ircConn.UseTLS = true
 	ircConn.Connect(server)
-	ircConn.Join(channel + " " +  channelKey)
+	ircConn.Join(channel + " " + channelKey)
 	ircConn.AddCallback("PRIVMSG", func(event *irc.Event) {
 		allUrls := findUrls(event.Message())
 		for _, url := range allUrls {
