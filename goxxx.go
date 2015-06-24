@@ -10,6 +10,7 @@ import (
 	"fmt"
 	"github.com/thoj/go-ircevent"
 	"golang.org/x/net/html"
+	"golang.org/x/net/idna"
 	"net/http"
 	"net/url"
 	"os"
@@ -93,8 +94,14 @@ func findUrls(message string) (urls []*url.URL) {
 		if err != nil {
 			break
 		}
+		// Scheme is required to query a URL
 		if url.Scheme == "" {
 			url.Scheme = "https"
+		}
+		// Conversion to ASCII is needed for Unicode hostnames
+		asciiHost, err := idna.ToASCII(url.Host)
+		if err == nil {
+			url.Host = asciiHost
 		}
 		urls = append(urls, url)
 	}
