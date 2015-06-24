@@ -40,6 +40,31 @@ func getOptions() (nick, server, channel, channelKey string, success bool) {
 	return
 }
 
+// TODO Choose a better name for that function
+func handleUrls(message string, replyCallback func(string)) {
+	allUrls := findUrls(message)
+	for _, url := range allUrls {
+		fmt.Println("Detected URL:", url.String())
+		response, err := http.Get(url.String())
+		if err != nil {
+			// TODO Do proper logging
+			fmt.Println(err)
+			return
+		}
+		doc, err := html.Parse(response.Body)
+		response.Body.Close()
+		if err != nil {
+			// TODO Do proper logging
+			fmt.Println(err)
+			return
+		}
+		title, found := getTitleFromHTML(doc)
+		if found {
+			replyCallback(title)
+		}
+	}
+}
+
 func getTitleFromHTML(document *html.Node) (title string, found bool) {
 	if document.Type != html.DocumentNode {
 		// Didn't find a document node as first node, exit
@@ -122,28 +147,14 @@ func (bot *Bot) Init() {
 	bot.ircConn.UseTLS = true
 	bot.ircConn.Connect(bot.server)
 	bot.ircConn.Join(bot.channel + " " + bot.channelKey)
+}
+
+// msgProcessCallback will be called on every user message the bot reads.
+// replyCallback is to be called by msgProcessCallback (or not) to yield
+// and process its result as a string message.
+func (bot *Bot) AddMsgHandler(msgProcessCallback func(string, func(string)), replyCallback func(string)) {
 	bot.ircConn.AddCallback("PRIVMSG", func(event *irc.Event) {
-		allUrls := findUrls(event.Message())
-		for _, url := range allUrls {
-			fmt.Println("Detected URL:", url.String())
-			response, err := http.Get(url.String())
-			if err != nil {
-				// TODO Do proper logging
-				fmt.Println(err)
-				return
-			}
-			doc, err := html.Parse(response.Body)
-			response.Body.Close()
-			if err != nil {
-				// TODO Do proper logging
-				fmt.Println(err)
-				return
-			}
-			title, found := getTitleFromHTML(doc)
-			if found {
-				bot.ReplyToAll(title)
-			}
-		}
+		msgProcessCallback(event.Message(), replyCallback)
 	})
 }
 
@@ -168,5 +179,6 @@ func main() {
 		channelKey: channelKey,
 	}
 	bot.Init()
+	bot.AddMsgHandler(handleUrls, bot.ReplyToAll)
 	bot.Run()
 }
