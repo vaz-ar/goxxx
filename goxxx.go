@@ -109,18 +109,20 @@ func findUrls(message string) (urls []*url.URL) {
 	return
 }
 
-func main() {
-	nick, server, channel, channelKey, success := getOptions()
+type Bot struct {
+	nick       string
+	server     string
+	channel    string
+	channelKey string
+	ircConn    *irc.Connection
+}
 
-	if !success {
-		return
-	}
-
-	ircConn := irc.IRC(nick, nick)
-	ircConn.UseTLS = true
-	ircConn.Connect(server)
-	ircConn.Join(channel + " " + channelKey)
-	ircConn.AddCallback("PRIVMSG", func(event *irc.Event) {
+func (bot *Bot) Init() {
+	bot.ircConn = irc.IRC(bot.nick, bot.nick)
+	bot.ircConn.UseTLS = true
+	bot.ircConn.Connect(bot.server)
+	bot.ircConn.Join(bot.channel + " " + bot.channelKey)
+	bot.ircConn.AddCallback("PRIVMSG", func(event *irc.Event) {
 		allUrls := findUrls(event.Message())
 		for _, url := range allUrls {
 			fmt.Println("Detected URL:", url.String())
@@ -139,10 +141,32 @@ func main() {
 			}
 			title, found := getTitleFromHTML(doc)
 			if found {
-				ircConn.Privmsg(channel, title)
+				bot.ReplyToAll(title)
 			}
 		}
 	})
+}
 
-	ircConn.Loop()
+func (bot *Bot) Run() {
+	bot.ircConn.Loop()
+}
+
+func (bot *Bot) ReplyToAll(message string) {
+	bot.ircConn.Privmsg(bot.channel, message)
+}
+
+func main() {
+	nick, server, channel, channelKey, success := getOptions()
+	if !success {
+		return
+	}
+
+	bot := Bot{
+		nick:       nick,
+		server:     server,
+		channel:    channel,
+		channelKey: channelKey,
+	}
+	bot.Init()
+	bot.Run()
 }
