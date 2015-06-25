@@ -8,7 +8,7 @@ package main
 import (
 	"flag"
 	"fmt"
-	"github.com/thoj/go-ircevent"
+	"github.com/romainletendart/goxxx/core"
 	"golang.org/x/net/html"
 	"golang.org/x/net/idna"
 	"net/http"
@@ -134,49 +134,17 @@ func findUrls(message string) (urls []*url.URL) {
 	return
 }
 
-type Bot struct {
-	nick       string
-	server     string
-	channel    string
-	channelKey string
-	ircConn    *irc.Connection
-}
-
-func (bot *Bot) Init() {
-	bot.ircConn = irc.IRC(bot.nick, bot.nick)
-	bot.ircConn.UseTLS = true
-	bot.ircConn.Connect(bot.server)
-	bot.ircConn.Join(bot.channel + " " + bot.channelKey)
-}
-
-// msgProcessCallback will be called on every user message the bot reads.
-// replyCallback is to be called by msgProcessCallback (or not) to yield
-// and process its result as a string message.
-func (bot *Bot) AddMsgHandler(msgProcessCallback func(string, func(string)), replyCallback func(string)) {
-	bot.ircConn.AddCallback("PRIVMSG", func(event *irc.Event) {
-		msgProcessCallback(event.Message(), replyCallback)
-	})
-}
-
-func (bot *Bot) Run() {
-	bot.ircConn.Loop()
-}
-
-func (bot *Bot) ReplyToAll(message string) {
-	bot.ircConn.Privmsg(bot.channel, message)
-}
-
 func main() {
 	nick, server, channel, channelKey, success := getOptions()
 	if !success {
 		return
 	}
 
-	bot := Bot{
-		nick:       nick,
-		server:     server,
-		channel:    channel,
-		channelKey: channelKey,
+	bot := core.Bot{
+		Nick:       nick,
+		Server:     server,
+		Channel:    channel,
+		ChannelKey: channelKey,
 	}
 	bot.Init()
 	bot.AddMsgHandler(handleUrls, bot.ReplyToAll)
