@@ -9,6 +9,7 @@ import (
 	"flag"
 	"fmt"
 	"github.com/romainletendart/goxxx/core"
+	"github.com/romainletendart/goxxx/memo"
 	"github.com/romainletendart/goxxx/webinfo"
 	"os"
 )
@@ -50,5 +51,6 @@ func main() {
 	}
 	bot.Init()
 	bot.AddMsgHandler(webinfo.HandleUrls, bot.ReplyToAll)
+	bot.AddCmdHandler(memo.HandleMemoCmd, nil)
 	bot.Run()
 }
