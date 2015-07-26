@@ -6,32 +6,73 @@
 package webinfo
 
 import (
+	"database/sql"
 	"fmt"
+	"github.com/thoj/go-ircevent"
 	"golang.org/x/net/html"
 	"golang.org/x/net/idna"
+	"log"
 	"net/http"
 	"net/url"
 	"regexp"
 )
 
+var _database *sql.DB
+
+func Init(db *sql.DB) {
+	_database = db
+	sqlStmt := `CREATE TABLE IF NOT EXISTS Link (
+    id integer NOT NULL PRIMARY KEY,
+    user TEXT,
+    url TEXT,
+    date DATETIME DEFAULT CURRENT_TIMESTAMP);`
+
+	_, err := db.Exec(sqlStmt)
+	if err != nil {
+		log.Fatalf("%q: %s\n", err, sqlStmt)
+	}
+}
+
 // TODO Choose a better name for that function
-func HandleUrls(message string, replyCallback func(string)) {
-	allUrls := findUrls(message)
+func HandleUrls(event *irc.Event, replyCallback func(string)) {
+	allUrls := findUrls(event.Message())
 	for _, url := range allUrls {
 		fmt.Println("Detected URL:", url.String())
 		response, err := http.Get(url.String())
 		if err != nil {
-			// TODO Do proper logging
-			fmt.Println(err)
+			log.Println(err)
 			return
 		}
 		doc, err := html.Parse(response.Body)
 		response.Body.Close()
 		if err != nil {
-			// TODO Do proper logging
-			fmt.Println(err)
+			log.Println(err)
 			return
 		}
+
+		var (
+			user string
+			date string
+		)
+		sqlQuery := "SELECT user, strftime('%d/%m/%Y @ %H:%M', datetime(date, 'localtime')) FROM Link WHERE url = $1"
+		rows, err := _database.Query(sqlQuery, url.String())
+		if err != nil {
+			log.Fatalf("%q: %s\n", err, sqlQuery)
+		}
+		for rows.Next() {
+			rows.Scan(&user, &date)
+		}
+
+		if user == "" {
+			sqlQuery = "INSERT INTO Link (user, url) VALUES ($1, $2)"
+			_, err := _database.Exec(sqlQuery, event.Nick, url.String())
+			if err != nil {
+				log.Fatalf("%q: %s\n", err, sqlQuery)
+			}
+		} else {
+			replyCallback(fmt.Sprintf("Link already posted by %s (%s)", user, date))
+		}
+
 		title, found := getTitleFromHTML(doc)
 		if found {
 			replyCallback(title)

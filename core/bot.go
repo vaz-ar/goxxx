@@ -15,7 +15,7 @@ type Bot struct {
 	Channel           string
 	ChannelKey        string
 	ircConn           *irc.Connection
-	msgHandlers       []func(string, func(string))
+	msgHandlers       []func(*irc.Event, func(string))
 	cmdHandlers       []func(*irc.Event, func(string)) bool
 	msgReplyCallbacks []func(string)
 	cmdReplyCallbacks []func(string)
@@ -31,7 +31,7 @@ func (bot *Bot) Init() {
 
 // msgProcessCallback will be called on every user message the bot reads (if a command was not found previously in the message).
 // replyCallback is to be called by msgProcessCallback (or not) to yield and process its result as a string message.
-func (bot *Bot) AddMsgHandler(msgProcessCallback func(string, func(string)), replyCallback func(string)) {
+func (bot *Bot) AddMsgHandler(msgProcessCallback func(*irc.Event, func(string)), replyCallback func(string)) {
 	if msgProcessCallback != nil && replyCallback != nil {
 		bot.msgHandlers = append(bot.msgHandlers, msgProcessCallback)
 		bot.msgReplyCallbacks = append(bot.msgReplyCallbacks, replyCallback)
@@ -64,6 +64,6 @@ func (bot *Bot) mainHandler(event *irc.Event) {
 		}
 	}
 	for i, handler := range bot.msgHandlers {
-		handler(event.Message(), bot.msgReplyCallbacks[i])
+		handler(event, bot.msgReplyCallbacks[i])
 	}
 }
