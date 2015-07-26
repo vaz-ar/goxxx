@@ -75,6 +75,7 @@ func main() {
 	}
 	bot.Init()
 	memo.Init(database)
+	webinfo.Init(database)
 
 	bot.AddMsgHandler(webinfo.HandleUrls, bot.ReplyToAll)
 	bot.AddCmdHandler(memo.HandleMemoCmd, bot.ReplyToAll)
