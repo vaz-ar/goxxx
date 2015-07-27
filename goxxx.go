@@ -12,6 +12,7 @@ import (
 	_ "github.com/mattn/go-sqlite3"
 	"github.com/romainletendart/goxxx/core"
 	"github.com/romainletendart/goxxx/memo"
+	"github.com/romainletendart/goxxx/search"
 	"github.com/romainletendart/goxxx/webinfo"
 	"log"
 	"os"
@@ -76,9 +77,11 @@ func main() {
 	bot.Init()
 	memo.Init(database)
 	webinfo.Init(database)
+	search.Init()
 
 	bot.AddMsgHandler(webinfo.HandleUrls, bot.ReplyToAll)
 	bot.AddCmdHandler(memo.HandleMemoCmd, bot.ReplyToAll)
 	bot.AddCmdHandler(memo.SendMemo, bot.ReplyToAll)
+	bot.AddCmdHandler(search.HandleSearchCmd, bot.ReplyToAll)
 	bot.Run()
 }

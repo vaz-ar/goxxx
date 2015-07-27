@@ -39,14 +39,15 @@ func HandleMemoCmd(event *irc.Event, callback func(string)) bool {
 		if message == "" {
 			return false
 		}
-		if callback != nil {
-			callback(fmt.Sprintf("Memo for %s from %s: \"%s\"", user_to, user_from, message))
-		}
 
 		sqlStmt := "INSERT INTO Memo (user_to, user_from, message) VALUES ($1, $2, $3)"
 		_, err := _database.Exec(sqlStmt, user_to, user_from, message)
 		if err != nil {
 			log.Fatalf("%q: %s\n", err, sqlStmt)
+		}
+
+		if callback != nil {
+			callback(fmt.Sprintf("Memo for %s from %s: \"%s\"", user_to, user_from, message))
 		}
 		return true
 	}
