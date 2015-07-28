@@ -31,32 +31,34 @@ func Init() {
 }
 
 func HandleSearchCmd(event *irc.Event, callback func(string)) bool {
-	message := strings.TrimSpace(event.Message())
-	if message == "" {
+	if callback == nil {
+		log.Println("Callback nil for the HandleSearchCmd function")
 		return false
 	}
 
-	cmd := strings.Split(message, " ")[0]
-	search, present := search_map[cmd]
+	fields := strings.Fields(event.Message())
+	// fields[0]  => Command
+	// fields[1:] => terms to search for
+	if len(fields) == 0 {
+		return false
+	}
+
+	search, present := search_map[fields[0]]
 	if !present {
 		return false
 	}
 
-	message = strings.TrimSpace(strings.TrimPrefix(message, cmd))
+	message := strings.Join(fields[1:], " ")
 	if message == "" {
+		callback(fmt.Sprintf("Search usage: %s \"terms to search for\"", fields[0]))
 		return false
 	}
 
-	result := search.getUrl(&message)
-
-	if callback != nil {
-		if result != nil {
-			callback(fmt.Sprintf(search.text_result, message, result))
-		} else {
-			callback(fmt.Sprintf(search.text_no_result, message))
-		}
+	if result := search.getUrl(&message); result != nil {
+		callback(fmt.Sprintf(search.text_result, message, result))
+	} else {
+		callback(fmt.Sprintf(search.text_no_result, message))
 	}
-
 	return true
 }
 
