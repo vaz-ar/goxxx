@@ -41,7 +41,7 @@ func getOptions() (nick, server, channel, channelKey string, success bool) {
 	return
 }
 
-func initDatabase() *sql.DB {
+func initDatabase(databaseName string, reset bool) *sql.DB {
 	// check if the storage directory exist, if not create it
 	storage, err := os.Stat("./storage")
 	if err != nil {
@@ -51,7 +51,18 @@ func initDatabase() *sql.DB {
 		log.Fatal("\"storage\" exist but is not a directory")
 	}
 
-	db, err := sql.Open("sqlite3", "./storage/db.sqlite")
+	// Use default name if not specified
+	if databaseName == "" {
+		databaseName = "./storage/db.sqlite"
+	} else {
+		databaseName = "./storage/" + databaseName
+	}
+
+	if reset {
+		os.Remove(databaseName)
+	}
+
+	db, err := sql.Open("sqlite3", databaseName)
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -65,7 +76,7 @@ func main() {
 		return
 	}
 
-	database := initDatabase()
+	database := initDatabase("", false)
 	defer database.Close()
 
 	bot := core.Bot{

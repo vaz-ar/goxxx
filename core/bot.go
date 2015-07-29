@@ -63,7 +63,9 @@ func (bot *Bot) ReplyToAll(data *ReplyCallbackData) {
 }
 
 func (bot *Bot) ReplyToNick(data *ReplyCallbackData) {
-	bot.ircConn.Privmsg(data.Nick, data.Message)
+	if data.Nick != "" {
+		bot.ircConn.Privmsg(data.Nick, data.Message)
+	}
 }
 
 func (bot *Bot) mainHandler(event *irc.Event) {
