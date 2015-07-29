@@ -8,12 +8,21 @@ package memo
 import (
 	"database/sql"
 	"fmt"
+	"github.com/romainletendart/goxxx/core"
 	"github.com/thoj/go-ircevent"
 	"log"
 	"strings"
 )
 
 var _database *sql.DB
+
+type memoData struct {
+	id        int
+	date      string
+	message   string
+	user_from string
+	user_to   string
+}
 
 func Init(db *sql.DB) {
 	_database = db
@@ -30,7 +39,7 @@ func Init(db *sql.DB) {
 	}
 }
 
-func HandleMemoCmd(event *irc.Event, callback func(string)) bool {
+func HandleMemoCmd(event *irc.Event, callback func(*core.ReplyCallbackData)) bool {
 	fields := strings.Fields(event.Message())
 	// fields[0]  => Command
 	// fields[1]  => recipient's nick
@@ -41,27 +50,32 @@ func HandleMemoCmd(event *irc.Event, callback func(string)) bool {
 
 	if len(fields) < 3 {
 		if callback != nil {
-			callback(fmt.Sprintf("Memo usage: %s \"recipient's nick\" \"message\"", fields[0]))
+			callback(&core.ReplyCallbackData{
+				Message: fmt.Sprintf("Memo usage: %s \"recipient's nick\" \"message\"", fields[0])})
 		}
 		return false
 	}
-	user_from := event.Nick
-	message := strings.Join(fields[2:], " ")
+
+	memo := memoData{
+		user_to:   fields[1],
+		user_from: event.Nick,
+		message:   strings.Join(fields[2:], " ")}
 
 	sqlStmt := "INSERT INTO Memo (user_to, user_from, message) VALUES ($1, $2, $3)"
-	_, err := _database.Exec(sqlStmt, fields[1], user_from, message)
+	_, err := _database.Exec(sqlStmt, memo.user_to, memo.user_from, memo.message)
 	if err != nil {
 		log.Fatalf("%q: %s\n", err, sqlStmt)
 	}
 
 	if callback != nil {
-		callback(fmt.Sprintf("Memo for %s from %s: \"%s\"", fields[1], user_from, message))
+		callback(&core.ReplyCallbackData{
+			// Message: fmt.Sprintf("Memo for %s from %s: \"%s\"", fields[1], user_from, message)})
+			Message: fmt.Sprintf("%s: memo for %s saved", memo.user_from, memo.user_from)})
 	}
 	return true
-
 }
 
-func SendMemo(event *irc.Event, callback func(string)) bool {
+func SendMemo(event *irc.Event, callback func(*core.ReplyCallbackData)) bool {
 	if callback == nil {
 		log.Println("Callback nil for the SendMemo function, unable to send the memo")
 	}
@@ -74,25 +88,18 @@ func SendMemo(event *irc.Event, callback func(string)) bool {
 	}
 	defer rows.Close()
 
-	var (
-		id        int
-		date      string
-		message   string
-		user_from string
-		user_to   string
-		idList    []int
-	)
-
+	var memoList []memoData
 	for rows.Next() {
-		rows.Scan(&id, &user_to, &user_from, &message, &date)
-		idList = append(idList, id)
-		callback(fmt.Sprintf("%s: %s left you a memo => \"%s\" (%s)", user_to, user_from, message, date))
+		var memo memoData
+		rows.Scan(&memo.id, &memo.user_to, &memo.user_from, &memo.message, &memo.date)
+		memoList = append(memoList, memo)
+		callback(&core.ReplyCallbackData{Message: fmt.Sprintf("%s: memo from %s => \"%s\" (%s)", memo.user_to, memo.user_from, memo.message, memo.date)})
 	}
 	rows.Close()
 
-	for _, id = range idList {
+	for _, memo := range memoList {
 		sqlQuery = "DELETE FROM Memo WHERE id = $1"
-		_, err = _database.Exec(sqlQuery, id)
+		_, err = _database.Exec(sqlQuery, memo.id)
 		if err != nil {
 			log.Fatalf("%q: %s\n", err, sqlQuery)
 		}
