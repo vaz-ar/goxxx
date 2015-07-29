@@ -106,3 +106,29 @@ func SendMemo(event *irc.Event, callback func(*core.ReplyCallbackData)) bool {
 	}
 	return false
 }
+
+func HandleMemoStatusCmd(event *irc.Event, callback func(*core.ReplyCallbackData)) bool {
+	if strings.TrimSpace(event.Message()) != "!memostat" {
+		return false
+	}
+
+	sqlQuery := "SELECT id, user_to, message, strftime('%d/%m/%Y @ %H:%M', datetime(date, 'localtime')) FROM Memo WHERE user_from = $1 ORDER BY id"
+	rows, err := _database.Query(sqlQuery, event.Nick)
+	if err != nil {
+		log.Fatalf("%q: %s\n", err, sqlQuery)
+	}
+	defer rows.Close()
+
+	var memo memoData
+	for rows.Next() {
+		rows.Scan(&memo.id, &memo.user_to, &memo.message, &memo.date)
+		callback(&core.ReplyCallbackData{fmt.Sprintf("Memo for %s: %q (%s)", memo.user_to, memo.message, memo.date), event.Nick})
+	}
+	rows.Close()
+
+	if memo.id == 0 {
+		callback(&core.ReplyCallbackData{"No memo saved", event.Nick})
+	}
+
+	return true
+}

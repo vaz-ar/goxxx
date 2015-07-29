@@ -81,6 +81,7 @@ func main() {
 
 	bot.AddMsgHandler(webinfo.HandleUrls, bot.ReplyToAll)
 	bot.AddCmdHandler(memo.HandleMemoCmd, bot.ReplyToAll)
+	bot.AddCmdHandler(memo.HandleMemoStatusCmd, bot.ReplyToNick)
 	bot.AddCmdHandler(memo.SendMemo, bot.ReplyToAll)
 	bot.AddCmdHandler(search.HandleSearchCmd, bot.ReplyToAll)
 	bot.Run()
