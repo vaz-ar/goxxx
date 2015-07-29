@@ -15,10 +15,15 @@ type Bot struct {
 	Channel           string
 	ChannelKey        string
 	ircConn           *irc.Connection
-	msgHandlers       []func(*irc.Event, func(string))
-	cmdHandlers       []func(*irc.Event, func(string)) bool
-	msgReplyCallbacks []func(string)
-	cmdReplyCallbacks []func(string)
+	MsgHandlers       []func(*irc.Event, func(*ReplyCallbackData))
+	CmdHandlers       []func(*irc.Event, func(*ReplyCallbackData)) bool
+	MsgReplyCallbacks []func(*ReplyCallbackData)
+	CmdReplyCallbacks []func(*ReplyCallbackData)
+}
+
+type ReplyCallbackData struct {
+	Message string
+	Nick    string
 }
 
 func (bot *Bot) Init() {
@@ -31,10 +36,10 @@ func (bot *Bot) Init() {
 
 // msgProcessCallback will be called on every user message the bot reads (if a command was not found previously in the message).
 // replyCallback is to be called by msgProcessCallback (or not) to yield and process its result as a string message.
-func (bot *Bot) AddMsgHandler(msgProcessCallback func(*irc.Event, func(string)), replyCallback func(string)) {
+func (bot *Bot) AddMsgHandler(msgProcessCallback func(*irc.Event, func(*ReplyCallbackData)), replyCallback func(*ReplyCallbackData)) {
 	if msgProcessCallback != nil && replyCallback != nil {
-		bot.msgHandlers = append(bot.msgHandlers, msgProcessCallback)
-		bot.msgReplyCallbacks = append(bot.msgReplyCallbacks, replyCallback)
+		bot.MsgHandlers = append(bot.MsgHandlers, msgProcessCallback)
+		bot.MsgReplyCallbacks = append(bot.MsgReplyCallbacks, replyCallback)
 	}
 }
 
@@ -42,10 +47,10 @@ func (bot *Bot) AddMsgHandler(msgProcessCallback func(*irc.Event, func(string)),
 // replyCallback is to be called by cmdProcessCallback (or not) to yield and process its result as a string message.
 // cmdProcessCallback must check if their replyCallback is nil before using it
 // Command handlers must return true if they found a command to process, false otherwise
-func (bot *Bot) AddCmdHandler(cmdProcessCallback func(*irc.Event, func(string)) bool, replyCallback func(string)) {
+func (bot *Bot) AddCmdHandler(cmdProcessCallback func(*irc.Event, func(*ReplyCallbackData)) bool, replyCallback func(*ReplyCallbackData)) {
 	if cmdProcessCallback != nil {
-		bot.cmdHandlers = append(bot.cmdHandlers, cmdProcessCallback)
-		bot.cmdReplyCallbacks = append(bot.cmdReplyCallbacks, replyCallback)
+		bot.CmdHandlers = append(bot.CmdHandlers, cmdProcessCallback)
+		bot.CmdReplyCallbacks = append(bot.CmdReplyCallbacks, replyCallback)
 	}
 }
 
@@ -53,17 +58,21 @@ func (bot *Bot) Run() {
 	bot.ircConn.Loop()
 }
 
-func (bot *Bot) ReplyToAll(message string) {
-	bot.ircConn.Privmsg(bot.Channel, message)
+func (bot *Bot) ReplyToAll(data *ReplyCallbackData) {
+	bot.ircConn.Privmsg(bot.Channel, data.Message)
+}
+
+func (bot *Bot) ReplyToNick(data *ReplyCallbackData) {
+	bot.ircConn.Privmsg(data.Nick, data.Message)
 }
 
 func (bot *Bot) mainHandler(event *irc.Event) {
-	for i, handler := range bot.cmdHandlers {
-		if handler(event, bot.cmdReplyCallbacks[i]) {
+	for i, handler := range bot.CmdHandlers {
+		if handler(event, bot.CmdReplyCallbacks[i]) {
 			return
 		}
 	}
-	for i, handler := range bot.msgHandlers {
-		handler(event, bot.msgReplyCallbacks[i])
+	for i, handler := range bot.MsgHandlers {
+		handler(event, bot.MsgReplyCallbacks[i])
 	}
 }
