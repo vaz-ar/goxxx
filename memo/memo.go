@@ -16,12 +16,12 @@ import (
 
 var _database *sql.DB
 
-type memoData struct {
+type MemoData struct {
 	id        int
-	date      string
-	message   string
-	user_from string
-	user_to   string
+	Date      string
+	Message   string
+	User_from string
+	User_to   string
 }
 
 func Init(db *sql.DB) {
@@ -51,28 +51,30 @@ func HandleMemoCmd(event *irc.Event, callback func(*core.ReplyCallbackData)) boo
 	if len(fields) < 3 {
 		if callback != nil {
 			callback(&core.ReplyCallbackData{
-				Message: fmt.Sprintf("Memo usage: %s \"recipient's nick\" \"message\"", fields[0])})
+				Message: fmt.Sprintf("Memo usage: %s \"recipient's nick\" \"message\"", fields[0]),
+				Nick:    event.Nick})
 			callback(&core.ReplyCallbackData{
-				Message: "Memo usage: !memostat to list unread memos"})
+				Message: "Memo usage: !memostat to list unread memos",
+				Nick:    event.Nick})
 		}
 		return false
 	}
 
-	memo := memoData{
-		user_to:   fields[1],
-		user_from: event.Nick,
-		message:   strings.Join(fields[2:], " ")}
+	memo := MemoData{
+		User_to:   fields[1],
+		User_from: event.Nick,
+		Message:   strings.Join(fields[2:], " ")}
 
 	sqlStmt := "INSERT INTO Memo (user_to, user_from, message) VALUES ($1, $2, $3)"
-	_, err := _database.Exec(sqlStmt, memo.user_to, memo.user_from, memo.message)
+	_, err := _database.Exec(sqlStmt, memo.User_to, memo.User_from, memo.Message)
 	if err != nil {
 		log.Fatalf("%q: %s\n", err, sqlStmt)
 	}
 
 	if callback != nil {
 		callback(&core.ReplyCallbackData{
-			// Message: fmt.Sprintf("Memo for %s from %s: \"%s\"", fields[1], user_from, message)})
-			Message: fmt.Sprintf("%s: memo for %s saved", memo.user_from, memo.user_from)})
+			Message: fmt.Sprintf("%s: memo for %s saved", memo.User_from, memo.User_to),
+			Nick:    memo.User_from})
 	}
 	return true
 }
@@ -83,19 +85,22 @@ func SendMemo(event *irc.Event, callback func(*core.ReplyCallbackData)) bool {
 	}
 
 	user := event.Nick
-	sqlQuery := "SELECT id, user_to, user_from, message, strftime('%d/%m/%Y @ %H:%M', datetime(date, 'localtime')) FROM Memo WHERE user_to = $1;"
+	sqlQuery := "SELECT id, user_from, message, strftime('%d/%m/%Y @ %H:%M', datetime(date, 'localtime')) FROM Memo WHERE user_to = $1;"
 	rows, err := _database.Query(sqlQuery, user)
 	if err != nil {
 		log.Fatalf("%q: %s\n", err, sqlQuery)
 	}
 	defer rows.Close()
 
-	var memoList []memoData
+	user_to := event.Nick
+	var memoList []MemoData
 	for rows.Next() {
-		var memo memoData
-		rows.Scan(&memo.id, &memo.user_to, &memo.user_from, &memo.message, &memo.date)
+		var memo MemoData
+		rows.Scan(&memo.id, &memo.User_from, &memo.Message, &memo.Date)
 		memoList = append(memoList, memo)
-		callback(&core.ReplyCallbackData{Message: fmt.Sprintf("%s: memo from %s => \"%s\" (%s)", memo.user_to, memo.user_from, memo.message, memo.date)})
+		callback(&core.ReplyCallbackData{
+			Message: fmt.Sprintf("%s: memo from %s => %q (%s)", user_to, memo.User_from, memo.Message, memo.Date),
+			Nick:    user_to})
 	}
 	rows.Close()
 
@@ -121,15 +126,19 @@ func HandleMemoStatusCmd(event *irc.Event, callback func(*core.ReplyCallbackData
 	}
 	defer rows.Close()
 
-	var memo memoData
+	var memo MemoData
 	for rows.Next() {
-		rows.Scan(&memo.id, &memo.user_to, &memo.message, &memo.date)
-		callback(&core.ReplyCallbackData{fmt.Sprintf("Memo for %s: %q (%s)", memo.user_to, memo.message, memo.date), event.Nick})
+		rows.Scan(&memo.id, &memo.User_to, &memo.Message, &memo.Date)
+		callback(&core.ReplyCallbackData{
+			Message: fmt.Sprintf("Memo for %s: %q (%s)", memo.User_to, memo.Message, memo.Date),
+			Nick:    event.Nick})
 	}
 	rows.Close()
 
 	if memo.id == 0 {
-		callback(&core.ReplyCallbackData{"No memo saved", event.Nick})
+		callback(&core.ReplyCallbackData{
+			Message: "No memo saved",
+			Nick:    event.Nick})
 	}
 
 	return true
