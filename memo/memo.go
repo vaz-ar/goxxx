@@ -52,6 +52,8 @@ func HandleMemoCmd(event *irc.Event, callback func(*core.ReplyCallbackData)) boo
 		if callback != nil {
 			callback(&core.ReplyCallbackData{
 				Message: fmt.Sprintf("Memo usage: %s \"recipient's nick\" \"message\"", fields[0])})
+			callback(&core.ReplyCallbackData{
+				Message: "Memo usage: !memostat to list unread memos"})
 		}
 		return false
 	}
