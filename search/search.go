@@ -15,16 +15,16 @@ import (
 	"strings"
 )
 
-type search_struct struct {
+type searchData struct {
 	getUrl         func(*string) []byte
 	text_result    string
 	text_no_result string
 }
 
-var search_map = make(map[string]search_struct)
+var search_map = make(map[string]searchData)
 
 func Init() {
-	search_map["!dg"] = search_struct{
+	search_map["!dg"] = searchData{
 		getUrlDuckduckgo,
 		"DuckDuckGo: Best result for %q => %s",
 		"DuckDuckGo: No result for %q"}
