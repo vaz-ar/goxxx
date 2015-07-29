@@ -7,6 +7,7 @@ package search
 
 import (
 	"fmt"
+	"github.com/romainletendart/goxxx/core"
 	"github.com/thoj/go-ircevent"
 	"io/ioutil"
 	"log"
@@ -21,16 +22,16 @@ type searchData struct {
 	text_no_result string
 }
 
-var search_map = make(map[string]searchData)
+var searchMap = make(map[string]searchData)
 
 func Init() {
-	search_map["!dg"] = searchData{
+	searchMap["!dg"] = searchData{
 		getUrlDuckduckgo,
 		"DuckDuckGo: Best result for %q => %s",
 		"DuckDuckGo: No result for %q"}
 }
 
-func HandleSearchCmd(event *irc.Event, callback func(string)) bool {
+func HandleSearchCmd(event *irc.Event, callback func(*core.ReplyCallbackData)) bool {
 	if callback == nil {
 		log.Println("Callback nil for the HandleSearchCmd function")
 		return false
@@ -43,26 +44,27 @@ func HandleSearchCmd(event *irc.Event, callback func(string)) bool {
 		return false
 	}
 
-	search, present := search_map[fields[0]]
+	search, present := searchMap[fields[0]]
 	if !present {
 		return false
 	}
 
 	message := strings.Join(fields[1:], " ")
 	if message == "" {
-		callback(fmt.Sprintf("Search usage: %s \"terms to search for\"", fields[0]))
+		callback(&core.ReplyCallbackData{Message: fmt.Sprintf("Search usage: %s \"terms to search for\"", fields[0])})
 		return false
 	}
 
 	if result := search.getUrl(&message); result != nil {
-		callback(fmt.Sprintf(search.text_result, message, result))
+		callback(&core.ReplyCallbackData{Message: fmt.Sprintf(search.text_result, message, result)})
 	} else {
-		callback(fmt.Sprintf(search.text_no_result, message))
+		callback(&core.ReplyCallbackData{Message: fmt.Sprintf(search.text_no_result, message)})
 	}
 	return true
 }
 
 func getUrlDuckduckgo(message *string) []byte {
+	log.Printf("Search: DuckduckGo search for term %q", *message)
 	response, err := http.Get(fmt.Sprintf("https://duckduckgo.com/html/?q=%s", *message))
 	if err != nil {
 		log.Println(err)
