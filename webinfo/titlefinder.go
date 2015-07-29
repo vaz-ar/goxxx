@@ -8,6 +8,7 @@ package webinfo
 import (
 	"database/sql"
 	"fmt"
+	"github.com/romainletendart/goxxx/core"
 	"github.com/thoj/go-ircevent"
 	"golang.org/x/net/html"
 	"golang.org/x/net/idna"
@@ -34,10 +35,10 @@ func Init(db *sql.DB) {
 }
 
 // TODO Choose a better name for that function
-func HandleUrls(event *irc.Event, replyCallback func(string)) {
+func HandleUrls(event *irc.Event, replyCallback func(*core.ReplyCallbackData)) {
 	allUrls := findUrls(event.Message())
 	for _, url := range allUrls {
-		fmt.Println("Detected URL:", url.String())
+		log.Println("Detected URL:", url.String())
 		response, err := http.Get(url.String())
 		if err != nil {
 			log.Println(err)
@@ -70,12 +71,12 @@ func HandleUrls(event *irc.Event, replyCallback func(string)) {
 				log.Fatalf("%q: %s\n", err, sqlQuery)
 			}
 		} else {
-			replyCallback(fmt.Sprintf("Link already posted by %s (%s)", user, date))
+			replyCallback(&core.ReplyCallbackData{Message: fmt.Sprintf("Link already posted by %s (%s)", user, date)})
 		}
 
 		title, found := getTitleFromHTML(doc)
 		if found {
-			replyCallback(title)
+			replyCallback(&core.ReplyCallbackData{Message: title})
 		}
 	}
 }
