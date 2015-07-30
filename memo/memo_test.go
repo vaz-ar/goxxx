@@ -17,7 +17,24 @@ import (
 	"testing"
 )
 
-func TestHandleMemoCmd(t *testing.T) {
+var (
+	validMessage   string = "  \t  !memo   Receiver this is a memo      "
+	invalidMessage string = "this is not a memo command"
+	expectedNick   string = "Receiver"
+
+	// For the Arguments field I checked how it worked from a real function call (Not documented)
+	validEvent irc.Event = irc.Event{
+		Nick:      "Sender",
+		Arguments: []string{"#test_channel", validMessage}}
+
+	invalidEvent irc.Event = irc.Event{
+		Nick:      "Sender",
+		Arguments: []string{"#test_channel", invalidMessage}}
+
+	replyCallbackDataReference core.ReplyCallbackData = core.ReplyCallbackData{Nick: "Sender", Message: "Sender: memo for Receiver saved"}
+)
+
+func Test_HandleMemoCmd(t *testing.T) {
 	log.SetOutput(ioutil.Discard)
 
 	db := database.InitDatabase("tests.sqlite", true)
@@ -25,61 +42,38 @@ func TestHandleMemoCmd(t *testing.T) {
 	Init(db)
 
 	// --- --- --- Supposed to pass
-	var (
-		message string = "  \t  !memo Receiver this is a memo      "
-
-		// For the Arguments field I checked how it worked from a real function call (Not documented)
-		event irc.Event = irc.Event{
-			Nick:      "Sender",
-			Arguments: []string{"#test_channel", message}}
-
-		replyCallbackDataTest      core.ReplyCallbackData
-		replyCallbackDataReference core.ReplyCallbackData = core.ReplyCallbackData{Nick: "Sender", Message: "Sender: memo for Receiver saved"}
-	)
-
-	HandleMemoCmd(&event, func(data *core.ReplyCallbackData) {
+	var replyCallbackDataTest core.ReplyCallbackData
+	HandleMemoCmd(&validEvent, func(data *core.ReplyCallbackData) {
 		replyCallbackDataTest = *data
 	})
-
 	if replyCallbackDataTest != replyCallbackDataReference {
 		t.Errorf("Test data differ from reference data:\nTest data:\t%#v\nReference data: %#v\n\n", replyCallbackDataTest, replyCallbackDataReference)
 	}
 	// --- --- --- --- --- ---
 
 	// --- --- --- Not supposed to pass
-	message = " this is not a command "
-	event = irc.Event{
-		Nick:      "Sender",
-		Arguments: []string{"#test_channel", message}}
-
-	// There is no memo command in the message, the callback should not be called
-	HandleMemoCmd(&event, func(data *core.ReplyCallbackData) {
-		t.Errorf("Callback function not supposed to be called, the message does not contain the !memo command (Message: %q)\n\n", message)
+	HandleMemoCmd(&invalidEvent, func(data *core.ReplyCallbackData) {
+		// There is no memo command in the message, the callback should not be called
+		t.Errorf("Callback function not supposed to be called, the message does not contain the !memo command (Message: %q)\n\n", invalidMessage)
 	})
 	// --- --- --- --- --- ---
 }
 
-func TestSendMemo(t *testing.T) {
+func Test_SendMemo(t *testing.T) {
 	log.SetOutput(ioutil.Discard)
 
 	db := database.InitDatabase("tests.sqlite", true)
 	defer db.Close()
 	Init(db)
 
-	var (
-		message               string    = "!memo Receiver this is a memo"
-		expectedNick          string    = "Receiver"
-		event                 irc.Event = irc.Event{Nick: "Sender", Arguments: []string{"#test_channel", message}}
-		replyCallbackDataTest core.ReplyCallbackData
-	)
-
 	// Create Memo
-	HandleMemoCmd(&event, nil)
+	HandleMemoCmd(&validEvent, nil)
 
-	message = " this is a message to trigger the memo "
-	event = irc.Event{Nick: expectedNick, Arguments: []string{"#test_channel", message}}
+	message := " this is a message to trigger the memo "
+	event := irc.Event{Nick: expectedNick, Arguments: []string{"#test_channel", message}}
 	re := regexp.MustCompile(fmt.Sprintf(`^%s: memo from Sender => "this is a memo" \(\d{2}/\d{2}/\d{4} @ \d{2}:\d{2}\)$`, expectedNick))
 
+	var replyCallbackDataTest core.ReplyCallbackData
 	SendMemo(&event, func(data *core.ReplyCallbackData) {
 		replyCallbackDataTest = *data
 	})
