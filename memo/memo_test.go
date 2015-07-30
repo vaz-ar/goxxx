@@ -7,7 +7,6 @@ package memo
 
 import (
 	"fmt"
-	// "github.com/fatih/color"
 	"github.com/romainletendart/goxxx/core"
 	"github.com/romainletendart/goxxx/database"
 	"github.com/thoj/go-ircevent"
@@ -37,11 +36,11 @@ var (
 func Test_HandleMemoCmd(t *testing.T) {
 	log.SetOutput(ioutil.Discard)
 
-	db := database.InitDatabase("tests.sqlite", true)
+	db := database.InitDatabase("../storage/tests.sqlite", true)
 	defer db.Close()
 	Init(db)
 
-	// --- --- --- Supposed to pass
+	// --- --- --- --- --- ---
 	var replyCallbackDataTest core.ReplyCallbackData
 	HandleMemoCmd(&validEvent, func(data *core.ReplyCallbackData) {
 		replyCallbackDataTest = *data
@@ -51,7 +50,7 @@ func Test_HandleMemoCmd(t *testing.T) {
 	}
 	// --- --- --- --- --- ---
 
-	// --- --- --- Not supposed to pass
+	// --- --- --- --- --- ---
 	HandleMemoCmd(&invalidEvent, func(data *core.ReplyCallbackData) {
 		// There is no memo command in the message, the callback should not be called
 		t.Errorf("Callback function not supposed to be called, the message does not contain the !memo command (Message: %q)\n\n", invalidMessage)
@@ -62,7 +61,7 @@ func Test_HandleMemoCmd(t *testing.T) {
 func Test_SendMemo(t *testing.T) {
 	log.SetOutput(ioutil.Discard)
 
-	db := database.InitDatabase("tests.sqlite", true)
+	db := database.InitDatabase("../storage/tests.sqlite", true)
 	defer db.Close()
 	Init(db)
 
