@@ -1,0 +1,1013 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+  <meta http-equiv="content-type" content="text/html; charset=UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=3.0, user-scalable=1">
+  <meta name="HandheldFriendly" content="true" />
+  <meta name="robots" content="noindex, nofollow" />
+  <title>Unit Tests at DuckDuckGo</title>
+  <link title="DuckDuckGo (HTML)" type="application/opensearchdescription+xml" rel="search" href="/opensearch_html.xml">
+  <link href="/favicon.ico" rel="shortcut icon" />
+  <link rel="apple-touch-icon" href="/assets/logo_icon128.v101.png">
+  <link rel="image_src" href="/assets/logo_homepage.normal.v101.png"/>
+  <link type="text/css" media="handheld, all" href="/s640.css" rel="stylesheet" />
+  <style type="text/css">
+    #content_wrapper, #zero_click_wrapper {
+      margin: auto;
+      padding-left: 50px;
+      min-width: 100px;
+    }
+    #content {
+      padding-top: 20px;
+      min-width: 100px;
+    }
+    #did_you_mean {
+      padding-left: 34px;
+    }
+    #feedback {
+      display: block;
+    }
+    #links, #zero_click {
+      width: 80%;
+    }
+    #logo {
+      float: left;
+      margin-top: -10px;
+      margin-left: -80px;
+    }
+    #search_form_homepage {
+      float: left;
+      width: 90%;
+      max-width: 700px;
+      min-width: 300px;
+    }
+    #search_form_input_homepage {
+      width: 80%;
+      float: left;
+    }
+    #search_wrapper_homepage {
+      width: 42px;
+      float: left;
+    }
+    #side_wrapper {
+      display: block;
+    }
+    #side {
+      right: 2%;
+      position: fixed;
+      top: 100px;
+      width: 90px;
+    }
+    #zero_click_abstract {
+/* let the highlight go across the image */
+/*      max-width: 484px; */
+      margin: 5px;
+      padding: 5px;
+      margin-left: 10px;
+    }
+    /* put image inside abstract so don't need margin. */
+    #zero_click_image {
+      margin-top: 0px;
+    }
+    #zero_click_wrapper {
+      display: block;
+      visibility: visible;
+      padding-left: 0px;
+      margin: 0;
+    }
+    #zero_click_wrapper2 {
+      max-height:150px;
+      overflow:auto;
+    }
+    #zero_click_plus_wrapper {
+      display: none;
+    }
+
+    .web-result,.zero-click-result {
+    	border:1px solid transparent;
+    }
+    .web-result:hover,.zero-click-result:hover {
+      background:url(/assets/results_highlight_bg.v101.png) repeat-x;
+      background-color:#EAEAEA;
+      border: 1px solid #BFBFBF !important;
+      -moz-border-radius: 6px;
+      -webkit-border-radius: 6px;
+      border-radius: 6px;
+      cursor: pointer;
+    }
+    .web-result-sponsored:hover {
+     background: #eae3ad !important;
+    }
+    .web-result-sponsored {
+    background: #fff7d0;
+    border: 1px solid #fef9eb !important;
+    -moz-border-radius: 6px;
+    -webkit-border-radius: 6px;
+    -webkit-border-radius: 6px;
+    -moz-border-radius: 6px;
+    border-radius: 6px;
+    margin-bottom: 2px;;
+    }
+    .web-result-sponsored-text {
+    float:right;
+    color: #555555;
+    padding-right: 20px;
+    font-size: 12px;
+    }
+    .nav-link {
+      float: left;
+      clear: none;
+    }
+    .navbutton {
+      background-color:transparent;
+      border: 0px none;
+      cursor:pointer;
+      font-size:16px;
+      font-weight:bold;
+      text-decoration:underline;
+      color: #1168CC;
+      border-bottom: 1px solid transparent;
+      padding: 0px;
+    }
+    input.navbutton:hover {
+    	border-bottom: 1px solid #1168CC;
+    }
+    @media only handheld,
+           only screen and (max-device-width: 800px) {
+      html {
+        overflow-x: hidden;
+      }
+      body {
+        margin-left: 10px;
+        width: 97%;
+      }
+      #content {
+        padding-top: 0px;
+      }
+      #content_wrapper,#content,#links,#links_wrapper,#zero_click_wrapper {
+        width: 97%;
+        min-width: 97%;
+        background: #FFF;
+        padding-right:5px;
+        margin-right:0;
+        padding-left:0;
+        margin-left:0;
+      }
+      #feedback, #side_wrapper, #logo {
+        display: none;
+      }
+    }
+  </style>
+</head>
+<body class="yui-skin-sam">
+  <a name="top" id="top"></a>
+  <form action="/html/" method="POST">
+    <input type="text" name="state_hidden" id="state_hidden" />
+  </form>
+  <div id="content_wrapper">
+  <div id="content">
+        <a title="DuckDuckGo" href="/html/">
+	  <img width="60" height="60" src="/assets/logo_icon60.v101.png" alt="DuckDuckGo" id="logo"/>
+	</a>
+    <form name="x" id="search_form_homepage" class="no-menu" action="/html/" method="POST">
+	  <input name="q" autocomplete="off" id="search_form_input_homepage" type="text" value="Unit Tests">
+
+
+<input name="kl" value="us-en" type="hidden">
+
+
+
+
+	  <div id="search_wrapper_homepage">
+	  <input name="b" id="search_button_homepage" value="" title="Search" alt="Search" type="submit">
+	  </div>
+    </form>
+<div style="padding-top: 20px;">&nbsp;</div>
+<!-- If zero click results are present -->
+    <div id="zero_click_wrapper">
+      <div id="zero_click">
+        <div id="zero_click_wrapper2">
+          <div id="zero_click_header">
+          <div id="zero_click_heading">
+	  <h1>
+            <a rel="nofollow" href="https://en.wikipedia.org/wiki/Unit_testing">Unit testing</a>
+	    </h1>
+	  </div>
+          </div>
+          <div class="zero-click-result" id="zero_click_abstract">
+
+            In computer programming, unit testing is a software testing method by which individual units of source code, sets of one or more computer program modules together with associated control data, usage procedures, and operating procedures, are tested to determine whether they are fit for use. Intuitively, one can view a unit as the smallest testable part of an application. In procedural programming, a unit could be an entire module, but it is more commonly an individual function or procedure. In object-oriented programming, a unit is often an entire interface, such as a class, but could be an individual method. Unit tests are short code fragments created by programmers or occasionally by white box testers during the development process. It is also known as component testing.
+
+	          <a rel="nofollow" href="https://en.wikipedia.org/wiki/Unit_testing" >More at <q>Wikipedia</q></a>
+
+          </div>
+          <div class="ct2b" id="zero_click_topics">
+            <div class="crh">&nbsp;</div>
+          </div>
+        </div>
+      </div>
+    </div>
+<!-- Web results are present -->
+  <div id="links_wrapper">
+  <div id="links">
+
+
+            <div class="results_links results_links_deep web-result">
+          <div class="icon_fav" style="display: block;">
+
+            	<a rel="nofollow" href="https://en.wikipedia.org/wiki/Unit_testing">
+	            	<img width="16" height="16" alt=""
+		            	src="/i/en.wikipedia.org.ico" style="visibility: visible;" name="i15" />
+	          	</a>
+
+          </div>
+          <div class="links_main links_deep"> <!-- This is the visible part -->
+
+           	<a rel="nofollow" class="large" href="https://en.wikipedia.org/wiki/Unit_testing"><b>Unit</b> testing - Wikipedia, the free encyclopedia</a>
+
+
+            <div class="snippet">In computer programming, <b>unit</b> testing is a software testing method by which individual <b>units</b> of source code, sets of one or more computer program modules together with associated control data, usage procedures, and operating procedures, are tested to determine whether they are fit for use ...</div>
+
+            <div class="url">
+              en.wikipedia.org/wiki/Unit_testing
+
+            </div>
+          </div>
+        </div>
+
+
+            <div class="results_links results_links_deep web-result">
+          <div class="icon_fav" style="display: block;">
+
+            	<a rel="nofollow" href="http://stackoverflow.com/questions/2741832/unit-tests-vs-functional-tests">
+	            	<img width="16" height="16" alt=""
+		            	src="/i/stackoverflow.com.ico" style="visibility: visible;" name="i15" />
+	          	</a>
+
+          </div>
+          <div class="links_main links_deep"> <!-- This is the visible part -->
+
+           	<a rel="nofollow" class="large" href="http://stackoverflow.com/questions/2741832/unit-tests-vs-functional-tests">testing - <b>Unit</b> <b>tests</b> vs Functional <b>tests</b> - Stack Overflow</a>
+
+
+            <div class="snippet">What is the difference between <b>unit</b> <b>tests</b> and functional <b>tests</b>? Can a <b>unit</b> <b>test</b> also <b>test</b> a function?</div>
+
+            <div class="url">
+              stackoverflow.com/questions/2741832/unit-tests-vs-functiona...
+
+            </div>
+          </div>
+        </div>
+
+
+            <div class="results_links results_links_deep web-result">
+          <div class="icon_fav" style="display: block;">
+
+            	<a rel="nofollow" href="http://softwaretestingfundamentals.com/unit-testing/">
+	            	<img width="16" height="16" alt=""
+		            	src="/i/softwaretestingfundamentals.com.ico" style="visibility: visible;" name="i15" />
+	          	</a>
+
+          </div>
+          <div class="links_main links_deep"> <!-- This is the visible part -->
+
+           	<a rel="nofollow" class="large" href="http://softwaretestingfundamentals.com/unit-testing/"><b>Unit</b> Testing | Software Testing Fundamentals</a>
+
+
+            <div class="snippet"><b>UNIT</b> TESTING Fundamentals. DEFINITION. <b>Unit</b> Testing is a level of software testing where individual <b>units</b>/ components of a software are tested. The purpose is to validate that each <b>unit</b> of the software performs as designed.</div>
+
+            <div class="url">
+              softwaretestingfundamentals.com/unit-testing/
+
+            </div>
+          </div>
+        </div>
+
+
+            <div class="results_links results_links_deep web-result">
+          <div class="icon_fav" style="display: block;">
+
+            	<a rel="nofollow" href="https://developer.salesforce.com/page/How_to_Write_Good_Unit_Tests">
+	            	<img width="16" height="16" alt=""
+		            	src="/i/developer.salesforce.com.ico" style="visibility: visible;" name="i15" />
+	          	</a>
+
+          </div>
+          <div class="links_main links_deep"> <!-- This is the visible part -->
+
+           	<a rel="nofollow" class="large" href="https://developer.salesforce.com/page/How_to_Write_Good_Unit_Tests">How to Write Good <b>Unit</b> <b>Tests</b> - developer.force.com</a>
+
+
+            <div class="snippet">Abstract. This article shows how to craft good <b>unit</b> <b>tests</b>. It explores the proper structure of <b>unit</b> <b>tests</b>, the code scenarios that <b>unit</b> <b>tests</b> should cover, and the properties of well-written <b>unit</b> <b>tests</b>.</div>
+
+            <div class="url">
+              developer.salesforce.com/page/How_to_Write_Good_Unit_Tests
+
+            </div>
+          </div>
+        </div>
+
+
+            <div class="results_links results_links_deep web-result">
+          <div class="icon_fav" style="display: block;">
+
+            	<a rel="nofollow" href="http://www.extremeprogramming.org/rules/unittests.html">
+	            	<img width="16" height="16" alt=""
+		            	src="/i/www.extremeprogramming.org.ico" style="visibility: visible;" name="i15" />
+	          	</a>
+
+          </div>
+          <div class="links_main links_deep"> <!-- This is the visible part -->
+
+           	<a rel="nofollow" class="large" href="http://www.extremeprogramming.org/rules/unittests.html"><b>Unit</b> <b>Tests</b> - Extreme programming</a>
+
+
+            <div class="snippet"><b>Unit</b> <b>tests</b> are one of the corner stones of Extreme Programming (XP). But <b>unit</b> <b>tests</b> XP style is a little different. First you should create or download a <b>unit</b> <b>test</b> framework to be able to create automated <b>unit</b> <b>tests</b> suites.</div>
+
+            <div class="url">
+              extremeprogramming.org/rules/unittests.html
+
+            </div>
+          </div>
+        </div>
+
+
+            <div class="results_links results_links_deep web-result">
+          <div class="icon_fav" style="display: block;">
+
+            	<a rel="nofollow" href="http://code.tutsplus.com/articles/the-beginners-guide-to-unit-testing-what-is-unit-testing--wp-25728">
+	            	<img width="16" height="16" alt=""
+		            	src="/i/code.tutsplus.com.ico" style="visibility: visible;" name="i15" />
+	          	</a>
+
+          </div>
+          <div class="links_main links_deep"> <!-- This is the visible part -->
+
+           	<a rel="nofollow" class="large" href="http://code.tutsplus.com/articles/the-beginners-guide-to-unit-testing-what-is-unit-testing--wp-25728">The Beginner&#x27;s Guide to <b>Unit</b> Testing: What Is <b>Unit</b> Testing ...</a>
+
+
+            <div class="snippet">What Is <b>Unit</b> Testing? Before we get started setting up our environment and writing any code, let&#x27;s define exactly what <b>unit</b> testing is, why it&#x27;s worth doing, and how to get started in incorporating it in our projects.</div>
+
+            <div class="url">
+              code.tutsplus.com/articles/the-beginners-guide-to-unit-test...
+
+            </div>
+          </div>
+        </div>
+
+
+            <div class="results_links results_links_deep web-result">
+          <div class="icon_fav" style="display: block;">
+
+            	<a rel="nofollow" href="http://martinfowler.com/bliki/UnitTest.html">
+	            	<img width="16" height="16" alt=""
+		            	src="/i/martinfowler.com.ico" style="visibility: visible;" name="i15" />
+	          	</a>
+
+          </div>
+          <div class="links_main links_deep"> <!-- This is the visible part -->
+
+           	<a rel="nofollow" class="large" href="http://martinfowler.com/bliki/UnitTest.html"><b>UnitTest</b> - Martin Fowler</a>
+
+
+            <div class="snippet"><b>Unit</b> testing is often talked about in software development, and is a term that I&#x27;ve been familiar with during my whole time writing programs.</div>
+
+            <div class="url">
+              martinfowler.com/bliki/UnitTest.html
+
+            </div>
+          </div>
+        </div>
+
+
+            <div class="results_links results_links_deep web-result">
+          <div class="icon_fav" style="display: block;">
+
+            	<a rel="nofollow" href="http://www.codeproject.com/Articles/5019/Advanced-Unit-Testing-Part-I-Overview">
+	            	<img width="16" height="16" alt=""
+		            	src="/i/www.codeproject.com.ico" style="visibility: visible;" name="i15" />
+	          	</a>
+
+          </div>
+          <div class="links_main links_deep"> <!-- This is the visible part -->
+
+           	<a rel="nofollow" class="large" href="http://www.codeproject.com/Articles/5019/Advanced-Unit-Testing-Part-I-Overview">Advanced <b>Unit</b> Testing, Part I - Overview - CodeProject</a>
+
+
+            <div class="snippet">Oh dear God, anybody who votes [for <b>unit</b>-testing] has major problems. I hate the @#$% things. And the &quot;Write <b>tests</b> first, code later&quot; paradigm eludes me.</div>
+
+            <div class="url">
+              codeproject.com/Articles/5019/Advanced-Unit-Testing-Part-...
+
+            </div>
+          </div>
+        </div>
+
+
+            <div class="results_links results_links_deep web-result">
+          <div class="icon_fav" style="display: block;">
+
+            	<a rel="nofollow" href="https://docs.python.org/2/library/unittest.html">
+	            	<img width="16" height="16" alt=""
+		            	src="/i/docs.python.org.ico" style="visibility: visible;" name="i15" />
+	          	</a>
+
+          </div>
+          <div class="links_main links_deep"> <!-- This is the visible part -->
+
+           	<a rel="nofollow" class="large" href="https://docs.python.org/2/library/unittest.html">25.3. <b>unittest</b> — <b>Unit</b> testing framework — Python 2.7.10 ...</a>
+
+
+            <div class="snippet">See also. Module doctest Another <b>test</b>-support module with a very different flavor. unittest2: A backport of new <b>unittest</b> features for Python 2.4-2.6</div>
+
+            <div class="url">
+              docs.python.org/2/library/unittest.html
+
+            </div>
+          </div>
+        </div>
+
+
+            <div class="results_links results_links_deep web-result">
+          <div class="icon_fav" style="display: block;">
+
+            	<a rel="nofollow" href="https://msdn.microsoft.com/en-us/library/dd264975.aspx">
+	            	<img width="16" height="16" alt=""
+		            	src="/i/msdn.microsoft.com.ico" style="visibility: visible;" name="i15" />
+	          	</a>
+
+          </div>
+          <div class="links_main links_deep"> <!-- This is the visible part -->
+
+           	<a rel="nofollow" class="large" href="https://msdn.microsoft.com/en-us/library/dd264975.aspx"><b>Unit</b> <b>Test</b> Your Code</a>
+
+
+            <div class="snippet"><b>Unit</b> <b>tests</b> give developers and testers a quick way to look for logic errors in the methods of classes in Visual C#, Visual Basic, and Visual C++ projects.</div>
+
+            <div class="url">
+              msdn.microsoft.com/en-us/library/dd264975.aspx
+
+            </div>
+          </div>
+        </div>
+
+
+            <div class="results_links results_links_deep web-result">
+          <div class="icon_fav" style="display: block;">
+
+            	<a rel="nofollow" href="http://qunitjs.com/">
+	            	<img width="16" height="16" alt=""
+		            	src="/i/qunitjs.com.ico" style="visibility: visible;" name="i15" />
+	          	</a>
+
+          </div>
+          <div class="links_main links_deep"> <!-- This is the visible part -->
+
+           	<a rel="nofollow" class="large" href="http://qunitjs.com/">QUnit: A JavaScript <b>Unit</b> Testing framework.</a>
+
+
+            <div class="snippet">A <b>unit</b> testing framework is presented with general introduction into <b>Unit</b> Testing, API documetation, downloads, guide and plugin links.</div>
+
+            <div class="url">
+              qunitjs.com
+
+            </div>
+          </div>
+        </div>
+
+
+            <div class="results_links results_links_deep web-result">
+          <div class="icon_fav" style="display: block;">
+
+            	<a rel="nofollow" href="http://artofunittesting.com/definition-of-a-unit-test">
+	            	<img width="16" height="16" alt=""
+		            	src="/i/artofunittesting.com.ico" style="visibility: visible;" name="i15" />
+	          	</a>
+
+          </div>
+          <div class="links_main links_deep"> <!-- This is the visible part -->
+
+           	<a rel="nofollow" class="large" href="http://artofunittesting.com/definition-of-a-unit-test"><b>Unit</b> Testing Lessons in Ruby, Java and .NET - The Art Of <b>Unit</b> ...</a>
+
+
+            <div class="snippet"><b>Unit</b> <b>Test</b> - Definition. Related: <b>Test</b> Review Guidelines. I used to feel that a <b>&#x27;unit&#x27;</b> was the smallest possible part of a code base (a method, really).</div>
+
+            <div class="url">
+              artofunittesting.com/definition-of-a-unit-test
+
+            </div>
+          </div>
+        </div>
+
+
+            <div class="results_links results_links_deep web-result">
+          <div class="icon_fav" style="display: block;">
+
+            	<a rel="nofollow" href="http://www.vogella.com/tutorials/JUnit/article.html">
+	            	<img width="16" height="16" alt=""
+		            	src="/i/www.vogella.com.ico" style="visibility: visible;" name="i15" />
+	          	</a>
+
+          </div>
+          <div class="links_main links_deep"> <!-- This is the visible part -->
+
+           	<a rel="nofollow" class="large" href="http://www.vogella.com/tutorials/JUnit/article.html"><b>Unit</b> Testing with JUnit - Tutorial - vogella</a>
+
+
+            <div class="snippet">JUnit This tutorial explains <b>unit</b> testing with JUnit 4.x. It explains the creation of JUnit <b>tests</b>. It also covers the usage of the Eclipse IDE to work with JUnit <b>tests</b>.</div>
+
+            <div class="url">
+              vogella.com/tutorials/JUnit/article.html
+
+            </div>
+          </div>
+        </div>
+
+
+            <div class="results_links results_links_deep web-result">
+          <div class="icon_fav" style="display: block;">
+
+            	<a rel="nofollow" href="http://blog.stevensanderson.com/2009/08/24/writing-great-unit-tests-best-and-worst-practises/">
+	            	<img width="16" height="16" alt=""
+		            	src="/i/blog.stevensanderson.com.ico" style="visibility: visible;" name="i15" />
+	          	</a>
+
+          </div>
+          <div class="links_main links_deep"> <!-- This is the visible part -->
+
+           	<a rel="nofollow" class="large" href="http://blog.stevensanderson.com/2009/08/24/writing-great-unit-tests-best-and-worst-practises/">Writing Great <b>Unit</b> <b>Tests</b>: Best and Worst Practices - Steve ...</a>
+
+
+            <div class="snippet">This blog post is aimed at developers with at least a small amount of <b>unit</b> testing experience. If you&#x27;ve never written a <b>unit</b> <b>test</b>, please read an introduction and have a go at it first.</div>
+
+            <div class="url">
+              blog.stevensanderson.com/2009/08/24/writing-great-unit-tests-best-...
+
+            </div>
+          </div>
+        </div>
+
+
+            <div class="results_links results_links_deep web-result">
+          <div class="icon_fav" style="display: block;">
+
+            	<a rel="nofollow" href="http://laravel.com/docs/4.2/testing">
+	            	<img width="16" height="16" alt=""
+		            	src="/i/laravel.com.ico" style="visibility: visible;" name="i15" />
+	          	</a>
+
+          </div>
+          <div class="links_main links_deep"> <!-- This is the visible part -->
+
+           	<a rel="nofollow" class="large" href="http://laravel.com/docs/4.2/testing"><b>Unit</b> Testing - Laravel - The PHP Framework For Web Artisans</a>
+
+
+            <div class="snippet">Laravel - The PHP framework for web artisans. ... Testing. Introduction; Defining &amp; Running <b>Tests</b>; <b>Test</b> Environment; Calling Routes From <b>Tests</b></div>
+
+            <div class="url">
+              laravel.com/docs/4.2/testing
+
+            </div>
+          </div>
+        </div>
+
+
+            <div class="results_links results_links_deep web-result">
+          <div class="icon_fav" style="display: block;">
+
+            	<a rel="nofollow" href="http://nunit.org/">
+	            	<img width="16" height="16" alt=""
+		            	src="/i/nunit.org.ico" style="visibility: visible;" name="i15" />
+	          	</a>
+
+          </div>
+          <div class="links_main links_deep"> <!-- This is the visible part -->
+
+           	<a rel="nofollow" class="large" href="http://nunit.org/">NUnit - Home</a>
+
+
+            <div class="snippet">What Is NUnit? NUnit is a <b>unit</b>-testing framework for all .Net languages. Initially ported from JUnit, the current production release, version 2.6, is the seventh major release of this xUnit based <b>unit</b> testing tool for Microsoft .NET.</div>
+
+            <div class="url">
+              nunit.org
+
+            </div>
+          </div>
+        </div>
+
+
+            <div class="results_links results_links_deep web-result">
+          <div class="icon_fav" style="display: block;">
+
+            	<a rel="nofollow" href="https://msdn.microsoft.com/en-us/library/hh270865.aspx">
+	            	<img width="16" height="16" alt=""
+		            	src="/i/msdn.microsoft.com.ico" style="visibility: visible;" name="i15" />
+	          	</a>
+
+          </div>
+          <div class="links_main links_deep"> <!-- This is the visible part -->
+
+           	<a rel="nofollow" class="large" href="https://msdn.microsoft.com/en-us/library/hh270865.aspx">Running <b>Unit</b> <b>Tests</b> with <b>Test</b> Explorer</a>
+
+
+            <div class="snippet">Use <b>Test</b> Explorer to run <b>unit</b> <b>tests</b> from Visual Studio or third-party <b>unit</b> <b>test</b> projects, group <b>tests</b> into categories, filter the <b>test</b> list, and create, save, and run playlists of <b>tests</b>.</div>
+
+            <div class="url">
+              msdn.microsoft.com/en-us/library/hh270865.aspx
+
+            </div>
+          </div>
+        </div>
+
+
+            <div class="results_links results_links_deep web-result">
+          <div class="icon_fav" style="display: block;">
+
+            	<a rel="nofollow" href="https://phpunit.de/">
+	            	<img width="16" height="16" alt=""
+		            	src="/i/phpunit.de.ico" style="visibility: visible;" name="i15" />
+	          	</a>
+
+          </div>
+          <div class="links_main links_deep"> <!-- This is the visible part -->
+
+           	<a rel="nofollow" class="large" href="https://phpunit.de/">PHPUnit - The PHP Testing Framework</a>
+
+
+            <div class="snippet">Welcome to PHPUnit! PHPUnit is a programmer-oriented testing framework for PHP. It is an instance of the xUnit architecture for <b>unit</b> testing frameworks.</div>
+
+            <div class="url">
+              phpunit.de
+
+            </div>
+          </div>
+        </div>
+
+
+            <div class="results_links results_links_deep web-result">
+          <div class="icon_fav" style="display: block;">
+
+            	<a rel="nofollow" href="http://dlang.org/unittest.html">
+	            	<img width="16" height="16" alt=""
+		            	src="/i/dlang.org.ico" style="visibility: visible;" name="i15" />
+	          	</a>
+
+          </div>
+          <div class="links_main links_deep"> <!-- This is the visible part -->
+
+           	<a rel="nofollow" class="large" href="http://dlang.org/unittest.html"><b>Unit</b> <b>Tests</b> - D Programming Language</a>
+
+
+            <div class="snippet"><b>Unit</b> <b>Tests</b> <b>UnitTest</b>: <b>unittest</b> BlockStatement. <b>Unit</b> <b>tests</b> are a series of <b>test</b> cases applied to a module to determine if it is working properly.</div>
+
+            <div class="url">
+              dlang.org/unittest.html
+
+            </div>
+          </div>
+        </div>
+
+
+            <div class="results_links results_links_deep web-result">
+          <div class="icon_fav" style="display: block;">
+
+            	<a rel="nofollow" href="http://www.diveintopython3.net/unit-testing.html">
+	            	<img width="16" height="16" alt=""
+		            	src="/i/www.diveintopython3.net.ico" style="visibility: visible;" name="i15" />
+	          	</a>
+
+          </div>
+          <div class="links_main links_deep"> <!-- This is the visible part -->
+
+           	<a rel="nofollow" class="large" href="http://www.diveintopython3.net/unit-testing.html"><b>Unit</b> testing - Dive Into Python 3</a>
+
+
+            <div class="snippet">You are here: Home ‣ Dive Into Python 3 ‣ Difficulty level: ♦♦♢♢♢ <b>Unit</b> Testing Certitude is not the <b>test</b> of certainty. We have been cocksure of many things that were not so.</div>
+
+            <div class="url">
+              diveintopython3.net/unit-testing.html
+
+            </div>
+          </div>
+        </div>
+
+
+            <div class="results_links results_links_deep web-result">
+          <div class="icon_fav" style="display: block;">
+
+            	<a rel="nofollow" href="http://nshipster.com/unit-testing/">
+	            	<img width="16" height="16" alt=""
+		            	src="/i/nshipster.com.ico" style="visibility: visible;" name="i15" />
+	          	</a>
+
+          </div>
+          <div class="links_main links_deep"> <!-- This is the visible part -->
+
+           	<a rel="nofollow" class="large" href="http://nshipster.com/unit-testing/"><b>Unit</b> Testing - NSHipster</a>
+
+
+            <div class="snippet"><b>Unit</b> Testing is an emotional topic for developers. It inspires a sense of superiority to its most zealous adherents, and evokes a feeling of inadequacy to non-practitioners.</div>
+
+            <div class="url">
+              nshipster.com/unit-testing/
+
+            </div>
+          </div>
+        </div>
+
+
+            <div class="results_links results_links_deep web-result">
+          <div class="icon_fav" style="display: block;">
+
+            	<a rel="nofollow" href="http://junit.org/">
+	            	<img width="16" height="16" alt=""
+		            	src="/i/junit.org.ico" style="visibility: visible;" name="i15" />
+	          	</a>
+
+          </div>
+          <div class="links_main links_deep"> <!-- This is the visible part -->
+
+           	<a rel="nofollow" class="large" href="http://junit.org/">JUnit - About</a>
+
+
+            <div class="snippet">JUnit is a simple framework to write repeatable <b>tests</b>. It is an instance of the xUnit architecture for <b>unit</b> testing frameworks.</div>
+
+            <div class="url">
+              junit.org
+
+            </div>
+          </div>
+        </div>
+
+
+            <div class="results_links results_links_deep web-result">
+          <div class="icon_fav" style="display: block;">
+
+            	<a rel="nofollow" href="http://stackoverflow.com/questions/652292/what-is-unit-testing-and-how-do-you-do-it">
+	            	<img width="16" height="16" alt=""
+		            	src="/i/stackoverflow.com.ico" style="visibility: visible;" name="i15" />
+	          	</a>
+
+          </div>
+          <div class="links_main links_deep"> <!-- This is the visible part -->
+
+           	<a rel="nofollow" class="large" href="http://stackoverflow.com/questions/652292/what-is-unit-testing-and-how-do-you-do-it">What is <b>unit</b> testing and how do you do it? - Stack Overflow</a>
+
+
+            <div class="snippet">Exact duplicate of many posts: What is <b>unit</b> testing? What Makes a Good <b>Unit</b> <b>Test</b>? New to <b>Unit</b> Testing <b>Unit</b> Testing - definitions Learning <b>Unit</b> Testing How to properly mock and <b>unit</b> <b>test</b> <b>Unit</b></div>
+
+            <div class="url">
+              stackoverflow.com/questions/652292/what-is-unit-testing-and...
+
+            </div>
+          </div>
+        </div>
+
+
+            <div class="results_links results_links_deep web-result">
+          <div class="icon_fav" style="display: block;">
+
+            	<a rel="nofollow" href="http://istqbexamcertification.com/what-is-unit-testing/">
+	            	<img width="16" height="16" alt=""
+		            	src="/i/istqbexamcertification.com.ico" style="visibility: visible;" name="i15" />
+	          	</a>
+
+          </div>
+          <div class="links_main links_deep"> <!-- This is the visible part -->
+
+           	<a rel="nofollow" class="large" href="http://istqbexamcertification.com/what-is-unit-testing/">What is <b>Unit</b> Testing? - ISTQB Exam Certification</a>
+
+
+            <div class="snippet">A <b>unit</b> is the smallest testable part of an application like functions, classes, procedures, interfaces. <b>Unit</b> testing is a method by which individual <b>units</b> of source code are tested to determine if they are fit for use.</div>
+
+            <div class="url">
+              istqbexamcertification.com/what-is-unit-testing/
+
+            </div>
+          </div>
+        </div>
+
+
+            <div class="results_links results_links_deep web-result">
+          <div class="icon_fav" style="display: block;">
+
+            	<a rel="nofollow" href="http://blogs.msdn.com/b/visualstudioalm/archive/2014/11/19/introducing-smart-unit-tests.aspx">
+	            	<img width="16" height="16" alt=""
+		            	src="/i/blogs.msdn.com.ico" style="visibility: visible;" name="i15" />
+	          	</a>
+
+          </div>
+          <div class="links_main links_deep"> <!-- This is the visible part -->
+
+           	<a rel="nofollow" class="large" href="http://blogs.msdn.com/b/visualstudioalm/archive/2014/11/19/introducing-smart-unit-tests.aspx">Introducing Smart <b>Unit</b> <b>Tests</b> - Microsoft Application ...</a>
+
+
+            <div class="snippet">[Editor&#x27;s note: &quot;Smart <b>Unit</b> <b>Tests</b>&quot; has been renamed to &quot;IntelliTest&quot; with effect from Visual Studio 2015 Release Candidate (RC).] If you have not already seen the brief video on the Smart <b>Unit</b> <b>Tests</b> feature, I urge you to do so; this feature can help you overcome any inertia in ...</div>
+
+            <div class="url">
+              blogs.msdn.com/b/visualstudioalm/archive/2014/11/19/intr...
+
+            </div>
+          </div>
+        </div>
+
+
+            <div class="results_links results_links_deep web-result">
+          <div class="icon_fav" style="display: block;">
+
+            	<a rel="nofollow" href="http://developer.xamarin.com/guides/ios/deployment,_testing,_and_metrics/touch.unit/">
+	            	<img width="16" height="16" alt=""
+		            	src="/i/developer.xamarin.com.ico" style="visibility: visible;" name="i15" />
+	          	</a>
+
+          </div>
+          <div class="links_main links_deep"> <!-- This is the visible part -->
+
+           	<a rel="nofollow" class="large" href="http://developer.xamarin.com/guides/ios/deployment,_testing,_and_metrics/touch.unit/"><b>Unit</b> Testing - Xamarin</a>
+
+
+            <div class="snippet">This document describes how to create <b>unit</b> <b>tests</b> for your Xamarin.iOS projects. <b>Unit</b> testing with Xamarin.iOS is done using the Touch.<b>Unit</b> framework that includes both an iOS <b>test</b> runner as well as a modified version of the NUnitLite framework that provides a familiar set of APIs for writing ...</div>
+
+            <div class="url">
+              developer.xamarin.com/guides/ios/deployment,_testing,_and_metri...
+
+            </div>
+          </div>
+        </div>
+
+
+            <div class="results_links results_links_deep web-result">
+          <div class="icon_fav" style="display: block;">
+
+            	<a rel="nofollow" href="https://code.google.com/p/googletest/">
+	            	<img width="16" height="16" alt=""
+		            	src="/i/code.google.com.ico" style="visibility: visible;" name="i15" />
+	          	</a>
+
+          </div>
+          <div class="links_main links_deep"> <!-- This is the visible part -->
+
+           	<a rel="nofollow" class="large" href="https://code.google.com/p/googletest/">googletest - Google C++ Testing Framework - Google Project ...</a>
+
+
+            <div class="snippet">Google C++ Testing Framework. Google&#x27;s framework for writing C++ <b>tests</b> on a variety of platforms (Linux, Mac OS X, Windows, Cygwin, Windows CE, and Symbian). Based on the xUnit architecture. Supports automatic <b>test</b> discovery, a rich set of assertions, user-defined assertions, dea</div>
+
+            <div class="url">
+              code.google.com/p/googletest/
+
+            </div>
+          </div>
+        </div>
+
+
+            <div class="results_links results_links_deep web-result">
+          <div class="icon_fav" style="display: block;">
+
+            	<a rel="nofollow" href="http://docs.pylonsproject.org/projects/pyramid/en/latest/narr/testing.html">
+	            	<img width="16" height="16" alt=""
+		            	src="/i/docs.pylonsproject.org.ico" style="visibility: visible;" name="i15" />
+	          	</a>
+
+          </div>
+          <div class="links_main links_deep"> <!-- This is the visible part -->
+
+           	<a rel="nofollow" class="large" href="http://docs.pylonsproject.org/projects/pyramid/en/latest/narr/testing.html"><b>Unit</b>, Integration, and Functional Testing — The Pyramid Web ...</a>
+
+
+            <div class="snippet"><b>Unit</b>, Integration, and Functional Testing¶ <b>Unit</b> testing is, not surprisingly, the act of testing a &quot;<b>unit</b>&quot; in your application. In this context, a &quot;<b>unit</b>&quot; is often a function or a method of a class instance.</div>
+
+            <div class="url">
+              docs.pylonsproject.org/projects/pyramid/en/latest/narr/testing.html
+
+            </div>
+          </div>
+        </div>
+
+
+            <div class="results_links results_links_deep web-result">
+          <div class="icon_fav" style="display: block;">
+
+            	<a rel="nofollow" href="http://www.codeproject.com/Articles/10105/Writing-Your-First-Unit-Test">
+	            	<img width="16" height="16" alt=""
+		            	src="/i/www.codeproject.com.ico" style="visibility: visible;" name="i15" />
+	          	</a>
+
+          </div>
+          <div class="links_main links_deep"> <!-- This is the visible part -->
+
+           	<a rel="nofollow" class="large" href="http://www.codeproject.com/Articles/10105/Writing-Your-First-Unit-Test">Writing Your First <b>Unit</b> <b>Test</b> - CodeProject</a>
+
+
+            <div class="snippet">Introduction. This is a brief article on getting started with writing <b>unit</b> <b>tests</b>. Rather than getting into coding and the &#x27;how to&#x27;s, of which there are numerous introductory tutorials, I want to discuss more the zen of <b>unit</b> testing.</div>
+
+            <div class="url">
+              codeproject.com/Articles/10105/Writing-Your-First-Unit-Test
+
+            </div>
+          </div>
+        </div>
+
+
+
+                <div class="results_links_more nav-link">
+        <form action="/html/" method="POST">
+          <!-- <a rel="next" href="/html/?q=Unit+Tests&amp;t=A&amp;v=l&amp;l=us-en&amp;p=1&amp;s=30&amp;o=json&amp;dc=30&amp;api=d.js">Next Page &gt;</a> //-->
+          <input type="submit" class='navbutton' value="Next">
+          <input type="hidden" name="q" value="Unit Tests">
+          <input type="hidden" name="s" value="30">
+	  <input type="hidden" name="nextParams" value="">
+	  <input type="hidden" name="v" value="l">
+          <input type="hidden" name="o" value="json">
+          <input type="hidden" name="dc" value="30">
+          <input type="hidden" name="api" value="d.js">
+
+
+<input name="kl" value="us-en" type="hidden">
+
+
+
+
+        </form>
+                </div>
+
+        <div style="clear:both;"></div>
+	</div>
+	</div> <!-- links wrapper //-->
+    <div id="side_wrapper">
+    <div id="side_wrapper2">
+      <div id="side">
+      <div class="ch7">
+        <a href="/spread.html" rel="nofollow" class="les2">Spread DDG!</a>
+      </div>
+      <div style="margin-top: 12px;" class="ch4">
+        Try search on:
+      </div>
+      <div class="spacer_top_3">
+        <a href=
+        "http://www.bing.com/images/search?q=Unit%20Tests&amp;go=&amp;form=QBIL&amp;qs=n&amp;sk=&amp;sc=8-3"
+        title="Bing Images" rel="nofollow"><img src=
+        "/b_images2.png" class="inline" /></a> <a title="Bing Images"
+        href=
+        "http://www.bing.com/images/search?q=Unit%20Tests&amp;go=&amp;form=QBIL&amp;qs=n&amp;sk=&amp;sc=8-3"
+        rel="nofollow" class="les2">!bimages</a>
+      </div>
+      <div class="spacer_top_3">
+        <a href="http://maps.google.com/maps?q=Unit%20Tests" rel=
+        "nofollow" title="Google Maps"><img src="/b_maps2.png"
+        class="inline" /></a> <a title="Google Maps" href=
+        "http://maps.google.com/maps?q=Unit%20Tests" rel="nofollow"
+        class="les2">!gmaps</a>
+      </div>
+      <div class="spacer_top_3">
+        <a title="Yahoo! News" href=
+        "http://news.search.yahoo.com/search?p=Unit%20Tests&amp;fr2=sb-top&amp;fr=news-us-ss&amp;type=all&amp;age=all&amp;sao=1"
+        rel="nofollow"><img src="/b_news2.png" class="inline" /></a>
+        <a title="Yahoo! News" href=
+        "http://news.search.yahoo.com/search?p=Unit%20Tests&amp;fr2=sb-top&amp;fr=news-us-ss&amp;type=all&amp;age=all&amp;sao=1"
+        rel="nofollow" class="les2">!ynews</a>
+      </div>
+      <div class="spacer_top_3">
+        <a href=
+        "http://www.youtube.com/results?search_query=Unit%20Tests"
+        rel="nofollow"><img src="/b_youtube2.png" class=
+        "inline" /></a> <a href=
+        "http://www.youtube.com/results?search_query=Unit%20Tests"
+        rel="nofollow" class="les2">!youtube</a>
+      </div>
+      <div class="spacer_top_3">
+        <a href="http://search.twitter.com/search?q=Unit%20Tests"
+	   rel="nofollow"><img src="/b_twitter2.png" class="inline" /></a>
+	<a href="http://search.twitter.com/search?q=Unit%20Tests"
+	   rel="nofollow" class="les2">!twitter</a>
+      </div>
+      <div class="spacer_top_3">
+        <a href="http://www.facebook.com/search/?q=Unit%20Tests"
+        rel="nofollow"><img src="/b_facebook2.png" class=
+        "inline" /></a> <a href=
+        "http://www.facebook.com/search/?q=Unit%20Tests" rel=
+        "nofollow" class="les2">!facebook</a>
+      </div>
+      <div class="spacer_top_3">
+        <a href=
+        "http://amazon.com/s/?tag=dudugo-20&amp;url=search-alias%3Daps&amp;field-keywords=Unit%20Tests"
+        rel="nofollow"><img src="/b_amazon2.png" class="inline" /></a>
+        <a href=
+        "http://amazon.com/s/?tag=dudugo-20&amp;url=search-alias%3Daps&amp;field-keywords=Unit%20Tests"
+        rel="nofollow" class="les2">!amazon</a>
+      </div>
+      <div class="spacer_top_10">
+        <a href="/bang.html" rel="nofollow" class="les2">More w/ !bang...</a>
+      </div>
+      <div class="spacer_top_3">
+        <a href="/goodies.html" rel="nofollow" class="les2">More goodies...</a>
+      </div>
+    </div>
+    </div>
+    </div> <!-- side_wrapper //-->
+
+      <a rel="nofollow" href="/feedback.html" target="_new"><div class="k_float k_bottom k_right" id="feedback"></div></a>
+    <div id="bottom_spacing2"></div>
+  </div>
+  </div>
+</body>
+</html>
