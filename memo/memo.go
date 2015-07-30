@@ -79,11 +79,7 @@ func HandleMemoCmd(event *irc.Event, callback func(*core.ReplyCallbackData)) boo
 	return true
 }
 
-func SendMemo(event *irc.Event, callback func(*core.ReplyCallbackData)) bool {
-	if callback == nil {
-		log.Println("Callback nil for the SendMemo function, unable to send the memo")
-	}
-
+func SendMemo(event *irc.Event, callback func(*core.ReplyCallbackData)) {
 	user := event.Nick
 	sqlQuery := "SELECT id, user_from, message, strftime('%d/%m/%Y @ %H:%M', datetime(date, 'localtime')) FROM Memo WHERE user_to = $1;"
 	rows, err := _database.Query(sqlQuery, user)
@@ -99,7 +95,7 @@ func SendMemo(event *irc.Event, callback func(*core.ReplyCallbackData)) bool {
 		rows.Scan(&memo.id, &memo.User_from, &memo.Message, &memo.Date)
 		memoList = append(memoList, memo)
 		callback(&core.ReplyCallbackData{
-			Message: fmt.Sprintf("%s: memo from %s => %q (%s)", user_to, memo.User_from, memo.Message, memo.Date),
+			Message: fmt.Sprintf("%s: memo from %s => \"%s\" (%s)", user_to, memo.User_from, memo.Message, memo.Date),
 			Nick:    user_to})
 	}
 	rows.Close()
@@ -111,7 +107,6 @@ func SendMemo(event *irc.Event, callback func(*core.ReplyCallbackData)) bool {
 			log.Fatalf("%q: %s\n", err, sqlQuery)
 		}
 	}
-	return false
 }
 
 func HandleMemoStatusCmd(event *irc.Event, callback func(*core.ReplyCallbackData)) bool {
@@ -130,7 +125,7 @@ func HandleMemoStatusCmd(event *irc.Event, callback func(*core.ReplyCallbackData
 	for rows.Next() {
 		rows.Scan(&memo.id, &memo.User_to, &memo.Message, &memo.Date)
 		callback(&core.ReplyCallbackData{
-			Message: fmt.Sprintf("Memo for %s: %q (%s)", memo.User_to, memo.Message, memo.Date),
+			Message: fmt.Sprintf("Memo for %s: \"%s\" (%s)", memo.User_to, memo.Message, memo.Date),
 			Nick:    event.Nick})
 	}
 	rows.Close()
