@@ -26,7 +26,7 @@ var searchMap = make(map[string]searchData)
 
 func Init() {
 	searchMap["!dg"] = searchData{
-		getUrlDuckduckgo,
+		getDuckduckgoSearchResult,
 		"DuckDuckGo: Best result for %q => %s",
 		"DuckDuckGo: No result for %q"}
 }
@@ -63,7 +63,7 @@ func HandleSearchCmd(event *irc.Event, callback func(*core.ReplyCallbackData)) b
 	return true
 }
 
-func getUrlDuckduckgo(message *string) []byte {
+func getDuckduckgoPage(message *string) []byte {
 	log.Printf("Search: DuckduckGo search for term %q", *message)
 	response, err := http.Get(fmt.Sprintf("https://duckduckgo.com/html/?q=%s", *message))
 	if err != nil {
@@ -79,10 +79,21 @@ func getUrlDuckduckgo(message *string) []byte {
 	}
 	response.Body.Close()
 
+	return text
+}
+
+func getDuckduckgoResult(page []byte) []byte {
 	re := regexp.MustCompile(`<a rel="nofollow" href="(.[^"]*)">`)
-	if result := re.FindSubmatch(text); result != nil && len(result) == 2 {
+	if result := re.FindSubmatch(page); result != nil && len(result) == 2 {
 		return result[1]
-	} else {
+	}
+	return nil
+}
+
+func getDuckduckgoSearchResult(message *string) []byte {
+	page := getDuckduckgoPage(message)
+	if page == nil {
 		return nil
 	}
+	return getDuckduckgoResult(page)
 }
