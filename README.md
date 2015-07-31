@@ -1,7 +1,7 @@
 goxxx
 =====
 
-IRC bot in Go.
+IRC bot written in Go.
 
 Install
 =======
@@ -17,5 +17,19 @@ Usage
 
 To get help about program usage, just run:
 ```
-goxxx
+$ goxxx
 ```
+
+Development
+=====
+
+Pull requests are welcome.
+
+Tests
+=====
+
+to run the tests, run the following command from the goxxx directory:
+```
+$ go test -v ./...
+```
+It will run the tests for all the packages.
