@@ -40,7 +40,7 @@ func Test_HandleMemoCmd(t *testing.T) {
 	defer db.Close()
 	Init(db)
 
-	// --- --- --- --- --- ---
+	// --- --- --- --- --- --- Valid Event
 	var replyCallbackDataTest core.ReplyCallbackData
 	HandleMemoCmd(&validEvent, func(data *core.ReplyCallbackData) {
 		replyCallbackDataTest = *data
@@ -50,7 +50,7 @@ func Test_HandleMemoCmd(t *testing.T) {
 	}
 	// --- --- --- --- --- ---
 
-	// --- --- --- --- --- ---
+	// --- --- --- --- --- --- Invalid Event
 	HandleMemoCmd(&invalidEvent, func(data *core.ReplyCallbackData) {
 		// There is no memo command in the message, the callback should not be called
 		t.Errorf("Callback function not supposed to be called, the message does not contain the !memo command (Message: %q)\n\n", invalidMessage)
