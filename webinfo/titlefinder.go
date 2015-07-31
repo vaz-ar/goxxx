@@ -137,7 +137,7 @@ func findUrls(message string) (urls []*url.URL) {
 		}
 		// Scheme is required to query a URL
 		if url.Scheme == "" {
-			url.Scheme = "https"
+			url.Scheme = "http"
 		}
 		// Conversion to ASCII is needed for Unicode hostnames
 		asciiHost, err := idna.ToASCII(url.Host)

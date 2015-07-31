@@ -31,7 +31,7 @@ var (
 	expectedUrls [][]string = [][]string{
 		[]string{"http://www.matmartinez.net/nsfw/"},
 		[]string{"https://golang.org/doc/effective_go.html"},
-		[]string{"https://diasporafoundation.org/", "https://cozy.io/en/", "http://framasoft.net/"}}
+		[]string{"https://diasporafoundation.org/", "http://cozy.io/en/", "http://framasoft.net/"}}
 
 	messageWithoutUrl string = "This is just.a.message without/any URL in.it"
 
