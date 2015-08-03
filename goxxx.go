@@ -17,24 +17,43 @@ import (
 	"os"
 )
 
-func getOptions() (nick, server, channel, channelKey string, success bool) {
+const (
+	// Application version
+	global_version string = "1.0.0"
+
+	// Equivalent to enums (cf. https://golang.org/ref/spec#Iota)
+	flags_exit    = iota //  == 0
+	flags_success        //  == 1
+	flags_failure        //  == 2
+)
+
+func getOptions() (nick, server, channel, channelKey string, returnCode int) {
 	flag.StringVar(&channel, "channel", "", "IRC channel name")
 	flag.StringVar(&channelKey, "key", "", "IRC channel key (optional)")
 	flag.StringVar(&nick, "nick", "goxxx", "the bot's nickname (optional)")
 	flag.StringVar(&server, "server", "chat.freenode.net:6697", "IRC_SERVER[:PORT] (optional)")
+	version := flag.Bool("version", false, "Display goxxx version")
+
 	flag.Usage = func() {
 		fmt.Println("Usage:", os.Args[0], "-channel CHANNEL [ARGUMENTS]")
 		fmt.Println()
 		fmt.Println("Arguments description:")
 		flag.PrintDefaults()
 	}
+
 	flag.Parse()
+
+	if *version {
+		fmt.Printf("\nGoxxx version: %s\n\n", global_version)
+		returnCode = flags_exit
+		return
+	}
 
 	if channel == "" {
 		flag.Usage()
-		success = false
+		returnCode = flags_failure
 	} else {
-		success = true
+		returnCode = flags_success
 	}
 
 	return
@@ -50,10 +69,11 @@ func main() {
 	defer logFile.Close()
 	log.SetOutput(logFile)
 
-	nick, server, channel, channelKey, success := getOptions()
-	if !success {
-		log.Fatal("Initialisation failed (getOptions())")
+	nick, server, channel, channelKey, returnCode := getOptions()
+	if returnCode == flags_exit {
 		return
+	} else if returnCode == flags_failure {
+		log.Fatal("Initialisation failed (getOptions())")
 	}
 
 	db := database.InitDatabase("", false)
