@@ -6,6 +6,7 @@
 package search
 
 import (
+	"encoding/json"
 	"fmt"
 	"github.com/romainletendart/goxxx/core"
 	"github.com/thoj/go-ircevent"
@@ -16,19 +17,41 @@ import (
 	"strings"
 )
 
+//  --- --- --- Constants --- --- ---
+const (
+	URL_DUCKDUCKGO string = "https://duckduckgo.com/html/?q=%s"
+	URL_WIKIPEDIA  string = "https://en.wikipedia.org/w/api.php?format=json&action=query&prop=extracts|info&exintro=&explaintext=&inprop=url&titles=%s"
+)
+
+// --- --- --- Types  --- --- ---
+type wikipedia struct {
+	Query struct {
+		Pages map[string]struct {
+			Extract string `json:"extract"`
+			Fullurl string `json:"fullurl"`
+			Title   string `json:"title"`
+		} `json:"pages"`
+	} `json:"query"`
+}
+
 type searchData struct {
-	getUrl         func(*string) []byte
-	text_result    string
+	getUrl         func(string) []string
+	text_result    [2]string
 	text_no_result string
 }
 
+// --- --- --- Global variable --- --- ---
 var searchMap = make(map[string]searchData)
 
 func Init() {
 	searchMap["!dg"] = searchData{
 		getDuckduckgoSearchResult,
-		"DuckDuckGo: Best result for %q => %s",
+		[2]string{"DuckDuckGo: Best result for %q => %s"},
 		"DuckDuckGo: No result for %q"}
+	searchMap["!w"] = searchData{
+		getWikipediaSearchResult,
+		[2]string{"Wikipedia result for %q => %s"},
+		"Wikipedia: No result for %q"}
 }
 
 func HandleSearchCmd(event *irc.Event, callback func(*core.ReplyCallbackData)) bool {
@@ -55,17 +78,26 @@ func HandleSearchCmd(event *irc.Event, callback func(*core.ReplyCallbackData)) b
 		return false
 	}
 
-	if result := search.getUrl(&message); result != nil {
-		callback(&core.ReplyCallbackData{Message: fmt.Sprintf(search.text_result, message, result)})
-	} else {
+	results := search.getUrl(message)
+	if results == nil {
 		callback(&core.ReplyCallbackData{Message: fmt.Sprintf(search.text_no_result, message)})
+		return true
+	}
+	for i, item := range results {
+		if i == 0 && search.text_result[i] != "" {
+			callback(&core.ReplyCallbackData{Message: fmt.Sprintf(search.text_result[i], message, item)})
+		} else if i == 1 && search.text_result[i] != "" {
+			callback(&core.ReplyCallbackData{Message: fmt.Sprintf(search.text_result[i], item)})
+		} else {
+			callback(&core.ReplyCallbackData{Message: item})
+		}
 	}
 	return true
 }
 
-func getDuckduckgoPage(message *string) []byte {
-	log.Printf("Search: DuckduckGo search for term %q", *message)
-	response, err := http.Get(fmt.Sprintf("https://duckduckgo.com/html/?q=%s", *message))
+// --- --- --- HTTP Functions --- --- ---
+func getResponseAsText(url string, searchTerms *string) []byte {
+	response, err := http.Get(fmt.Sprintf(url, *searchTerms))
 	if err != nil {
 		log.Println(err)
 		return nil
@@ -78,22 +110,60 @@ func getDuckduckgoPage(message *string) []byte {
 		return nil
 	}
 	response.Body.Close()
-
 	return text
 }
 
-func getDuckduckgoResult(page []byte) []byte {
+// --- --- --- Search provider functions --- --- ---
+
+// --- Duckduckgo
+func getDuckduckgoResultFromHtml(page []byte) string {
 	re := regexp.MustCompile(`<a rel="nofollow" href="(.[^"]*)">`)
 	if result := re.FindSubmatch(page); result != nil && len(result) == 2 {
-		return result[1]
+		return string(result[1])
 	}
-	return nil
+	return ""
 }
 
-func getDuckduckgoSearchResult(message *string) []byte {
-	page := getDuckduckgoPage(message)
-	if page == nil {
+func getDuckduckgoSearchResult(searchTerms string) []string {
+	HtmlPageFromHttp := getResponseAsText(URL_DUCKDUCKGO, &searchTerms)
+	if HtmlPageFromHttp == nil {
 		return nil
 	}
-	return getDuckduckgoResult(page)
+	result := getDuckduckgoResultFromHtml(HtmlPageFromHttp)
+	if result == "" {
+		return nil
+	}
+	return []string{result}
+}
+
+// --- Wikipedia
+func getWikipediaResultFromJson(jsonDataFromHttp []byte) []string {
+	var result wikipedia
+	err := json.Unmarshal(jsonDataFromHttp, &result)
+	if err != nil {
+		log.Println(err)
+		return nil
+	}
+
+	var returnValues []string
+	for key, value := range result.Query.Pages {
+		if key != "-1" {
+			returnValues = append(returnValues, value.Fullurl)
+			returnValues = append(returnValues, strings.Split(value.Extract, ". ")...)
+		}
+	}
+	return returnValues
+}
+
+func getWikipediaSearchResult(searchTerms string) []string {
+	searchTerms = strings.Replace(strings.Title(searchTerms), " ", "%20", -1)
+	jsonDataFromHttp := getResponseAsText(URL_WIKIPEDIA, &searchTerms)
+	if jsonDataFromHttp == nil {
+		return nil
+	}
+	result := getWikipediaResultFromJson(jsonDataFromHttp)
+	if result == nil {
+		return nil
+	}
+	return result
 }
