@@ -19,8 +19,9 @@ import (
 
 //  --- --- --- Constants --- --- ---
 const (
-	URL_DUCKDUCKGO string = "https://duckduckgo.com/html/?q=%s"
-	URL_WIKIPEDIA  string = "https://en.wikipedia.org/w/api.php?format=json&action=query&prop=extracts|info&exintro=&explaintext=&inprop=url&titles=%s"
+	URL_DUCKDUCKGO       string = "https://duckduckgo.com/html/?q=%s"
+	URL_WIKIPEDIA        string = "https://en.wikipedia.org/w/api.php?format=json&action=query&prop=extracts|info&exintro=&explaintext=&inprop=url&titles=%s"
+	URL_URBANDICTIONNARY string = "http://api.urbandictionary.com/v0/define?term=%s"
 )
 
 // --- --- --- Types  --- --- ---
@@ -32,6 +33,14 @@ type wikipedia struct {
 			Title   string `json:"title"`
 		} `json:"pages"`
 	} `json:"query"`
+}
+
+type urbanDictionnary struct {
+	List []struct {
+		Definition string `json:"definition"`
+		Example    string `json:"example"`
+		Permalink  string `json:"permalink"`
+	} `json:"list"`
 }
 
 type searchData struct {
@@ -46,12 +55,17 @@ var searchMap = make(map[string]searchData)
 func Init() {
 	searchMap["!dg"] = searchData{
 		getDuckduckgoSearchResult,
-		[2]string{"DuckDuckGo: Best result for %q => %s"},
+		[2]string{
+			"DuckDuckGo: Best result for %q => %s"},
 		"DuckDuckGo: No result for %q"}
 	searchMap["!w"] = searchData{
 		getWikipediaSearchResult,
 		[2]string{"Wikipedia result for %q => %s"},
 		"Wikipedia: No result for %q"}
+	searchMap["!u"] = searchData{
+		getUrbanDictionnarySearchResult,
+		[2]string{"Urban Dictionnary: Best result for %q => %s", "Definition: %s"},
+		"Urban Dictionnary: No result for %q"}
 }
 
 func HandleSearchCmd(event *irc.Event, callback func(*core.ReplyCallbackData)) bool {
@@ -162,6 +176,36 @@ func getWikipediaSearchResult(searchTerms string) []string {
 		return nil
 	}
 	result := getWikipediaResultFromJson(jsonDataFromHttp)
+	if result == nil {
+		return nil
+	}
+	return result
+}
+
+// --- Urban Dictionnary
+func getUrbanDictionnaryResultFromJson(jsonDataFromHttp []byte) []string {
+	var result urbanDictionnary
+	err := json.Unmarshal(jsonDataFromHttp, &result)
+	if err != nil {
+		log.Println(err)
+		return nil
+	}
+	if len(result.List) == 0 {
+		return nil
+	}
+	returnValues := []string{result.List[0].Permalink}
+	returnValues = append(returnValues, strings.Split(result.List[0].Definition, ". ")...)
+
+	return returnValues
+}
+
+func getUrbanDictionnarySearchResult(searchTerms string) []string {
+	searchTerms = strings.Replace(strings.Title(searchTerms), " ", "%20", -1)
+	jsonDataFromHttp := getResponseAsText(URL_URBANDICTIONNARY, &searchTerms)
+	if jsonDataFromHttp == nil {
+		return nil
+	}
+	result := getUrbanDictionnaryResultFromJson(jsonDataFromHttp)
 	if result == nil {
 		return nil
 	}
