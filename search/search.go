@@ -23,9 +23,9 @@ const (
 	URL_WIKIPEDIA        string = "https://en.wikipedia.org/w/api.php?format=json&action=query&prop=extracts|info&exintro=&explaintext=&inprop=url&titles=%s"
 	URL_URBANDICTIONNARY string = "http://api.urbandictionary.com/v0/define?term=%s"
 
-	HELP_DUCKDUCKGO       string = "!d <terms to search> \t\t\t=> Search on DuckduckGo"
+	HELP_DUCKDUCKGO       string = "!d <terms to search> \t\t=> Search on DuckduckGo"
 	HELP_WIKIPEDIA        string = "!w <terms to search> \t\t=> Search on Wikipedia"
-	HELP_URBANDICTIONNARY string = "!u <terms to search> \t\t\t=> Search on Urban Dictionnary"
+	HELP_URBANDICTIONNARY string = "!u <terms to search> \t\t=> Search on Urban Dictionnary"
 )
 
 // --- --- --- Types  --- --- ---
