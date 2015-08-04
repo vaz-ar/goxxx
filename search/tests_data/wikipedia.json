@@ -1,0 +1,22 @@
+{
+  "batchcomplete": "",
+  "query": {
+    "pages": {
+      "6912519": {
+        "pageid": 6912519,
+        "ns": 0,
+        "title": "Unit Testing",
+        "extract": "This is a redirect from a title with another method of capitalisation. It leads to the title in accordance with the Wikipedia naming conventions for capitalisation, or it leads to a title that is associated in some way with the conventional capitalisation of this redirect title. This may help writing, searching and international language issues. For more information follow the category link.\nIf this redirect is an incorrect capitalization (a typo), then it is made available to aid searches, so pages that use this link should be updated to link directly to the target.\nUse this rcat to tag only mainspace redirects; when other capitalisations are in different namespaces, use {{R from modification}} instead.",
+        "contentmodel": "wikitext",
+        "pagelanguage": "en",
+        "touched": "2015-07-29T03:41:35Z",
+        "lastrevid": 178282580,
+        "length": 58,
+        "redirect": "",
+        "fullurl": "https://en.wikipedia.org/wiki/Unit_Testing",
+        "editurl": "https://en.wikipedia.org/w/index.php?title=Unit_Testing&action=edit",
+        "canonicalurl": "https://en.wikipedia.org/wiki/Unit_Testing"
+      }
+    }
+  }
+}

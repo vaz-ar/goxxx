@@ -41,12 +41,12 @@ func Test_HandleMemoCmd(t *testing.T) {
 	Init(db)
 
 	// --- --- --- --- --- --- Valid Event
-	var replyCallbackDataTest core.ReplyCallbackData
+	var testReply core.ReplyCallbackData
 	HandleMemoCmd(&validEvent, func(data *core.ReplyCallbackData) {
-		replyCallbackDataTest = *data
+		testReply = *data
 	})
-	if replyCallbackDataTest != replyCallbackDataReference {
-		t.Errorf("Test data differ from reference data:\nTest data:\t%#v\nReference data: %#v\n\n", replyCallbackDataTest, replyCallbackDataReference)
+	if testReply != replyCallbackDataReference {
+		t.Errorf("Test data differ from reference data:\nTest data:\t%#v\nReference data: %#v\n\n", testReply, replyCallbackDataReference)
 	}
 	// --- --- --- --- --- ---
 
@@ -72,15 +72,15 @@ func Test_SendMemo(t *testing.T) {
 	event := irc.Event{Nick: expectedNick, Arguments: []string{"#test_channel", message}}
 	re := regexp.MustCompile(fmt.Sprintf(`^%s: memo from Sender => "this is a memo" \(\d{2}/\d{2}/\d{4} @ \d{2}:\d{2}\)$`, expectedNick))
 
-	var replyCallbackDataTest core.ReplyCallbackData
+	var testReply core.ReplyCallbackData
 	SendMemo(&event, func(data *core.ReplyCallbackData) {
-		replyCallbackDataTest = *data
+		testReply = *data
 	})
 
-	if !re.MatchString(replyCallbackDataTest.Message) {
-		t.Errorf("Regexp %q not matching %q", re.String(), replyCallbackDataTest.Message)
+	if !re.MatchString(testReply.Message) {
+		t.Errorf("Regexp %q not matching %q", re.String(), testReply.Message)
 	}
-	if replyCallbackDataTest.Nick != expectedNick {
-		t.Errorf("Incorrect Nick: should be %q, is %q", expectedNick, replyCallbackDataTest.Nick)
+	if testReply.Nick != expectedNick {
+		t.Errorf("Incorrect Nick: should be %q, is %q", expectedNick, testReply.Nick)
 	}
 }
