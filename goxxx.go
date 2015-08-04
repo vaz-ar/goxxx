@@ -10,6 +10,7 @@ import (
 	"fmt"
 	"github.com/romainletendart/goxxx/core"
 	"github.com/romainletendart/goxxx/database"
+	"github.com/romainletendart/goxxx/help"
 	"github.com/romainletendart/goxxx/memo"
 	"github.com/romainletendart/goxxx/search"
 	"github.com/romainletendart/goxxx/webinfo"
@@ -19,12 +20,12 @@ import (
 
 const (
 	// Application version
-	global_version string = "1.0.0"
+	GLOBAL_VERSION string = "0.0.1"
 
 	// Equivalent to enums (cf. https://golang.org/ref/spec#Iota)
-	flags_exit    = iota //  == 0
-	flags_success        //  == 1
-	flags_failure        //  == 2
+	FLAGS_EXIT    = iota //  == 0
+	FLAGS_SUCCESS        //  == 1
+	FLAGS_FAILURE        //  == 2
 )
 
 func getOptions() (nick, server, channel, channelKey string, returnCode int) {
@@ -44,16 +45,16 @@ func getOptions() (nick, server, channel, channelKey string, returnCode int) {
 	flag.Parse()
 
 	if *version {
-		fmt.Printf("\nGoxxx version: %s\n\n", global_version)
-		returnCode = flags_exit
+		fmt.Printf("\nGoxxx version: %s\n\n", GLOBAL_VERSION)
+		returnCode = FLAGS_EXIT
 		return
 	}
 
 	if channel == "" {
 		flag.Usage()
-		returnCode = flags_failure
+		returnCode = FLAGS_FAILURE
 	} else {
-		returnCode = flags_success
+		returnCode = FLAGS_SUCCESS
 	}
 
 	return
@@ -70,9 +71,9 @@ func main() {
 	log.SetOutput(logFile)
 
 	nick, server, channel, channelKey, returnCode := getOptions()
-	if returnCode == flags_exit {
+	if returnCode == FLAGS_EXIT {
 		return
-	} else if returnCode == flags_failure {
+	} else if returnCode == FLAGS_FAILURE {
 		log.Fatal("Initialisation failed (getOptions())")
 	}
 
@@ -90,12 +91,20 @@ func main() {
 	webinfo.Init(db)
 	search.Init()
 
+	help.Init(
+		search.HELP_DUCKDUCKGO,
+		search.HELP_WIKIPEDIA,
+		search.HELP_URBANDICTIONNARY,
+		memo.HELP_MEMO,
+		memo.HELP_MEMOSTAT)
+
 	bot.AddMsgHandler(webinfo.HandleUrls, bot.ReplyToAll)
 	bot.AddMsgHandler(memo.SendMemo, bot.ReplyToNick)
 
 	bot.AddCmdHandler(memo.HandleMemoCmd, bot.ReplyToAll)
 	bot.AddCmdHandler(memo.HandleMemoStatusCmd, bot.ReplyToNick)
 	bot.AddCmdHandler(search.HandleSearchCmd, bot.ReplyToAll)
+	bot.AddCmdHandler(help.HandleHelpCmd, bot.ReplyToAll)
 
 	bot.Run()
 }

@@ -14,6 +14,11 @@ import (
 	"strings"
 )
 
+const (
+	HELP_MEMO     string = "!memo <nick> <message> \t=> Leave a memo for another user"
+	HELP_MEMOSTAT string = "!memostat \t\t\t\t\t=> Get the list of the unread memos (List only the memos you left)"
+)
+
 var _database *sql.DB
 
 type MemoData struct {
