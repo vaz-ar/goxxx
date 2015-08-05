@@ -103,7 +103,7 @@ func main() {
 
 	bot.AddCmdHandler(memo.HandleMemoCmd, bot.ReplyToAll)
 	bot.AddCmdHandler(memo.HandleMemoStatusCmd, bot.ReplyToNick)
-	bot.AddCmdHandler(search.HandleSearchCmd, bot.ReplyToAll)
+	bot.AddCmdHandler(search.HandleSearchCmd, bot.Reply)
 	bot.AddCmdHandler(help.HandleHelpCmd, bot.ReplyToNick)
 
 	bot.Run()
