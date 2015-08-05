@@ -23,9 +23,9 @@ const (
 	URL_WIKIPEDIA        string = "https://en.wikipedia.org/w/api.php?format=json&action=query&prop=extracts|info&exintro=&explaintext=&inprop=url&titles=%s"
 	URL_URBANDICTIONNARY string = "http://api.urbandictionary.com/v0/define?term=%s"
 
-	HELP_DUCKDUCKGO       string = "!d <terms to search> \t\t=> Search on DuckduckGo"
+	HELP_DUCKDUCKGO       string = "!d/!dg/!ddg <terms to search> \t\t=> Search on DuckduckGo"
 	HELP_WIKIPEDIA        string = "!w <terms to search> \t\t=> Search on Wikipedia"
-	HELP_URBANDICTIONNARY string = "!u <terms to search> \t\t=> Search on Urban Dictionnary"
+	HELP_URBANDICTIONNARY string = "!u/!ud <terms to search> \t\t=> Search on Urban Dictionnary"
 )
 
 // --- --- --- Types  --- --- ---
@@ -48,28 +48,29 @@ type urbanDictionnary struct {
 }
 
 type searchData struct {
-	getUrl         func(string) []string
+	getUrl func(string) []string
+	// First string is for the first result (URL), second string for the second result (Details/Definition/...)
 	text_result    [2]string
 	text_no_result string
 }
 
 // --- --- --- Global variable --- --- ---
-var searchMap = make(map[string]searchData)
+var searchMap = make(map[string]*searchData)
 
 func Init() {
-	searchMap["!dg"] = searchData{
-		getDuckduckgoSearchResult,
-		[2]string{
-			"DuckDuckGo: Best result for %q => %s"},
-		"DuckDuckGo: No result for %q"}
-	searchMap["!w"] = searchData{
-		getWikipediaSearchResult,
-		[2]string{"Wikipedia result for %q => %s"},
-		"Wikipedia: No result for %q"}
-	searchMap["!u"] = searchData{
+	ddg := &searchData{getDuckduckgoSearchResult, [2]string{"DuckDuckGo: Best result for %q => %s"}, "DuckDuckGo: No result for %q"}
+	searchMap["!d"] = ddg
+	searchMap["!dg"] = ddg
+	searchMap["!ddg"] = ddg
+
+	searchMap["!w"] = &searchData{getWikipediaSearchResult, [2]string{"Wikipedia result for %q => %s"}, "Wikipedia: No result for %q"}
+
+	ud := &searchData{
 		getUrbanDictionnarySearchResult,
 		[2]string{"Urban Dictionnary: Best result for %q => %s", "Definition: %s"},
 		"Urban Dictionnary: No result for %q"}
+	searchMap["!u"] = ud
+	searchMap["!ud"] = ud
 }
 
 func HandleSearchCmd(event *irc.Event, callback func(*core.ReplyCallbackData)) bool {
@@ -101,13 +102,24 @@ func HandleSearchCmd(event *irc.Event, callback func(*core.ReplyCallbackData)) b
 		callback(&core.ReplyCallbackData{Message: fmt.Sprintf(search.text_no_result, message)})
 		return true
 	}
-	for i, item := range results {
-		if i == 0 && search.text_result[i] != "" {
-			callback(&core.ReplyCallbackData{Message: fmt.Sprintf(search.text_result[i], message, item)})
-		} else if i == 1 && search.text_result[i] != "" {
-			callback(&core.ReplyCallbackData{Message: fmt.Sprintf(search.text_result[i], item)})
-		} else {
-			callback(&core.ReplyCallbackData{Message: item})
+	for index, item := range results {
+		switch index {
+		// First part of the result is sent to everyone, no nick is sent
+		case 0:
+			if search.text_result[index] != "" {
+				callback(&core.ReplyCallbackData{Message: fmt.Sprintf(search.text_result[index], message, item)})
+			} else {
+				callback(&core.ReplyCallbackData{Message: item})
+			}
+		// Second and following parts of the result are sent directly to the user
+		case 1:
+			if search.text_result[index] != "" {
+				callback(&core.ReplyCallbackData{Nick: event.Nick, Message: fmt.Sprintf(search.text_result[index], item)})
+			} else {
+				callback(&core.ReplyCallbackData{Nick: event.Nick, Message: item})
+			}
+		default:
+			callback(&core.ReplyCallbackData{Nick: event.Nick, Message: item})
 		}
 	}
 	return true
