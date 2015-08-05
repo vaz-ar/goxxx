@@ -75,11 +75,14 @@ func Init() {
 		text_result:    [2]string{"Wikipedia result for %q => %s"},
 		text_no_result: "Wikipedia: No result for %q"}
 
-	searchMap["!wf"] = &searchData{
+	wfr := &searchData{
 		getUrl:         getWikipediaSearchResult,
 		extraParameter: "fr",
 		text_result:    [2]string{"Wikipedia result for %q => %s"},
 		text_no_result: "Wikipedia: No result for %q"}
+
+	searchMap["!wf"] = wfr
+	searchMap["!wfr"] = wfr
 
 	ud := &searchData{
 		getUrl:         getUrbanDictionnarySearchResult,
