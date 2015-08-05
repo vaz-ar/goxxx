@@ -94,6 +94,7 @@ func main() {
 	help.Init(
 		search.HELP_DUCKDUCKGO,
 		search.HELP_WIKIPEDIA,
+		search.HELP_WIKIPEDIA_FR,
 		search.HELP_URBANDICTIONNARY,
 		memo.HELP_MEMO,
 		memo.HELP_MEMOSTAT)
