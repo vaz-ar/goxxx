@@ -68,6 +68,14 @@ func (bot *Bot) ReplyToNick(data *ReplyCallbackData) {
 	}
 }
 
+func (bot *Bot) Reply(data *ReplyCallbackData) {
+	if data.Nick == "" {
+		bot.ircConn.Privmsg(bot.Channel, data.Message)
+	} else {
+		bot.ircConn.Privmsg(data.Nick, data.Message)
+	}
+}
+
 func (bot *Bot) mainHandler(event *irc.Event) {
 	for i, handler := range bot.CmdHandlers {
 		if handler(event, bot.CmdReplyCallbacks[i]) {
