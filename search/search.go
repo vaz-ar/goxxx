@@ -25,7 +25,7 @@ const (
 
 	HELP_DUCKDUCKGO       string = "!d/!dg/!ddg <terms to search> \t=> Search on DuckduckGo"
 	HELP_WIKIPEDIA        string = "!w <terms to search> \t\t\t=> Search on Wikipedia EN"
-	HELP_WIKIPEDIA_FR     string = "!wf <terms to search> \t\t\t=> Search on Wikipedia FR"
+	HELP_WIKIPEDIA_FR     string = "!wf/!wfr <terms to search> \t\t\t=> Search on Wikipedia FR"
 	HELP_URBANDICTIONNARY string = "!u/!ud <terms to search> \t\t=> Search on Urban Dictionnary"
 )
 
