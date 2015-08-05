@@ -108,7 +108,7 @@ var (
 func Test_getResponseAsText(t *testing.T) {
 	log.SetOutput(ioutil.Discard)
 
-	if getResponseAsText(URL_DUCKDUCKGO, &searchTerms) == nil {
+	if getResponseAsText(fmt.Sprintf(URL_DUCKDUCKGO, searchTerms)) == nil {
 		t.Errorf("getResponseAsText: No data returned for the search terms %q", searchTerms)
 	}
 }
@@ -133,7 +133,7 @@ func Test_getDuckduckgoResultFromHtml(t *testing.T) {
 func Test_getDuckduckgoSearchResult(t *testing.T) {
 	log.SetOutput(ioutil.Discard)
 
-	if result := getDuckduckgoSearchResult(searchTerms); result == nil {
+	if result := getDuckduckgoSearchResult(searchTerms, ""); result == nil {
 		t.Error("No result returned by getDuckduckgoSearchResult")
 	} else if result[0] != DDG_expectedResult {
 		t.Errorf("Expected result: %q, got %q instead\n", DDG_expectedResult, result[0])
@@ -194,7 +194,7 @@ func Test_getWikipediaResultFromJson(t *testing.T) {
 func Test_getWikipediaSearchResult(t *testing.T) {
 	log.SetOutput(ioutil.Discard)
 
-	if result := getWikipediaSearchResult(searchTerms); result == nil {
+	if result := getWikipediaSearchResult(searchTerms, "en"); result == nil {
 		t.Error("No result returned by getWikipediaSearchResult")
 	} else if result[0] != W_expectedResult {
 		t.Errorf("Expected result: %q, got %q instead\n", W_expectedResult, result[0])
@@ -255,7 +255,7 @@ func Test_getUrbanDictionnaryResultFromJson(t *testing.T) {
 func Test_getUrbanDictionnarySearchResult(t *testing.T) {
 	log.SetOutput(ioutil.Discard)
 
-	if result := getUrbanDictionnarySearchResult(UD_searchTerms); result == nil {
+	if result := getUrbanDictionnarySearchResult(UD_searchTerms, ""); result == nil {
 		t.Error("No result returned by getUrbanDictionnarySearchResult")
 	} else if result[0] != UD_expectedResult {
 		t.Errorf("Expected result: %q, got %q instead\n", UD_expectedResult, result[0])
