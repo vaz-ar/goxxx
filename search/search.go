@@ -23,10 +23,10 @@ const (
 	URL_WIKIPEDIA        string = "https://%s.wikipedia.org/w/api.php?format=json&action=query&prop=extracts|info&exintro=&explaintext=&inprop=url&titles=%s"
 	URL_URBANDICTIONNARY string = "http://api.urbandictionary.com/v0/define?term=%s"
 
-	HELP_DUCKDUCKGO       string = "!d/!dg/!ddg <terms to search> \t=> Search on DuckduckGo"
-	HELP_WIKIPEDIA        string = "!w <terms to search> \t\t\t=> Search on Wikipedia EN"
-	HELP_WIKIPEDIA_FR     string = "!wf/!wfr <terms to search> \t\t\t=> Search on Wikipedia FR"
-	HELP_URBANDICTIONNARY string = "!u/!ud <terms to search> \t\t=> Search on Urban Dictionnary"
+	HELP_DUCKDUCKGO       string = "\t!d/!dg/!ddg <terms to search> \t=> Search on DuckduckGo"
+	HELP_WIKIPEDIA        string = "\t!w <terms to search> \t\t\t=> Search on Wikipedia EN"
+	HELP_WIKIPEDIA_FR     string = "\t!wf/!wfr <terms to search> \t=> Search on Wikipedia FR"
+	HELP_URBANDICTIONNARY string = "\t!u/!ud <terms to search> \t\t=> Search on Urban Dictionnary"
 )
 
 // --- --- --- Types --- --- ---

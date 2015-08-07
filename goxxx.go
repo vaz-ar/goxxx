@@ -14,6 +14,7 @@ import (
 	"github.com/romainletendart/goxxx/memo"
 	"github.com/romainletendart/goxxx/search"
 	"github.com/romainletendart/goxxx/webinfo"
+	"github.com/romainletendart/goxxx/xkcd"
 	"log"
 	"os"
 )
@@ -96,7 +97,9 @@ func main() {
 		search.HELP_WIKIPEDIA_FR,
 		search.HELP_URBANDICTIONNARY,
 		memo.HELP_MEMO,
-		memo.HELP_MEMOSTAT)
+		memo.HELP_MEMOSTAT,
+		xkcd.HELP_XKCD,
+		xkcd.HELP_XKCD_NUM)
 
 	bot.AddMsgHandler(webinfo.HandleUrls, bot.ReplyToAll)
 	bot.AddMsgHandler(memo.SendMemo, bot.ReplyToNick)
@@ -105,6 +108,7 @@ func main() {
 	bot.AddCmdHandler(memo.HandleMemoStatusCmd, bot.ReplyToNick)
 	bot.AddCmdHandler(search.HandleSearchCmd, bot.Reply)
 	bot.AddCmdHandler(help.HandleHelpCmd, bot.ReplyToNick)
+	bot.AddCmdHandler(xkcd.HandleXKCDCmd, bot.ReplyToAll)
 
 	bot.Run()
 }
