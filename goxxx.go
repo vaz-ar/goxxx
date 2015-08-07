@@ -89,7 +89,6 @@ func main() {
 	bot.Init()
 	memo.Init(db)
 	webinfo.Init(db)
-	search.Init()
 
 	help.Init(
 		search.HELP_DUCKDUCKGO,

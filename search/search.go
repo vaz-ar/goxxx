@@ -29,7 +29,9 @@ const (
 	HELP_URBANDICTIONNARY string = "!u/!ud <terms to search> \t\t=> Search on Urban Dictionnary"
 )
 
-// --- --- --- Types  --- --- ---
+// --- --- --- Types --- --- ---
+
+// Wikipedia JSON struct
 type wikipedia struct {
 	Query struct {
 		Pages map[string]struct {
@@ -40,6 +42,7 @@ type wikipedia struct {
 	} `json:"query"`
 }
 
+// Urban Dictionnary JSON struct
 type urbanDictionnary struct {
 	List []struct {
 		Definition string `json:"definition"`
@@ -48,6 +51,7 @@ type urbanDictionnary struct {
 	} `json:"list"`
 }
 
+//
 type searchData struct {
 	getUrl         func(string, string) []string
 	extraParameter string
@@ -59,7 +63,7 @@ type searchData struct {
 // --- --- --- Global variable --- --- ---
 var searchMap = make(map[string]*searchData)
 
-func Init() {
+func init() {
 	ddg := &searchData{
 		getUrl:         getDuckduckgoSearchResult,
 		text_result:    [2]string{"DuckDuckGo: Best result for %q => %s"},

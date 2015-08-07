@@ -143,9 +143,6 @@ func Test_getDuckduckgoSearchResult(t *testing.T) {
 func Test_HandleSearchCmd_DDG(t *testing.T) {
 	log.SetOutput(ioutil.Discard)
 
-	// Initialise search map
-	Init()
-
 	// --- --- --- --- --- --- valid result
 	var testReply core.ReplyCallbackData
 	HandleSearchCmd(&DDG_validEvent, func(data *core.ReplyCallbackData) {
@@ -204,9 +201,6 @@ func Test_getWikipediaSearchResult(t *testing.T) {
 func Test_HandleSearchCmd_W(t *testing.T) {
 	log.SetOutput(ioutil.Discard)
 
-	// Initialise search map
-	Init()
-
 	// --- --- --- --- --- --- valid result
 	var testReply []core.ReplyCallbackData
 	HandleSearchCmd(&W_validEvent, func(data *core.ReplyCallbackData) {
@@ -264,9 +258,6 @@ func Test_getUrbanDictionnarySearchResult(t *testing.T) {
 
 func Test_HandleSearchCmd_UD(t *testing.T) {
 	log.SetOutput(ioutil.Discard)
-
-	// Initialise search map
-	Init()
 
 	// --- --- --- --- --- --- valid result
 	var testReply []core.ReplyCallbackData
