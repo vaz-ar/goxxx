@@ -29,11 +29,13 @@ const (
 	FLAGS_FAILURE        //  == 2
 )
 
-func getOptions() (nick, server, channel, channelKey string, returnCode int) {
+func getOptions() (nick, server, channel, channelKey string, debug bool, returnCode int) {
 	flag.StringVar(&channel, "channel", "", "IRC channel name")
 	flag.StringVar(&channelKey, "key", "", "IRC channel key (optional)")
 	flag.StringVar(&nick, "nick", "goxxx", "the bot's nickname (optional)")
 	flag.StringVar(&server, "server", "chat.freenode.net:6697", "IRC_SERVER[:PORT] (optional)")
+	flag.BoolVar(&debug, "debug", false, "Debug mode")
+
 	version := flag.Bool("version", false, "Display goxxx version")
 
 	flag.Usage = func() {
@@ -42,7 +44,6 @@ func getOptions() (nick, server, channel, channelKey string, returnCode int) {
 		fmt.Println("Arguments description:")
 		flag.PrintDefaults()
 	}
-
 	flag.Parse()
 
 	if *version {
@@ -57,7 +58,6 @@ func getOptions() (nick, server, channel, channelKey string, returnCode int) {
 	} else {
 		returnCode = FLAGS_SUCCESS
 	}
-
 	return
 }
 
@@ -71,11 +71,14 @@ func main() {
 	defer logFile.Close()
 	log.SetOutput(logFile)
 
-	nick, server, channel, channelKey, returnCode := getOptions()
+	nick, server, channel, channelKey, debug, returnCode := getOptions()
 	if returnCode == FLAGS_EXIT {
 		return
 	} else if returnCode == FLAGS_FAILURE {
 		log.Fatal("Initialisation failed (getOptions())")
+	}
+	if debug {
+		log.SetFlags(log.LstdFlags | log.Lshortfile)
 	}
 
 	db := database.InitDatabase("", false)
