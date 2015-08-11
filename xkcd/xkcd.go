@@ -22,28 +22,18 @@ const (
 	HELP_XKCD_NUM string = "\t!xkcd <comic number> \t\t=> Return the XKCD comic corresponding to the number"
 
 	URL_SITE        string = "https://xkcd.com/%d/"
-	URL_JSON        string = "http://xkcd.com/%d/info.0.json"
-	URL_JSON_LATEST string = "http://xkcd.com/info.0.json"
+	URL_JSON        string = "https://xkcd.com/%d/info.0.json"
+	URL_JSON_LATEST string = "https://xkcd.com/info.0.json"
 )
 
 type xkcd struct {
-	// Alt string `json:"alt"`
-	// Day  string `json:"day"`
-	Img  string `json:"img"`
-	Link string `json:"link"`
-	// Month      string `json:"month"`
-	// News       string `json:"news"`
-	Num int `json:"num"`
-	// SafeTitle  string `json:"safe_title"`
+	Img   string `json:"img"`
+	Link  string `json:"link"`
+	Num   int64  `json:"num"`
 	Title string `json:"title"`
-	// Transcript string `json:"transcript"`
-	// Year       string `json:"year"`
 }
 
-// func init() {
-// }
-
-func getComic(number int) *xkcd {
+func getComic(number int64) *xkcd {
 	var url string
 	if number <= 0 { // Get latest comic
 		url = URL_JSON_LATEST
@@ -71,9 +61,7 @@ func getComic(number int) *xkcd {
 		log.Println(err)
 		return nil
 	}
-
 	result.Link = fmt.Sprintf(URL_SITE, result.Num)
-
 	return result
 }
 
@@ -89,6 +77,7 @@ func HandleXKCDCmd(event *irc.Event, callback func(*core.ReplyCallbackData)) boo
 
 	count := len(fields)
 	if count == 0 || fields[0] != "!xkcd" {
+		log.Println("XKCD: Not an XKCD command")
 		return false
 	}
 
@@ -96,25 +85,29 @@ func HandleXKCDCmd(event *irc.Event, callback func(*core.ReplyCallbackData)) boo
 	if count < 2 {
 		comic := getComic(0)
 		if comic == nil {
+			log.Println("XKCD: No comic return by getComic")
 			return false
 		}
 		message = fmt.Sprintf("Last XKCD Comic: %s => %s", comic.Title, comic.Link)
 	} else {
-		number, err := strconv.Atoi(fields[1])
+		number, err := strconv.ParseInt(fields[1], 10, 64)
 		if err != nil {
 			log.Println(err)
 			return false
 		}
+
 		if number < 0 || getComic(0).Num < number {
-			message = fmt.Sprintf("there is no XKCD comic #%d", number)
+			message = fmt.Sprintf("There is no XKCD comic #%d", number)
 		} else {
 			comic := getComic(number)
 			if comic == nil {
+				log.Println("XKCD: No comic return by getComic")
 				return false
 			}
 			message = fmt.Sprintf("XKCD Comic #%d: %s => %s", comic.Num, comic.Title, comic.Link)
 		}
 	}
+	log.Println(message)
 	callback(&core.ReplyCallbackData{Message: message, Nick: event.Nick})
 	return true
 }
