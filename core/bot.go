@@ -26,12 +26,16 @@ type ReplyCallbackData struct {
 	Nick    string
 }
 
-func (bot *Bot) Init() {
-	bot.ircConn = irc.IRC(bot.Nick, bot.Nick)
+// Bot constructor.
+// Set the required parameters and open the connection to the server.
+func NewBot(nick, server, channel, channelKey string) *Bot {
+	bot := Bot{Nick: nick, Server: server, Channel: channel, ChannelKey: channelKey}
+	bot.ircConn = irc.IRC(nick, nick)
 	bot.ircConn.UseTLS = true
-	bot.ircConn.Connect(bot.Server)
-	bot.ircConn.Join(bot.Channel + " " + bot.ChannelKey)
+	bot.ircConn.Connect(server)
+	bot.ircConn.Join(channel + " " + channelKey)
 	bot.ircConn.AddCallback("PRIVMSG", bot.mainHandler)
+	return &bot
 }
 
 // msgProcessCallback will be called on every user message the bot reads (if a command was not found previously in the message).

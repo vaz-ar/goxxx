@@ -81,16 +81,13 @@ func main() {
 		log.SetFlags(log.LstdFlags | log.Lshortfile)
 	}
 
-	db := database.InitDatabase("", false)
+	db := database.NewDatabase("", false)
 	defer db.Close()
 
-	bot := core.Bot{
-		Nick:       nick,
-		Server:     server,
-		Channel:    channel,
-		ChannelKey: channelKey,
-	}
-	bot.Init()
+	// Create the bot
+	bot := core.NewBot(nick, server, channel, channelKey)
+
+	// Initialise packages
 	memo.Init(db)
 	webinfo.Init(db)
 

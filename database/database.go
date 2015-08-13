@@ -12,7 +12,7 @@ import (
 	"os"
 )
 
-func InitDatabase(databaseName string, reset bool) *sql.DB {
+func NewDatabase(databaseName string, reset bool) *sql.DB {
 	// Use default name if not specified
 	if databaseName == "" {
 		// check if the storage directory exist, if not create it
