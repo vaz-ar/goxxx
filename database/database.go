@@ -3,6 +3,8 @@
 // Copyright (c) 2015 Arnaud Vazard
 //
 // See LICENSE file.
+
+// Database management
 package database
 
 import (
@@ -12,6 +14,10 @@ import (
 	"os"
 )
 
+// Database constructor.
+// If database name is an empty string the default path will be used ("./storage/db.sqlite"),
+//else it will be used as the path for the database file.
+// If reset is true destroy the database before opening it (which will recreate it).
 func NewDatabase(databaseName string, reset bool) *sql.DB {
 	// Use default name if not specified
 	if databaseName == "" {
@@ -25,11 +31,9 @@ func NewDatabase(databaseName string, reset bool) *sql.DB {
 		}
 		databaseName = "./storage/db.sqlite"
 	}
-
 	if reset {
 		os.Remove(databaseName)
 	}
-
 	db, err := sql.Open("sqlite3", databaseName)
 	if err != nil {
 		log.Fatal(err)
