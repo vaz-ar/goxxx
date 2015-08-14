@@ -3,6 +3,8 @@
 // Copyright (c) 2015 Arnaud Vazard
 //
 // See LICENSE file.
+
+// Package to search from various sources
 package search
 
 import (
@@ -19,18 +21,17 @@ import (
 
 //  --- --- --- Constants --- --- ---
 const (
-	URL_DUCKDUCKGO       string = "https://duckduckgo.com/html/?q=%s"
-	URL_WIKIPEDIA        string = "https://%s.wikipedia.org/w/api.php?format=json&action=query&prop=extracts|info&exintro=&explaintext=&inprop=url&titles=%s"
-	URL_URBANDICTIONNARY string = "http://api.urbandictionary.com/v0/define?term=%s"
+	URL_DUCKDUCKGO       string = "https://duckduckgo.com/html/?q=%s"                                                                                         // Duckduckgo URL format string
+	URL_WIKIPEDIA        string = "https://%s.wikipedia.org/w/api.php?format=json&action=query&prop=extracts|info&exintro=&explaintext=&inprop=url&titles=%s" // Wikipedia URL format string
+	URL_URBANDICTIONNARY string = "http://api.urbandictionary.com/v0/define?term=%s"                                                                          // Urban Dictionnary URL format string
 
-	HELP_DUCKDUCKGO       string = "\t!d/!dg/!ddg <terms to search> \t=> Search on DuckduckGo"
-	HELP_WIKIPEDIA        string = "\t!w <terms to search> \t\t\t=> Search on Wikipedia EN"
-	HELP_WIKIPEDIA_FR     string = "\t!wf/!wfr <terms to search> \t=> Search on Wikipedia FR"
-	HELP_URBANDICTIONNARY string = "\t!u/!ud <terms to search> \t\t=> Search on Urban Dictionnary"
+	HELP_DUCKDUCKGO       string = "\t!d/!dg/!ddg <terms to search> \t=> Search on DuckduckGo"     // Help message for the Duckduckgo commands
+	HELP_WIKIPEDIA        string = "\t!w <terms to search> \t\t\t=> Search on Wikipedia EN"        // Help message for the Wikipedia EN commands
+	HELP_WIKIPEDIA_FR     string = "\t!wf/!wfr <terms to search> \t=> Search on Wikipedia FR"      // Help message for the Wikipedia FR commands
+	HELP_URBANDICTIONNARY string = "\t!u/!ud <terms to search> \t\t=> Search on Urban Dictionnary" // Help message for the Urban Dictionnary commands
 )
 
 // --- --- --- Types --- --- ---
-
 // Wikipedia JSON struct
 type wikipedia struct {
 	Query struct {
@@ -51,7 +52,7 @@ type urbanDictionnary struct {
 	} `json:"list"`
 }
 
-//
+// General data structure to store search informations
 type searchData struct {
 	getUrl         func(string, string) []string
 	extraParameter string
@@ -97,6 +98,7 @@ func init() {
 	searchMap["!ud"] = ud
 }
 
+// Handler for the search commands
 func HandleSearchCmd(event *irc.Event, callback func(*core.ReplyCallbackData)) bool {
 	if callback == nil {
 		log.Println("Callback nil for the HandleSearchCmd function")
@@ -150,6 +152,8 @@ func HandleSearchCmd(event *irc.Event, callback func(*core.ReplyCallbackData)) b
 }
 
 // --- --- --- HTTP Functions --- --- ---
+
+// Function to get text content from an url
 func getResponseAsText(url string) []byte {
 	response, err := http.Get(url)
 	if err != nil {
