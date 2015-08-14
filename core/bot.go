@@ -3,12 +3,15 @@
 // Copyright (c) 2015 Romain LÉTENDART
 //
 // See LICENSE file.
+
+// Contains the bot's core functionalities
 package core
 
 import (
 	"github.com/thoj/go-ircevent"
 )
 
+// Bot structure that contains connection informations, IRC connection, command handlers and message handlers
 type Bot struct {
 	Nick              string
 	Server            string
@@ -21,6 +24,7 @@ type Bot struct {
 	CmdReplyCallbacks []func(*ReplyCallbackData)
 }
 
+// Structure used by the handlers to send data in a standardized format
 type ReplyCallbackData struct {
 	Message string
 	Nick    string
@@ -58,20 +62,26 @@ func (bot *Bot) AddCmdHandler(cmdProcessCallback func(*irc.Event, func(*ReplyCal
 	}
 }
 
+// Start the event loop
 func (bot *Bot) Run() {
 	bot.ircConn.Loop()
 }
 
+// Send a message to the channel where the bot is connected
 func (bot *Bot) ReplyToAll(data *ReplyCallbackData) {
 	bot.ircConn.Privmsg(bot.Channel, data.Message)
 }
 
+// Send a private message to the user "data.Nick".
+// If data.Nick is an empty string, do nothing
 func (bot *Bot) ReplyToNick(data *ReplyCallbackData) {
 	if data.Nick != "" {
 		bot.ircConn.Privmsg(data.Nick, data.Message)
 	}
 }
 
+// Send a private message to the user "data.Nick" if "data.Nick" isn't an empty string.
+// If "data.Nick" is an empty string then send the message to the channel where the bot is connected.
 func (bot *Bot) Reply(data *ReplyCallbackData) {
 	if data.Nick == "" {
 		bot.ircConn.Privmsg(bot.Channel, data.Message)
@@ -80,6 +90,7 @@ func (bot *Bot) Reply(data *ReplyCallbackData) {
 	}
 }
 
+// Handler called on every message posted in the channel where the bot is connected or directly sent to the bot
 func (bot *Bot) mainHandler(event *irc.Event) {
 	for i, handler := range bot.CmdHandlers {
 		if handler(event, bot.CmdReplyCallbacks[i]) {
