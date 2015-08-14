@@ -3,6 +3,10 @@
 // Copyright (c) 2015 Romain LÉTENDART
 //
 // See LICENSE file.
+
+// Main package for the goxxx project
+//
+// For the details see the file goxxx.go, as godoc won't show the documentation for the main package
 package main
 
 import (
@@ -29,13 +33,13 @@ const (
 	FLAGS_FAILURE        //  == 2
 )
 
+// Process the command line arguments
 func getOptions() (nick, server, channel, channelKey string, debug bool, returnCode int) {
 	flag.StringVar(&channel, "channel", "", "IRC channel name")
 	flag.StringVar(&channelKey, "key", "", "IRC channel key (optional)")
 	flag.StringVar(&nick, "nick", "goxxx", "the bot's nickname (optional)")
 	flag.StringVar(&server, "server", "chat.freenode.net:6697", "IRC_SERVER[:PORT] (optional)")
 	flag.BoolVar(&debug, "debug", false, "Debug mode")
-
 	version := flag.Bool("version", false, "Display goxxx version")
 
 	flag.Usage = func() {
@@ -62,7 +66,6 @@ func getOptions() (nick, server, channel, channelKey string, debug bool, returnC
 }
 
 func main() {
-
 	// Set log output to a file
 	logFile, err := os.OpenFile("./logs.txt", os.O_RDWR|os.O_CREATE|os.O_APPEND, 0666)
 	if err != nil {
@@ -78,9 +81,11 @@ func main() {
 		log.Fatal("Initialisation failed (getOptions())")
 	}
 	if debug {
+		// In debug mode we show the file name and the line from where the log come from
 		log.SetFlags(log.LstdFlags | log.Lshortfile)
 	}
 
+	// Create the database
 	db := database.NewDatabase("", false)
 	defer db.Close()
 
@@ -90,7 +95,6 @@ func main() {
 	// Initialise packages
 	memo.Init(db)
 	webinfo.Init(db)
-
 	help.Init(
 		search.HELP_DUCKDUCKGO,
 		search.HELP_WIKIPEDIA,
@@ -101,14 +105,17 @@ func main() {
 		xkcd.HELP_XKCD,
 		xkcd.HELP_XKCD_NUM)
 
+	// Message Handlers
 	bot.AddMsgHandler(webinfo.HandleUrls, bot.ReplyToAll)
 	bot.AddMsgHandler(memo.SendMemo, bot.ReplyToNick)
 
+	// Command Handlers
 	bot.AddCmdHandler(memo.HandleMemoCmd, bot.ReplyToAll)
 	bot.AddCmdHandler(memo.HandleMemoStatusCmd, bot.ReplyToNick)
 	bot.AddCmdHandler(search.HandleSearchCmd, bot.Reply)
 	bot.AddCmdHandler(help.HandleHelpCmd, bot.ReplyToNick)
 	bot.AddCmdHandler(xkcd.HandleXKCDCmd, bot.ReplyToAll)
 
+	// Start the bot
 	bot.Run()
 }
