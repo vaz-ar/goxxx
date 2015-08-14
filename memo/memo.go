@@ -3,6 +3,8 @@
 // Copyright (c) 2015 Arnaud Vazard
 //
 // See LICENSE file.
+
+// Memo package
 package memo
 
 import (
@@ -15,12 +17,17 @@ import (
 )
 
 const (
-	HELP_MEMO     string = "\t!memo <nick> <message> \t=> Leave a memo for another user"
-	HELP_MEMOSTAT string = "\t!memostat \t\t\t\t\t=> Get the list of the unread memos (List only the memos you left)"
+	HELP_MEMO     string = "\t!memo/!m <nick> <message> \t=> Leave a memo for another user"                               // Help message for the memo command
+	HELP_MEMOSTAT string = "\t!memostat/!ms \t\t\t\t\t=> Get the list of the unread memos (List only the memos you left)" // Help message for the memo status command
 )
 
-var _database *sql.DB
+var (
+	MEMO_CMD     = []string{"!memo", "!m"}      // Slice containing the possible memo commands
+	MEMOSTAT_CMD = []string{"!memostat", "!ms"} // Slice containing the possible memo status commands
+	dbPtr        *sql.DB                        // Database pointer
+)
 
+// Used to store memo data, based on the database table "Memo".
 type MemoData struct {
 	id        int
 	Date      string
@@ -29,8 +36,9 @@ type MemoData struct {
 	User_to   string
 }
 
+// Initialise the database table "Memo" if necessary.
 func Init(db *sql.DB) {
-	_database = db
+	dbPtr = db
 	sqlStmt := `CREATE TABLE IF NOT EXISTS Memo (
     id integer NOT NULL PRIMARY KEY,
     user_to TEXT,
@@ -44,34 +52,22 @@ func Init(db *sql.DB) {
 	}
 }
 
+// Handler for the memo command.
 func HandleMemoCmd(event *irc.Event, callback func(*core.ReplyCallbackData)) bool {
 	fields := strings.Fields(event.Message())
 	// fields[0]  => Command
 	// fields[1]  => recipient's nick
 	// fields[2:] => message
-	if len(fields) == 0 || fields[0] != "!memo" {
+	if len(fields) < 3 || !core.StringInSlice(fields[0], MEMO_CMD) {
 		return false
 	}
-
-	if len(fields) < 3 {
-		if callback != nil {
-			callback(&core.ReplyCallbackData{
-				Message: fmt.Sprintf("Memo usage: %s \"recipient's nick\" \"message\"", fields[0]),
-				Nick:    event.Nick})
-			callback(&core.ReplyCallbackData{
-				Message: "Memo usage: !memostat to list unread memos",
-				Nick:    event.Nick})
-		}
-		return false
-	}
-
 	memo := MemoData{
 		User_to:   fields[1],
 		User_from: event.Nick,
 		Message:   strings.Join(fields[2:], " ")}
 
 	sqlStmt := "INSERT INTO Memo (user_to, user_from, message) VALUES ($1, $2, $3)"
-	_, err := _database.Exec(sqlStmt, memo.User_to, memo.User_from, memo.Message)
+	_, err := dbPtr.Exec(sqlStmt, memo.User_to, memo.User_from, memo.Message)
 	if err != nil {
 		log.Fatalf("%q: %s\n", err, sqlStmt)
 	}
@@ -84,10 +80,11 @@ func HandleMemoCmd(event *irc.Event, callback func(*core.ReplyCallbackData)) boo
 	return true
 }
 
+// Message handler, will send memo(s) to an user when he post a message for the first time after a memo for him was created.
 func SendMemo(event *irc.Event, callback func(*core.ReplyCallbackData)) {
 	user := event.Nick
 	sqlQuery := "SELECT id, user_from, message, strftime('%d/%m/%Y @ %H:%M', datetime(date, 'localtime')) FROM Memo WHERE user_to = $1;"
-	rows, err := _database.Query(sqlQuery, user)
+	rows, err := dbPtr.Query(sqlQuery, user)
 	if err != nil {
 		log.Fatalf("%q: %s\n", err, sqlQuery)
 	}
@@ -107,20 +104,23 @@ func SendMemo(event *irc.Event, callback func(*core.ReplyCallbackData)) {
 
 	for _, memo := range memoList {
 		sqlQuery = "DELETE FROM Memo WHERE id = $1"
-		_, err = _database.Exec(sqlQuery, memo.id)
+		_, err = dbPtr.Exec(sqlQuery, memo.id)
 		if err != nil {
 			log.Fatalf("%q: %s\n", err, sqlQuery)
 		}
 	}
 }
 
+// Handler for the memo status command.
 func HandleMemoStatusCmd(event *irc.Event, callback func(*core.ReplyCallbackData)) bool {
-	if strings.TrimSpace(event.Message()) != "!memostat" {
+	fields := strings.Fields(event.Message())
+	// fields[0]  => Command
+	if len(fields) == 0 || !core.StringInSlice(fields[0], MEMOSTAT_CMD) {
 		return false
 	}
 
 	sqlQuery := "SELECT id, user_to, message, strftime('%d/%m/%Y @ %H:%M', datetime(date, 'localtime')) FROM Memo WHERE user_from = $1 ORDER BY id"
-	rows, err := _database.Query(sqlQuery, event.Nick)
+	rows, err := dbPtr.Query(sqlQuery, event.Nick)
 	if err != nil {
 		log.Fatalf("%q: %s\n", err, sqlQuery)
 	}
@@ -136,10 +136,7 @@ func HandleMemoStatusCmd(event *irc.Event, callback func(*core.ReplyCallbackData
 	rows.Close()
 
 	if memo.id == 0 {
-		callback(&core.ReplyCallbackData{
-			Message: "No memo saved",
-			Nick:    event.Nick})
+		callback(&core.ReplyCallbackData{Message: "No memo saved", Nick: event.Nick})
 	}
-
 	return true
 }
