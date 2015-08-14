@@ -3,6 +3,8 @@
 // Copyright (c) 2015 Arnaud Vazard
 //
 // See LICENSE file.
+
+// Package to retrieve XKCD Comics
 package xkcd
 
 import (
@@ -18,12 +20,12 @@ import (
 )
 
 const (
-	HELP_XKCD     string = "\t!xkcd \t\t\t\t\t\t=> Return the last XKCD comic"
-	HELP_XKCD_NUM string = "\t!xkcd <comic number> \t\t=> Return the XKCD comic corresponding to the number"
+	HELP_XKCD     string = "\t!xkcd \t\t\t\t\t\t=> Return the last XKCD comic"                               // Help message for the !xkcd command
+	HELP_XKCD_NUM string = "\t!xkcd <comic number> \t\t=> Return the XKCD comic corresponding to the number" // Help message for the !xkcd <comic number> command
 
-	URL_SITE        string = "https://xkcd.com/%d/"
-	URL_JSON        string = "https://xkcd.com/%d/info.0.json"
-	URL_JSON_LATEST string = "https://xkcd.com/info.0.json"
+	URL_SITE        string = "https://xkcd.com/%d/"            // Website URL format string
+	URL_JSON        string = "https://xkcd.com/%d/info.0.json" // JSON URL format string
+	URL_JSON_LATEST string = "https://xkcd.com/info.0.json"    // JSON URL for the current comic
 )
 
 type xkcd struct {
@@ -33,11 +35,15 @@ type xkcd struct {
 	Title string `json:"title"`
 }
 
+// If number is superior to 0 attempt to get informations on the corresponding comic, else return the inforamtions for the current comic.
+// In case of error return nil
 func getComic(number int64) *xkcd {
 	var url string
-	if number <= 0 { // Get latest comic
+	if number <= 0 {
+		// Get latest comic
 		url = URL_JSON_LATEST
-	} else { // Get the comic corresponding to "number"
+	} else {
+		// Get the comic corresponding to "number"
 		url = fmt.Sprintf(URL_JSON, number)
 	}
 
@@ -61,10 +67,12 @@ func getComic(number int64) *xkcd {
 		log.Println(err)
 		return nil
 	}
+	// Add the full website link to the structure
 	result.Link = fmt.Sprintf(URL_SITE, result.Num)
 	return result
 }
 
+// Handler for the XKCD commands
 func HandleXKCDCmd(event *irc.Event, callback func(*core.ReplyCallbackData)) bool {
 	if callback == nil {
 		log.Println("Callback nil for the HandleXKCDCmd function")
@@ -77,7 +85,6 @@ func HandleXKCDCmd(event *irc.Event, callback func(*core.ReplyCallbackData)) boo
 
 	count := len(fields)
 	if count == 0 || fields[0] != "!xkcd" {
-		log.Println("XKCD: Not an XKCD command")
 		return false
 	}
 
