@@ -36,7 +36,7 @@ type MemoData struct {
 	User_to   string
 }
 
-// Initialise the database table "Memo" if necessary.
+// Store the database pointer and initialise the database table "Memo" if necessary.
 func Init(db *sql.DB) {
 	dbPtr = db
 	sqlStmt := `CREATE TABLE IF NOT EXISTS Memo (

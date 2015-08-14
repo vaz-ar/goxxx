@@ -3,6 +3,8 @@
 // Copyright (c) 2015 Romain LÉTENDART
 //
 // See LICENSE file.
+
+// Package Web Info
 package webinfo
 
 import (
@@ -18,10 +20,15 @@ import (
 	"regexp"
 )
 
-var _database *sql.DB
+// BUG(romainletendart) Choose a better name for the HandleUrls function
 
+const maxUrlsCount int = 10 // Maximun number of URLs to search in one message
+
+var dbPtr *sql.DB // Database pointer
+
+// Store the database pointer and initialise the database table "Link" if necessary.
 func Init(db *sql.DB) {
-	_database = db
+	dbPtr = db
 	sqlStmt := `CREATE TABLE IF NOT EXISTS Link (
     id integer NOT NULL PRIMARY KEY,
     user TEXT,
@@ -34,7 +41,7 @@ func Init(db *sql.DB) {
 	}
 }
 
-// TODO Choose a better name for that function
+// Message handler that search for URLs in a message
 func HandleUrls(event *irc.Event, replyCallback func(*core.ReplyCallbackData)) {
 	allUrls := findUrls(event.Message())
 	for _, url := range allUrls {
@@ -51,12 +58,9 @@ func HandleUrls(event *irc.Event, replyCallback func(*core.ReplyCallbackData)) {
 			return
 		}
 
-		var (
-			user string
-			date string
-		)
+		var user, date string
 		sqlQuery := "SELECT user, strftime('%d/%m/%Y @ %H:%M', datetime(date, 'localtime')) FROM Link WHERE url = $1"
-		rows, err := _database.Query(sqlQuery, url.String())
+		rows, err := dbPtr.Query(sqlQuery, url.String())
 		if err != nil {
 			log.Fatalf("%q: %s\n", err, sqlQuery)
 		}
@@ -66,7 +70,7 @@ func HandleUrls(event *irc.Event, replyCallback func(*core.ReplyCallbackData)) {
 
 		if user == "" {
 			sqlQuery = "INSERT INTO Link (user, url) VALUES ($1, $2)"
-			_, err := _database.Exec(sqlQuery, event.Nick, url.String())
+			_, err := dbPtr.Exec(sqlQuery, event.Nick, url.String())
 			if err != nil {
 				log.Fatalf("%q: %s\n", err, sqlQuery)
 			}
@@ -81,6 +85,7 @@ func HandleUrls(event *irc.Event, replyCallback func(*core.ReplyCallbackData)) {
 	}
 }
 
+// Extract the title from an HTML page
 func getTitleFromHTML(document *html.Node) (title string, found bool) {
 	if document.Type != html.DocumentNode {
 		// Didn't find a document node as first node, exit
@@ -122,9 +127,8 @@ func getTitleFromHTML(document *html.Node) (title string, found bool) {
 	return
 }
 
+// Search for URLs in a string
 func findUrls(message string) (urls []*url.URL) {
-	const maxUrlsCount int = 10
-
 	// Source of the regular expression:
 	// http://daringfireball.net/2010/07/improved_regex_for_matching_urls
 	re := regexp.MustCompile("(?:https?://|www\\d{0,3}[.]|[a-z0-9.\\-]+[.][a-z]{2,4}/)(?:[^\\s()<>]+|\\(([^\\s()<>]+|(\\([^\\s()<>]+\\)))*\\))+(?:\\(([^\\s()<>]+|(\\([^\\s()<>]+\\)))*\\)|[^\\s`!()\\[\\]{};:'\".,<>?«»“”‘’])")
@@ -146,6 +150,5 @@ func findUrls(message string) (urls []*url.URL) {
 		}
 		urls = append(urls, url)
 	}
-
 	return
 }
