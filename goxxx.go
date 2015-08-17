@@ -6,7 +6,7 @@
 
 // Main package for the goxxx project
 //
-// For the details see the file goxxx.go, as godoc won't show the documentation for the main package
+// For the details see the file goxxx.go, as godoc won't show the documentation for the main package.
 package main
 
 import (
@@ -19,6 +19,7 @@ import (
 	"github.com/romainletendart/goxxx/search"
 	"github.com/romainletendart/goxxx/webinfo"
 	"github.com/romainletendart/goxxx/xkcd"
+	"github.com/vharitonsky/iniflags"
 	"log"
 	"os"
 )
@@ -48,7 +49,12 @@ func getOptions() (nick, server, channel, channelKey string, debug bool, returnC
 		fmt.Println("Arguments description:")
 		flag.PrintDefaults()
 	}
-	flag.Parse()
+
+	// Hybrid config: use flags and INI file
+	// Command line flags take precedence on INI values
+	// INI file path can be passed via the -command flag or via a function (commented for now, exit application if the file does not exist ...)
+	//     iniflags.SetConfigFile("./config.ini")
+	iniflags.Parse()
 
 	if *version {
 		fmt.Printf("\nGoxxx version: %s\n\n", GLOBAL_VERSION)
