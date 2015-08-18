@@ -115,7 +115,7 @@ func Test_findUrls(t *testing.T) {
 func Test_HandleUrls(t *testing.T) {
 	log.SetOutput(ioutil.Discard)
 
-	db := database.InitDatabase("../storage/tests.sqlite", true)
+	db := database.NewDatabase("../storage/tests.sqlite", true)
 	defer db.Close()
 	Init(db)
 
