@@ -67,6 +67,12 @@ func (bot *Bot) Run() {
 	bot.ircConn.Loop()
 }
 
+// Exit the event loop
+func (bot *Bot) Stop() {
+	// Quit the current connection and disconnect from the server (details: https://tools.ietf.org/html/rfc1459#section-4.1.6)
+	bot.ircConn.Quit()
+}
+
 // Send a message to the channel where the bot is connected
 func (bot *Bot) ReplyToAll(data *ReplyCallbackData) {
 	bot.ircConn.Privmsg(bot.Channel, data.Message)
