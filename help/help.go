@@ -15,8 +15,8 @@ import (
 
 var messageList []string
 
-// Store all the messages to display via the help command
-func Init(helpMessages ...string) {
+// Store messages to display them later via the help command
+func AddMessages(helpMessages ...string) {
 	for _, message := range helpMessages {
 		messageList = append(messageList, message)
 	}

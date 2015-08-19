@@ -24,17 +24,21 @@ const (
 
 var (
 	connection struct {
-		auth   smtp.Auth
-		sender string
-		server string
+		auth    smtp.Auth
+		account string
+		sender  string
+		server  string
 	}
 	dbPtr       *sql.DB // Database pointer
 	initialised bool
 )
 
-func Init(db *sql.DB, sender, password, server string, port int) bool {
-	if sender == "" || password == "" || server == "" || port == 0 {
+func Init(db *sql.DB, sender, account, password, server string, port int) bool {
+	if account == "" || password == "" || server == "" || port == 0 {
 		return false
+	}
+	if sender == "" {
+		sender = account
 	}
 	dbPtr = db
 
@@ -46,11 +50,12 @@ func Init(db *sql.DB, sender, password, server string, port int) bool {
 		log.Fatalf("%q: %s\n", err, sqlStmt)
 	}
 
+	connection.account = account
 	connection.sender = sender
 	connection.server = fmt.Sprint(server, ":", port)
 	connection.auth = smtp.PlainAuth(
 		"",
-		sender,
+		account,
 		password,
 		server)
 
@@ -68,7 +73,7 @@ func sendMail(headers map[string]string, body string) bool {
 	err := smtp.SendMail(
 		connection.server,
 		connection.auth,
-		connection.sender,
+		connection.account,
 		[]string{headers["To"]},
 		[]byte(message))
 

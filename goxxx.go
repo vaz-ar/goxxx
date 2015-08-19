@@ -24,6 +24,7 @@ import (
 	"log"
 	"os"
 	"os/signal"
+	"strings"
 	"syscall"
 )
 
@@ -38,20 +39,37 @@ const (
 	FLAGS_ADD_USER        //  == 3
 )
 
+// Config struct
+type configData struct {
+	channel       string
+	channelKey    string
+	nick          string
+	server        string
+	modules       []string
+	debug         bool
+	emailServer   string
+	emailPort     int
+	emailSender   string
+	emailAccount  string
+	emailPassword string
+}
+
 // Process the command line arguments
-func getOptions() (nick, server, channel, channelKey, mailServer, mailSender, mailPassword string, debug bool, mailPort, returnCode int) {
+func getOptions() (config configData, returnCode int) {
 	// IRC
-	flag.StringVar(&channel, "channel", "", "IRC channel name")
-	flag.StringVar(&channelKey, "key", "", "IRC channel key (optional)")
-	flag.StringVar(&nick, "nick", "goxxx", "the bot's nickname (optional)")
-	flag.StringVar(&server, "server", "chat.freenode.net:6697", "IRC_SERVER[:PORT] (optional)")
+	flag.StringVar(&config.channel, "channel", "", "IRC channel name")
+	flag.StringVar(&config.channelKey, "key", "", "IRC channel key (optional)")
+	flag.StringVar(&config.nick, "nick", "goxxx", "the bot's nickname (optional)")
+	flag.StringVar(&config.server, "server", "chat.freenode.net:6697", "IRC_SERVER[:PORT] (optional)")
+	modules := flag.String("modules", "memo,webinfo,invoke,search,xkcd", "Modules to enable (separated by commas)")
 	// Email
-	flag.StringVar(&mailServer, "mail_server", "", "")
-	flag.IntVar(&mailPort, "mail_port", 0, "")
-	flag.StringVar(&mailSender, "mail_sender", "", "")
-	flag.StringVar(&mailPassword, "mail_pwd", "", "")
+	flag.StringVar(&config.emailServer, "email_server", "", "SMTP server address")
+	flag.IntVar(&config.emailPort, "email_port", 0, "SMTP server port")
+	flag.StringVar(&config.emailSender, "email_sender", "", "Email address to use in the \"From\" part of the header")
+	flag.StringVar(&config.emailAccount, "email_account", "", "Email address from which to send emails")
+	flag.StringVar(&config.emailPassword, "email_pwd", "", "password for the SMTP server")
 	// Application
-	flag.BoolVar(&debug, "debug", false, "Debug mode")
+	flag.BoolVar(&config.debug, "debug", false, "Debug mode")
 	version := flag.Bool("version", false, "Display goxxx version")
 
 	flag.Usage = func() {
@@ -68,6 +86,7 @@ func getOptions() (nick, server, channel, channelKey, mailServer, mailSender, ma
 	// INI file path can be passed via the -command flag or via a function (commented for now, exit application if the file does not exist ...)
 	//     iniflags.SetConfigFile("./config.ini")
 	iniflags.Parse()
+	config.modules = strings.Split(*modules, ",")
 
 	if *version {
 		fmt.Printf("\nGoxxx version: %s\n\n", GLOBAL_VERSION)
@@ -84,7 +103,7 @@ func getOptions() (nick, server, channel, channelKey, mailServer, mailSender, ma
 			return
 		}
 		returnCode = FLAGS_ADD_USER
-	} else if channel == "" {
+	} else if config.channel == "" {
 		flag.Usage()
 		returnCode = FLAGS_FAILURE
 	} else {
@@ -102,13 +121,13 @@ func main() {
 	defer logFile.Close()
 	log.SetOutput(logFile)
 
-	nick, server, channel, channelKey, mailServer, mailSender, mailPassword, debug, mailPort, returnCode := getOptions()
+	config, returnCode := getOptions()
 	if returnCode == FLAGS_EXIT {
 		return
 	} else if returnCode == FLAGS_FAILURE {
 		log.Fatal("Initialisation failed (getOptions())")
 	}
-	if debug {
+	if config.debug {
 		// In debug mode we show the file name and the line from where the log come from
 		log.SetFlags(log.LstdFlags | log.Lshortfile)
 	}
@@ -128,38 +147,51 @@ func main() {
 	}
 
 	// Create the bot
-	bot := core.NewBot(nick, server, channel, channelKey)
+	bot := core.NewBot(config.nick, config.server, config.channel, config.channelKey)
 
 	// Initialise packages
-	memo.Init(db)
-	webinfo.Init(db)
+	for _, module := range config.modules {
+		switch strings.TrimSpace(module) {
+		case "invoke":
+			if !invoke.Init(db, config.emailSender, config.emailAccount, config.emailPassword, config.emailServer, config.emailPort) {
+				log.Println("Error while initialising invoke package")
+				return
+			}
+			bot.AddCmdHandler(invoke.HandleInvokeCmd, bot.ReplyToNick)
+			help.AddMessages(invoke.HELP_INVOKE)
+			log.Println("invoke module loaded")
 
-	if !invoke.Init(db, mailSender, mailPassword, mailServer, mailPort) {
-		log.Println("Error while initialising invoke package")
-		return
+		case "memo":
+			memo.Init(db)
+			bot.AddMsgHandler(memo.SendMemo, bot.ReplyToNick)
+			bot.AddCmdHandler(memo.HandleMemoCmd, bot.ReplyToAll)
+			bot.AddCmdHandler(memo.HandleMemoStatusCmd, bot.ReplyToNick)
+			help.AddMessages(memo.HELP_MEMO, memo.HELP_MEMOSTAT)
+			log.Println("memo module loaded")
+
+		case "search":
+			bot.AddCmdHandler(search.HandleSearchCmd, bot.Reply)
+			help.AddMessages(
+				search.HELP_DUCKDUCKGO,
+				search.HELP_WIKIPEDIA,
+				search.HELP_WIKIPEDIA_FR,
+				search.HELP_URBANDICTIONNARY)
+			log.Println("search module loaded")
+
+		case "webinfo":
+			webinfo.Init(db)
+			bot.AddMsgHandler(webinfo.HandleUrls, bot.ReplyToAll)
+			log.Println("webinfo module loaded")
+
+		case "xkcd":
+			bot.AddCmdHandler(xkcd.HandleXKCDCmd, bot.ReplyToAll)
+			help.AddMessages(xkcd.HELP_XKCD, xkcd.HELP_XKCD_NUM)
+			log.Println("xkcd module loaded")
+
+		default:
+		}
 	}
-
-	help.Init(
-		search.HELP_DUCKDUCKGO,
-		search.HELP_WIKIPEDIA,
-		search.HELP_WIKIPEDIA_FR,
-		search.HELP_URBANDICTIONNARY,
-		memo.HELP_MEMO,
-		memo.HELP_MEMOSTAT,
-		xkcd.HELP_XKCD,
-		xkcd.HELP_XKCD_NUM)
-
-	// Message Handlers
-	bot.AddMsgHandler(webinfo.HandleUrls, bot.ReplyToAll)
-	bot.AddMsgHandler(memo.SendMemo, bot.ReplyToNick)
-
-	// Command Handlers
-	bot.AddCmdHandler(memo.HandleMemoCmd, bot.ReplyToAll)
-	bot.AddCmdHandler(memo.HandleMemoStatusCmd, bot.ReplyToNick)
-	bot.AddCmdHandler(search.HandleSearchCmd, bot.Reply)
 	bot.AddCmdHandler(help.HandleHelpCmd, bot.ReplyToNick)
-	bot.AddCmdHandler(xkcd.HandleXKCDCmd, bot.ReplyToAll)
-	bot.AddCmdHandler(invoke.HandleInvokeCmd, bot.ReplyToNick)
 
 	log.Println("Goxxx started")
 
