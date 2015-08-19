@@ -18,7 +18,7 @@ import (
 )
 
 const (
-	HELP_INVOKE = "\t!invoke <nick> [<message>] \t=> Send an email to an user, with an optionnal message " // Help message for the invoke command
+	HELP_INVOKE = "\t!invoke <nick> [<message>] \t=> Send an email to an user, with an optionnal message" // Help message for the invoke command
 	MIN_DELTA   = 15
 )
 
@@ -97,9 +97,9 @@ func HandleInvokeCmd(event *irc.Event, callback func(*core.ReplyCallbackData)) b
 	fields := strings.Fields(event.Message())
 	// fields[0]  => Command
 	// fields[1]  => User
-	// fields[2]  => Optionnal message (NOT IMPLEMENTED)
+	// fields[2:]  => Optionnal message
 
-	if len(fields) == 0 || fields[0] != "!invoke" {
+	if len(fields) < 2 || fields[0] != "!invoke" {
 		return false
 	}
 	log.Println("Invoke command detected")
@@ -147,7 +147,18 @@ func HandleInvokeCmd(event *irc.Event, callback func(*core.ReplyCallbackData)) b
 		"To":      email,
 		"Subject": "Goxxx: Your presence is requested on " + event.Arguments[0]}
 
-	if !sendMail(headers, fmt.Sprintf("Your presence has been requested by %s on the %s channel.\n Hurry up!\n", event.Nick, event.Arguments[0])) {
+	var message string
+	if len(fields) < 3 {
+		message = fmt.Sprintf("Your presence has been requested by %s on the %s channel.\n Hurry up!\n", event.Nick, event.Arguments[0])
+	} else {
+		message = fmt.Sprintf(
+			"Your presence has been requested by %s on the %s channel.\n Here is a message from him/her:\n\n%q\n",
+			event.Nick,
+			event.Arguments[0],
+			strings.Join(fields[2:], " "))
+	}
+
+	if !sendMail(headers, message) {
 		log.Println("Invoke command: sendMail failed to send the email")
 		callback(&core.ReplyCallbackData{
 			Message: "The invoke command failed, the email was not sent",
