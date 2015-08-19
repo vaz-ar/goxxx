@@ -134,8 +134,11 @@ func HandleInvokeCmd(event *irc.Event, callback func(*core.ReplyCallbackData)) b
 		callback(&core.ReplyCallbackData{
 			Message: message,
 			Nick:    event.Nick})
+		return true
+
 	case err != nil:
 		log.Fatalf("%q: %s\n", err, sqlQuery)
+
 	default:
 	}
 
