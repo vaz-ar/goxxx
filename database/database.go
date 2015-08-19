@@ -9,10 +9,13 @@ package database
 
 import (
 	"database/sql"
+	"errors"
 	_ "github.com/mattn/go-sqlite3"
 	"log"
 	"os"
 )
+
+var dbPtr *sql.DB
 
 // Database constructor.
 // If database name is an empty string the default path will be used ("./storage/db.sqlite"),
@@ -38,5 +41,28 @@ func NewDatabase(databaseName string, reset bool) *sql.DB {
 	if err != nil {
 		log.Fatal(err)
 	}
+
+	sqlStmt := `CREATE TABLE IF NOT EXISTS User (
+    nick TEXT NOT NULL PRIMARY KEY,
+    email TEXT);`
+	_, err = db.Exec(sqlStmt)
+	if err != nil {
+		log.Fatalf("%q: %s\n", err, sqlStmt)
+	}
+
+	dbPtr = db
 	return db
+}
+
+func AddUser(nick, email string) (err error) {
+	if dbPtr == nil {
+		return errors.New("Database pointer is nil")
+	}
+	sqlStmt := `INSERT OR REPLACE INTO User VALUES ($1, $2)`
+	_, err = dbPtr.Exec(sqlStmt, nick, email)
+	if err != nil {
+		log.Printf("%q: %s\n", err, sqlStmt)
+		return err
+	}
+	return nil
 }

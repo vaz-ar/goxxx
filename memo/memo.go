@@ -22,8 +22,8 @@ const (
 )
 
 var (
-	MEMO_CMD     = []string{"!memo", "!m"}      // Slice containing the possible memo commands
-	MEMOSTAT_CMD = []string{"!memostat", "!ms"} // Slice containing the possible memo status commands
+	memo_cmd     = []string{"!memo", "!m"}      // Slice containing the possible memo commands
+	memostat_cmd = []string{"!memostat", "!ms"} // Slice containing the possible memo status commands
 	dbPtr        *sql.DB                        // Database pointer
 )
 
@@ -58,7 +58,7 @@ func HandleMemoCmd(event *irc.Event, callback func(*core.ReplyCallbackData)) boo
 	// fields[0]  => Command
 	// fields[1]  => recipient's nick
 	// fields[2:] => message
-	if len(fields) < 3 || !core.StringInSlice(fields[0], MEMO_CMD) {
+	if len(fields) < 3 || !core.StringInSlice(fields[0], memo_cmd) {
 		return false
 	}
 	memo := MemoData{
@@ -115,7 +115,7 @@ func SendMemo(event *irc.Event, callback func(*core.ReplyCallbackData)) {
 func HandleMemoStatusCmd(event *irc.Event, callback func(*core.ReplyCallbackData)) bool {
 	fields := strings.Fields(event.Message())
 	// fields[0]  => Command
-	if len(fields) == 0 || !core.StringInSlice(fields[0], MEMOSTAT_CMD) {
+	if len(fields) == 0 || !core.StringInSlice(fields[0], memostat_cmd) {
 		return false
 	}
 

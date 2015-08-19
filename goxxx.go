@@ -15,6 +15,7 @@ import (
 	"github.com/romainletendart/goxxx/core"
 	"github.com/romainletendart/goxxx/database"
 	"github.com/romainletendart/goxxx/help"
+	"github.com/romainletendart/goxxx/invoke"
 	"github.com/romainletendart/goxxx/memo"
 	"github.com/romainletendart/goxxx/search"
 	"github.com/romainletendart/goxxx/webinfo"
@@ -31,17 +32,25 @@ const (
 	GLOBAL_VERSION string = "0.0.1"
 
 	// Equivalent to enums (cf. https://golang.org/ref/spec#Iota)
-	FLAGS_EXIT    = iota //  == 0
-	FLAGS_SUCCESS        //  == 1
-	FLAGS_FAILURE        //  == 2
+	FLAGS_EXIT     = iota //  == 0
+	FLAGS_SUCCESS         //  == 1
+	FLAGS_FAILURE         //  == 2
+	FLAGS_ADD_USER        //  == 3
 )
 
 // Process the command line arguments
-func getOptions() (nick, server, channel, channelKey string, debug bool, returnCode int) {
+func getOptions() (nick, server, channel, channelKey, mailServer, mailSender, mailPassword string, debug bool, mailPort, returnCode int) {
+	// IRC
 	flag.StringVar(&channel, "channel", "", "IRC channel name")
 	flag.StringVar(&channelKey, "key", "", "IRC channel key (optional)")
 	flag.StringVar(&nick, "nick", "goxxx", "the bot's nickname (optional)")
 	flag.StringVar(&server, "server", "chat.freenode.net:6697", "IRC_SERVER[:PORT] (optional)")
+	// Email
+	flag.StringVar(&mailServer, "mail_server", "", "")
+	flag.IntVar(&mailPort, "mail_port", 0, "")
+	flag.StringVar(&mailSender, "mail_sender", "", "")
+	flag.StringVar(&mailPassword, "mail_pwd", "", "")
+	// Application
 	flag.BoolVar(&debug, "debug", false, "Debug mode")
 	version := flag.Bool("version", false, "Display goxxx version")
 
@@ -50,6 +59,8 @@ func getOptions() (nick, server, channel, channelKey string, debug bool, returnC
 		fmt.Println()
 		fmt.Println("Arguments description:")
 		flag.PrintDefaults()
+		fmt.Println("\nCommands description:")
+		fmt.Println("  add_user <nick> <email>: Add an user to the database\n")
 	}
 
 	// Hybrid config: use flags and INI file
@@ -64,7 +75,16 @@ func getOptions() (nick, server, channel, channelKey string, debug bool, returnC
 		return
 	}
 
-	if channel == "" {
+	lenArgs := len(flag.Args())
+	// add_user command
+	if lenArgs > 0 && flag.Args()[0] == "add_user" {
+		if lenArgs != 3 {
+			flag.Usage()
+			returnCode = FLAGS_FAILURE
+			return
+		}
+		returnCode = FLAGS_ADD_USER
+	} else if channel == "" {
 		flag.Usage()
 		returnCode = FLAGS_FAILURE
 	} else {
@@ -82,7 +102,7 @@ func main() {
 	defer logFile.Close()
 	log.SetOutput(logFile)
 
-	nick, server, channel, channelKey, debug, returnCode := getOptions()
+	nick, server, channel, channelKey, mailServer, mailSender, mailPassword, debug, mailPort, returnCode := getOptions()
 	if returnCode == FLAGS_EXIT {
 		return
 	} else if returnCode == FLAGS_FAILURE {
@@ -97,12 +117,28 @@ func main() {
 	db := database.NewDatabase("", false)
 	defer db.Close()
 
+	// Process commands if necessary
+	if returnCode == FLAGS_ADD_USER {
+		if err := database.AddUser(flag.Args()[1], flag.Args()[2]); err == nil {
+			fmt.Println("User added to the database")
+		} else {
+			fmt.Printf("\nadd_user error: %s\n", err)
+		}
+		return
+	}
+
 	// Create the bot
 	bot := core.NewBot(nick, server, channel, channelKey)
 
 	// Initialise packages
 	memo.Init(db)
 	webinfo.Init(db)
+
+	if !invoke.Init(db, mailSender, mailPassword, mailServer, mailPort) {
+		log.Println("Error while initialising invoke package")
+		return
+	}
+
 	help.Init(
 		search.HELP_DUCKDUCKGO,
 		search.HELP_WIKIPEDIA,
@@ -123,6 +159,9 @@ func main() {
 	bot.AddCmdHandler(search.HandleSearchCmd, bot.Reply)
 	bot.AddCmdHandler(help.HandleHelpCmd, bot.ReplyToNick)
 	bot.AddCmdHandler(xkcd.HandleXKCDCmd, bot.ReplyToAll)
+	bot.AddCmdHandler(invoke.HandleInvokeCmd, bot.ReplyToNick)
+
+	log.Println("Goxxx started")
 
 	// Go signal notification works by sending os.Signal values on a channel.
 	// We'll create a channel to receive these notifications
