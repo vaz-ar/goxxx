@@ -10,6 +10,7 @@ package memo
 import (
 	"database/sql"
 	"fmt"
+	"github.com/emirozer/go-helpers"
 	"github.com/romainletendart/goxxx/core"
 	"github.com/thoj/go-ircevent"
 	"log"
@@ -58,7 +59,7 @@ func HandleMemoCmd(event *irc.Event, callback func(*core.ReplyCallbackData)) boo
 	// fields[0]  => Command
 	// fields[1]  => recipient's nick
 	// fields[2:] => message
-	if len(fields) < 3 || !core.StringInSlice(fields[0], memo_cmd) {
+	if len(fields) < 3 || !helpers.StringInSlice(fields[0], memo_cmd) {
 		return false
 	}
 	memo := MemoData{
@@ -115,7 +116,7 @@ func SendMemo(event *irc.Event, callback func(*core.ReplyCallbackData)) {
 func HandleMemoStatusCmd(event *irc.Event, callback func(*core.ReplyCallbackData)) bool {
 	fields := strings.Fields(event.Message())
 	// fields[0]  => Command
-	if len(fields) == 0 || !core.StringInSlice(fields[0], memostat_cmd) {
+	if len(fields) == 0 || !helpers.StringInSlice(fields[0], memostat_cmd) {
 		return false
 	}
 
