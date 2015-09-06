@@ -10,7 +10,6 @@ import (
 	"github.com/thoj/go-ircevent"
 	"github.com/vaz-ar/goxxx/core"
 	"io/ioutil"
-	"log"
 	"testing"
 )
 

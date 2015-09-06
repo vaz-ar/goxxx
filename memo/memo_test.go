@@ -10,8 +10,6 @@ import (
 	"github.com/thoj/go-ircevent"
 	"github.com/vaz-ar/goxxx/core"
 	"github.com/vaz-ar/goxxx/database"
-	"io/ioutil"
-	"log"
 	"regexp"
 	"testing"
 )
