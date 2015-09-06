@@ -7,9 +7,9 @@ package webinfo
 
 import (
 	"fmt"
-	"github.com/romainletendart/goxxx/core"
-	"github.com/romainletendart/goxxx/database"
 	"github.com/thoj/go-ircevent"
+	"github.com/vaz-ar/goxxx/core"
+	"github.com/vaz-ar/goxxx/database"
 	"golang.org/x/net/html"
 	"io/ioutil"
 	"log"

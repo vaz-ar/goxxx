@@ -11,8 +11,8 @@ import (
 	"database/sql"
 	"fmt"
 	"github.com/emirozer/go-helpers"
-	"github.com/romainletendart/goxxx/core"
 	"github.com/thoj/go-ircevent"
+	"github.com/vaz-ar/goxxx/core"
 	"log"
 	"strings"
 )

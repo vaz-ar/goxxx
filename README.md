@@ -9,7 +9,7 @@ Install
 Once you have a working installation of Go, you just need to run:
 
 ```
-$ go get github.com/romainletendart/goxxx
+$ go get github.com/vaz-ar/goxxx
 ```
 
 Usage

@@ -10,8 +10,8 @@ package search
 import (
 	"encoding/json"
 	"fmt"
-	"github.com/romainletendart/goxxx/core"
 	"github.com/thoj/go-ircevent"
+	"github.com/vaz-ar/goxxx/core"
 	"io/ioutil"
 	"log"
 	"net/http"

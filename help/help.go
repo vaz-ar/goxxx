@@ -8,8 +8,8 @@
 package help
 
 import (
-	"github.com/romainletendart/goxxx/core"
 	"github.com/thoj/go-ircevent"
+	"github.com/vaz-ar/goxxx/core"
 	"strings"
 )
 

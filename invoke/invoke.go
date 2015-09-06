@@ -10,8 +10,8 @@ package invoke
 import (
 	"database/sql"
 	"fmt"
-	"github.com/romainletendart/goxxx/core"
 	"github.com/thoj/go-ircevent"
+	"github.com/vaz-ar/goxxx/core"
 	"log"
 	"net/smtp"
 	"strings"

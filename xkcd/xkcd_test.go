@@ -7,8 +7,8 @@ package xkcd
 
 import (
 	"fmt"
-	"github.com/romainletendart/goxxx/core"
 	"github.com/thoj/go-ircevent"
+	"github.com/vaz-ar/goxxx/core"
 	"log"
 	"regexp"
 	"testing"

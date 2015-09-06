@@ -7,9 +7,9 @@ package memo
 
 import (
 	"fmt"
-	"github.com/romainletendart/goxxx/core"
-	"github.com/romainletendart/goxxx/database"
 	"github.com/thoj/go-ircevent"
+	"github.com/vaz-ar/goxxx/core"
+	"github.com/vaz-ar/goxxx/database"
 	"io/ioutil"
 	"log"
 	"regexp"
