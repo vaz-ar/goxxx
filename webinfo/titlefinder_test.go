@@ -12,7 +12,6 @@ import (
 	"github.com/vaz-ar/goxxx/database"
 	"golang.org/x/net/html"
 	"io/ioutil"
-	"log"
 	"regexp"
 	"strings"
 	"testing"
