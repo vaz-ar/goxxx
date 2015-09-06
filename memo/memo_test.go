@@ -34,9 +34,8 @@ var (
 )
 
 func Test_HandleMemoCmd(t *testing.T) {
-	log.SetOutput(ioutil.Discard)
 
-	db := database.NewDatabase("../storage/tests.sqlite", true)
+	db := database.NewDatabase("./tests.sqlite", true)
 	defer db.Close()
 	Init(db)
 
@@ -59,9 +58,8 @@ func Test_HandleMemoCmd(t *testing.T) {
 }
 
 func Test_SendMemo(t *testing.T) {
-	log.SetOutput(ioutil.Discard)
 
-	db := database.NewDatabase("../storage/tests.sqlite", true)
+	db := database.NewDatabase("./tests.sqlite", true)
 	defer db.Close()
 	Init(db)
 

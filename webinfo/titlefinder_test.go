@@ -49,8 +49,6 @@ var (
 )
 
 func Test_getTitleFromHTML(t *testing.T) {
-	log.SetOutput(ioutil.Discard)
-
 	// --- --- --- --- --- --- File with a title
 	fileContent, err := ioutil.ReadFile(htmlWithTitle)
 	if err != nil {
@@ -89,8 +87,6 @@ func Test_getTitleFromHTML(t *testing.T) {
 }
 
 func Test_findUrls(t *testing.T) {
-	log.SetOutput(ioutil.Discard)
-
 	// --- --- --- --- --- --- Messages with URLs
 	for i, message := range messagesWithUrls {
 		results := findUrls(message)
@@ -113,9 +109,7 @@ func Test_findUrls(t *testing.T) {
 }
 
 func Test_HandleUrls(t *testing.T) {
-	log.SetOutput(ioutil.Discard)
-
-	db := database.NewDatabase("../storage/tests.sqlite", true)
+	db := database.NewDatabase("./tests.sqlite", true)
 	defer db.Close()
 	Init(db)
 

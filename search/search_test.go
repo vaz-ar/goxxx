@@ -106,8 +106,6 @@ var (
 
 // --- --- --- General --- --- ---
 func Test_getResponseAsText(t *testing.T) {
-	log.SetOutput(ioutil.Discard)
-
 	if getResponseAsText(fmt.Sprintf(URL_DUCKDUCKGO, searchTerms)) == nil {
 		t.Errorf("getResponseAsText: No data returned for the search terms %q", searchTerms)
 	}
@@ -115,8 +113,6 @@ func Test_getResponseAsText(t *testing.T) {
 
 // --- --- --- DuckduckGo --- --- ---
 func Test_getDuckduckgoResultFromHtml(t *testing.T) {
-	log.SetOutput(ioutil.Discard)
-
 	content, err := ioutil.ReadFile(DDG_mockFile)
 	if err != nil {
 		t.Log("Failed to open the html file")
@@ -131,8 +127,6 @@ func Test_getDuckduckgoResultFromHtml(t *testing.T) {
 }
 
 func Test_getDuckduckgoSearchResult(t *testing.T) {
-	log.SetOutput(ioutil.Discard)
-
 	if result := getDuckduckgoSearchResult(searchTerms, ""); result == nil {
 		t.Error("No result returned by getDuckduckgoSearchResult")
 	} else if result[0] != DDG_expectedResult {
@@ -141,8 +135,6 @@ func Test_getDuckduckgoSearchResult(t *testing.T) {
 }
 
 func Test_HandleSearchCmd_DDG(t *testing.T) {
-	log.SetOutput(ioutil.Discard)
-
 	// --- --- --- --- --- --- valid result
 	var testReply core.ReplyCallbackData
 	HandleSearchCmd(&DDG_validEvent, func(data *core.ReplyCallbackData) {
@@ -173,8 +165,6 @@ func Test_HandleSearchCmd_DDG(t *testing.T) {
 
 // --- --- --- Wikipedia --- --- ---
 func Test_getWikipediaResultFromJson(t *testing.T) {
-	log.SetOutput(ioutil.Discard)
-
 	content, err := ioutil.ReadFile(W_mockFile)
 	if err != nil {
 		t.Log("Failed to open the json file")
@@ -189,8 +179,6 @@ func Test_getWikipediaResultFromJson(t *testing.T) {
 }
 
 func Test_getWikipediaSearchResult(t *testing.T) {
-	log.SetOutput(ioutil.Discard)
-
 	if result := getWikipediaSearchResult(searchTerms, "en"); result == nil {
 		t.Error("No result returned by getWikipediaSearchResult")
 	} else if result[0] != W_expectedResult {
@@ -199,8 +187,6 @@ func Test_getWikipediaSearchResult(t *testing.T) {
 }
 
 func Test_HandleSearchCmd_W(t *testing.T) {
-	log.SetOutput(ioutil.Discard)
-
 	// --- --- --- --- --- --- valid result
 	var testReply []core.ReplyCallbackData
 	HandleSearchCmd(&W_validEvent, func(data *core.ReplyCallbackData) {
@@ -231,8 +217,6 @@ func Test_HandleSearchCmd_W(t *testing.T) {
 
 // --- --- --- Urban Dictionnary --- --- ---
 func Test_getUrbanDictionnaryResultFromJson(t *testing.T) {
-	log.SetOutput(ioutil.Discard)
-
 	content, err := ioutil.ReadFile(UD_mockFile)
 	if err != nil {
 		t.Log("Failed to open the json file")
@@ -247,8 +231,6 @@ func Test_getUrbanDictionnaryResultFromJson(t *testing.T) {
 }
 
 func Test_getUrbanDictionnarySearchResult(t *testing.T) {
-	log.SetOutput(ioutil.Discard)
-
 	if result := getUrbanDictionnarySearchResult(UD_searchTerms, ""); result == nil {
 		t.Error("No result returned by getUrbanDictionnarySearchResult")
 	} else if result[0] != UD_expectedResult {
@@ -257,8 +239,6 @@ func Test_getUrbanDictionnarySearchResult(t *testing.T) {
 }
 
 func Test_HandleSearchCmd_UD(t *testing.T) {
-	log.SetOutput(ioutil.Discard)
-
 	// --- --- --- --- --- --- valid result
 	var testReply []core.ReplyCallbackData
 	HandleSearchCmd(&UD_validEvent, func(data *core.ReplyCallbackData) {
