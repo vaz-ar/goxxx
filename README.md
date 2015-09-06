@@ -1,4 +1,4 @@
-goxxx
+goxxx  [![Build Status](https://travis-ci.org/vaz-ar/goxxx.svg)](https://travis-ci.org/vaz-ar/goxxx)
 =====
 
 IRC bot written in Go.
