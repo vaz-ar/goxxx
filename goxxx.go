@@ -12,6 +12,7 @@ package main
 import (
 	"flag"
 	"fmt"
+	"github.com/vaz-ar/cfg_flags"
 	"github.com/vaz-ar/goxxx/core"
 	"github.com/vaz-ar/goxxx/database"
 	"github.com/vaz-ar/goxxx/help"
@@ -20,7 +21,6 @@ import (
 	"github.com/vaz-ar/goxxx/search"
 	"github.com/vaz-ar/goxxx/webinfo"
 	"github.com/vaz-ar/goxxx/xkcd"
-	"github.com/vharitonsky/iniflags"
 	"log"
 	"os"
 	"os/signal"
@@ -83,9 +83,11 @@ func getOptions() (config configData, returnCode int) {
 
 	// Hybrid config: use flags and INI file
 	// Command line flags take precedence on INI values
-	// INI file path can be passed via the -command flag or via a function (commented for now, exit application if the file does not exist ...)
-	//     iniflags.SetConfigFile("./config.ini")
-	iniflags.Parse()
+	if err := cfg_flags.Parse("goxxx.ini"); err != nil {
+		flag.Usage()
+		log.Fatal(err)
+	}
+
 	config.modules = strings.Split(*modules, ",")
 
 	if *version {
@@ -208,7 +210,7 @@ func main() {
 	// When it gets one it'll print it out and then notify the program that it can finish.
 	go func() {
 		sig := <-interruptSignals
-		log.Printf("\nSystem signal received: %s", sig)
+		log.Printf("System signal received: %s\n", sig)
 		done <- true
 	}()
 
