@@ -2,4 +2,4 @@
 /goxxx
 /storage/*
 *.sqlite
-logs.txt
+*.txt
