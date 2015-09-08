@@ -83,7 +83,7 @@ func getOptions() (config configData, returnCode int) {
 
 	// Hybrid config: use flags and INI file
 	// Command line flags take precedence on INI values
-	if err := cfg_flags.Parse("goxxx.ini"); err != nil {
+	if err := cfg_flags.Parse(); err != nil {
 		flag.Usage()
 		log.Fatal(err)
 	}
@@ -157,7 +157,7 @@ func main() {
 		case "invoke":
 			if !invoke.Init(db, config.emailSender, config.emailAccount, config.emailPassword, config.emailServer, config.emailPort) {
 				log.Println("Error while initialising invoke package")
-				return
+				continue
 			}
 			bot.AddCmdHandler(invoke.HandleInvokeCmd, bot.ReplyToNick)
 			help.AddMessages(invoke.HELP_INVOKE)
