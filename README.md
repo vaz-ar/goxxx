@@ -20,15 +20,24 @@ To get help about program usage, just run:
 $ goxxx
 ```
 
-Development
+### Configuration file 
+- By default goxxx will search for a file named `goxxx.ini` in the directory where it is started.
+- You can also specify a path for the configuration file via the `-config` flag.
+
+### Log file 
+- The log file will be created in the directory where goxxx is started, and will be named `goxxx_logs.txt`.
+
+
+Development / Contributions
 =====
 
 Pull requests are welcome.
 
+
 Tests
 =====
 
-to run the tests, run the following command from the goxxx directory:
+to run the tests, run the following command from the `goxxx` directory:
 ```
 $ go test -v ./...
 ```

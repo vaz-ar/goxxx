@@ -30,7 +30,7 @@ import (
 
 const (
 	// Application version
-	GLOBAL_VERSION string = "0.0.1"
+	GLOBAL_VERSION string = "0.0.2"
 
 	// Equivalent to enums (cf. https://golang.org/ref/spec#Iota)
 	FLAGS_EXIT     = iota //  == 0
@@ -116,7 +116,7 @@ func getOptions() (config configData, returnCode int) {
 
 func main() {
 	// Set log output to a file
-	logFile, err := os.OpenFile("./logs.txt", os.O_RDWR|os.O_CREATE|os.O_APPEND, 0666)
+	logFile, err := os.OpenFile("./goxxx_logs.txt", os.O_RDWR|os.O_CREATE|os.O_APPEND, 0666)
 	if err != nil {
 		log.Fatalf("Error opening file: %v", err)
 	}
