@@ -12,7 +12,7 @@ package main
 import (
 	"flag"
 	"fmt"
-	"github.com/vaz-ar/cfg_flags"
+	"github.com/vaz-ar/cfgFlags"
 	"github.com/vaz-ar/goxxx/core"
 	"github.com/vaz-ar/goxxx/database"
 	"github.com/vaz-ar/goxxx/help"
@@ -83,7 +83,7 @@ func getOptions() (config configData, returnCode int) {
 
 	// Hybrid config: use flags and INI file
 	// Command line flags take precedence on INI values
-	if err := cfg_flags.Parse(); err != nil {
+	if err := cfgFlags.Parse(); err != nil {
 		flag.Usage()
 		log.Fatal(err)
 	}
