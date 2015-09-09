@@ -18,33 +18,33 @@ import (
 )
 
 var (
-	htmlWithTitle    string = "./tests_data/page_with_title.html"
-	htmlWithoutTitle string = "./tests_data/page_without_title.html"
-	expectedTitle    string = "Unicorn"
-	expectedNick     string = "Sender"
+	htmlWithTitle    = "./tests_data/page_with_title.html"
+	htmlWithoutTitle = "./tests_data/page_without_title.html"
+	expectedTitle    = "Unicorn"
+	expectedNick     = "Sender"
 
-	messagesWithUrls []string = []string{
+	messagesWithUrls = []string{
 		"Oh look a this link http://www.matmartinez.net/nsfw/ (It is not NSFW)",
 		"https://golang.org/doc/effective_go.html", // -- 1
 		"Check this one https://diasporafoundation.org/, and this other one cozy.io/en/, and this last one: http://framasoft.net/"}
-	expectedUrls [][]string = [][]string{
-		[]string{"http://www.matmartinez.net/nsfw/"},
-		[]string{"https://golang.org/doc/effective_go.html"},
-		[]string{"https://diasporafoundation.org/", "http://cozy.io/en/", "http://framasoft.net/"}}
+	expectedUrls = [][]string{
+		{"http://www.matmartinez.net/nsfw/"},
+		{"https://golang.org/doc/effective_go.html"},
+		{"https://diasporafoundation.org/", "http://cozy.io/en/", "http://framasoft.net/"}}
 
-	messageWithoutUrl string = "This is just.a.message without/any URL in.it"
+	messageWithoutURL = "This is just.a.message without/any URL in.it"
 
-	validEvent irc.Event = irc.Event{
+	validEvent = irc.Event{
 		Nick:      expectedNick,
 		Arguments: []string{"#test_channel", messagesWithUrls[1]}} // -- 1
 
-	invalidEvent irc.Event = irc.Event{
+	invalidEvent = irc.Event{
 		Nick:      expectedNick,
-		Arguments: []string{"#test_channel", messageWithoutUrl}}
+		Arguments: []string{"#test_channel", messageWithoutURL}}
 
-	validReply core.ReplyCallbackData = core.ReplyCallbackData{Nick: "", Message: "Effective Go - The Go Programming Language"} // -- 1
+	validReply = core.ReplyCallbackData{Nick: "", Message: "Effective Go - The Go Programming Language"} // -- 1
 
-	re *regexp.Regexp = regexp.MustCompile(fmt.Sprintf(`^Link already posted by %s \(\d{2}/\d{2}/\d{4} @ \d{2}:\d{2}\)$`, expectedNick))
+	re = regexp.MustCompile(fmt.Sprintf(`^Link already posted by %s \(\d{2}/\d{2}/\d{4} @ \d{2}:\d{2}\)$`, expectedNick))
 )
 
 func Test_getTitleFromHTML(t *testing.T) {
@@ -101,8 +101,8 @@ func Test_findUrls(t *testing.T) {
 	// --- --- --- --- --- ---
 
 	// --- --- --- --- --- --- Message without any URL
-	if len(findUrls(messageWithoutUrl)) != 0 {
-		t.Errorf("Found URL(s) in the message without any URL (Message %q)", messageWithoutUrl)
+	if len(findUrls(messageWithoutURL)) != 0 {
+		t.Errorf("Found URL(s) in the message without any URL (Message %q)", messageWithoutURL)
 	}
 	// --- --- --- --- --- ---
 }
@@ -125,7 +125,7 @@ func Test_HandleUrls(t *testing.T) {
 	// --- --- --- --- --- --- Invalid Event
 	HandleUrls(&invalidEvent, func(data *core.ReplyCallbackData) {
 		// There is no memo command in the message, the callback should not be called
-		t.Errorf("Callback function not supposed to be called, the message does not contain any URL (Message: %q)\n\n", messageWithoutUrl)
+		t.Errorf("Callback function not supposed to be called, the message does not contain any URL (Message: %q)\n\n", messageWithoutURL)
 	})
 	// --- --- --- --- --- ---
 

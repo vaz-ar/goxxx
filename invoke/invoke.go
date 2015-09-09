@@ -4,7 +4,7 @@
 //
 // See LICENSE file.
 
-// Package to invoke an user via email
+// Package invoke allow to send an email to an user, asking her/him to join a channel
 package invoke
 
 import (
@@ -18,8 +18,10 @@ import (
 )
 
 const (
-	HELP_INVOKE = "\t!invoke <nick> [<message>] \t=> Send an email to an user, with an optionnal message " // Help message for the invoke command
-	MIN_DELTA   = 15                                                                                       // Minimun delta between two mails (in minutes)
+	// HelpInvoke Help message for the invoke command
+	HelpInvoke = "\t!invoke <nick> [<message>] \t=> Send an email to an user, with an optionnal message "
+	// Minimun delta between two mails (in minutes)
+	minDelta = 15
 )
 
 var (
@@ -33,7 +35,7 @@ var (
 	initialised bool
 )
 
-// Initialise the connection for the SMTP server, the database table and store the database pointer for later use.
+// Init initialises the connection for the SMTP server, the database table and stores the database pointer for later use.
 func Init(db *sql.DB, sender, account, password, server string, port int) bool {
 	if account == "" || password == "" || server == "" || port == 0 {
 		return false
@@ -86,6 +88,7 @@ func generateMessage(headers map[string]string, body string) string {
 	return message + "\r\n" + body
 }
 
+// HandleInvokeCmd handles the invoke command
 func HandleInvokeCmd(event *irc.Event, callback func(*core.ReplyCallbackData)) bool {
 	if !initialised {
 		log.Println("Invoke package not initialised correctly")
@@ -116,8 +119,8 @@ func HandleInvokeCmd(event *irc.Event, callback func(*core.ReplyCallbackData)) b
 	case err != nil:
 		log.Fatalf("%q: %s\n", err, sqlQuery)
 	default:
-		if delta < MIN_DELTA {
-			message := fmt.Sprintf("The user %q was already invoked less than %d minutes ago", recipient, MIN_DELTA)
+		if delta < minDelta {
+			message := fmt.Sprintf("The user %q was already invoked less than %d minutes ago", recipient, minDelta)
 			log.Println(message)
 			callback(&core.ReplyCallbackData{Message: message, Nick: event.Nick})
 			return true

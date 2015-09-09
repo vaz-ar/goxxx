@@ -4,12 +4,13 @@
 //
 // See LICENSE file.
 
-// Database management
+// Package database manages the database used by the bot
 package database
 
 import (
 	"database/sql"
 	"errors"
+	// Imported blank because we only use the driver
 	_ "github.com/mattn/go-sqlite3"
 	"log"
 	"os"
@@ -17,7 +18,7 @@ import (
 
 var dbPtr *sql.DB
 
-// Database constructor.
+// NewDatabase creates a new database.
 // If database name is an empty string the default path will be used ("./storage/db.sqlite"),
 //else it will be used as the path for the database file.
 // If reset is true destroy the database before opening it (which will recreate it).
@@ -54,6 +55,7 @@ func NewDatabase(databaseName string, reset bool) *sql.DB {
 	return db
 }
 
+// AddUser adds an user to the database.
 func AddUser(nick, email string) (err error) {
 	if dbPtr == nil {
 		return errors.New("Database pointer is nil")

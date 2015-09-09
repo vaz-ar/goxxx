@@ -15,20 +15,20 @@ import (
 )
 
 var (
-	validMessage   string = "  \t  !memo   Receiver this is a memo      "
-	invalidMessage string = "this is not a memo command"
-	expectedNick   string = "Receiver"
+	validMessage   = "  \t  !memo   Receiver this is a memo      "
+	invalidMessage = "this is not a memo command"
+	expectedNick   = "Receiver"
 
 	// For the Arguments field I checked how it worked from a real function call (Not documented)
-	validEvent irc.Event = irc.Event{
+	validEvent = irc.Event{
 		Nick:      "Sender",
 		Arguments: []string{"#test_channel", validMessage}}
 
-	invalidEvent irc.Event = irc.Event{
+	invalidEvent = irc.Event{
 		Nick:      "Sender",
 		Arguments: []string{"#test_channel", invalidMessage}}
 
-	replyCallbackDataReference core.ReplyCallbackData = core.ReplyCallbackData{Nick: "Sender", Message: "Sender: memo for Receiver saved"}
+	replyCallbackDataReference = core.ReplyCallbackData{Nick: "Sender", Message: "Sender: memo for Receiver saved"}
 )
 
 func Test_HandleMemoCmd(t *testing.T) {

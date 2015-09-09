@@ -29,14 +29,14 @@ import (
 )
 
 const (
-	// Application version
-	GLOBAL_VERSION string = "0.0.2"
+	// globalVersion Application version
+	globalVersion = "0.0.2"
 
 	// Equivalent to enums (cf. https://golang.org/ref/spec#Iota)
-	FLAGS_EXIT     = iota //  == 0
-	FLAGS_SUCCESS         //  == 1
-	FLAGS_FAILURE         //  == 2
-	FLAGS_ADD_USER        //  == 3
+	flagsExit    = iota //  == 0
+	flagsSuccess        //  == 1
+	flagsFailure        //  == 2
+	flagsAddUser        //  == 3
 )
 
 // Config struct
@@ -54,7 +54,7 @@ type configData struct {
 	emailPassword string
 }
 
-// Process the command line arguments
+// getOptions processes the command line arguments
 func getOptions() (config configData, returnCode int) {
 	// IRC
 	flag.StringVar(&config.channel, "channel", "", "IRC channel name")
@@ -91,8 +91,8 @@ func getOptions() (config configData, returnCode int) {
 	config.modules = strings.Split(*modules, ",")
 
 	if *version {
-		fmt.Printf("\nGoxxx version: %s\n\n", GLOBAL_VERSION)
-		returnCode = FLAGS_EXIT
+		fmt.Printf("\nGoxxx version: %s\n\n", globalVersion)
+		returnCode = flagsExit
 		return
 	}
 
@@ -101,15 +101,15 @@ func getOptions() (config configData, returnCode int) {
 	if lenArgs > 0 && flag.Args()[0] == "add_user" {
 		if lenArgs != 3 {
 			flag.Usage()
-			returnCode = FLAGS_FAILURE
+			returnCode = flagsFailure
 			return
 		}
-		returnCode = FLAGS_ADD_USER
+		returnCode = flagsAddUser
 	} else if config.channel == "" {
 		flag.Usage()
-		returnCode = FLAGS_FAILURE
+		returnCode = flagsFailure
 	} else {
-		returnCode = FLAGS_SUCCESS
+		returnCode = flagsSuccess
 	}
 	return
 }
@@ -124,9 +124,9 @@ func main() {
 	log.SetOutput(logFile)
 
 	config, returnCode := getOptions()
-	if returnCode == FLAGS_EXIT {
+	if returnCode == flagsExit {
 		return
-	} else if returnCode == FLAGS_FAILURE {
+	} else if returnCode == flagsFailure {
 		log.Fatal("Initialisation failed (getOptions())")
 	}
 	if config.debug {
@@ -139,7 +139,7 @@ func main() {
 	defer db.Close()
 
 	// Process commands if necessary
-	if returnCode == FLAGS_ADD_USER {
+	if returnCode == flagsAddUser {
 		if err := database.AddUser(flag.Args()[1], flag.Args()[2]); err == nil {
 			fmt.Println("User added to the database")
 		} else {
@@ -160,7 +160,7 @@ func main() {
 				continue
 			}
 			bot.AddCmdHandler(invoke.HandleInvokeCmd, bot.ReplyToNick)
-			help.AddMessages(invoke.HELP_INVOKE)
+			help.AddMessages(invoke.HelpInvoke)
 			log.Println("invoke module loaded")
 
 		case "memo":
@@ -168,16 +168,16 @@ func main() {
 			bot.AddMsgHandler(memo.SendMemo, bot.ReplyToNick)
 			bot.AddCmdHandler(memo.HandleMemoCmd, bot.ReplyToAll)
 			bot.AddCmdHandler(memo.HandleMemoStatusCmd, bot.ReplyToNick)
-			help.AddMessages(memo.HELP_MEMO, memo.HELP_MEMOSTAT)
+			help.AddMessages(memo.HelpMemo, memo.HelpMemostat)
 			log.Println("memo module loaded")
 
 		case "search":
 			bot.AddCmdHandler(search.HandleSearchCmd, bot.Reply)
 			help.AddMessages(
-				search.HELP_DUCKDUCKGO,
-				search.HELP_WIKIPEDIA,
-				search.HELP_WIKIPEDIA_FR,
-				search.HELP_URBANDICTIONNARY)
+				search.HelpDuckduckgo,
+				search.HelpWikipedia,
+				search.HelpWikipediaFr,
+				search.HelpUrbanDictionnary)
 			log.Println("search module loaded")
 
 		case "webinfo":
@@ -187,7 +187,7 @@ func main() {
 
 		case "xkcd":
 			bot.AddCmdHandler(xkcd.HandleXKCDCmd, bot.ReplyToAll)
-			help.AddMessages(xkcd.HELP_XKCD, xkcd.HELP_XKCD_NUM)
+			help.AddMessages(xkcd.HelpXkcd, xkcd.HelpXkcdNumber)
 			log.Println("xkcd module loaded")
 
 		default:

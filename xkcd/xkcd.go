@@ -4,7 +4,7 @@
 //
 // See LICENSE file.
 
-// Package to retrieve XKCD Comics
+// Package xkcd retrieves XKCD Comics
 package xkcd
 
 import (
@@ -19,13 +19,16 @@ import (
 	"strings"
 )
 
+// Help messages.
 const (
-	HELP_XKCD     string = "\t!xkcd \t\t\t\t\t\t=> Return the last XKCD comic"                               // Help message for the !xkcd command
-	HELP_XKCD_NUM string = "\t!xkcd <comic number> \t\t=> Return the XKCD comic corresponding to the number" // Help message for the !xkcd <comic number> command
+	HelpXkcd       string = "\t!xkcd \t\t\t\t\t\t=> Return the last XKCD comic"                               // Help message for the !xkcd command
+	HelpXkcdNumber string = "\t!xkcd <comic number> \t\t=> Return the XKCD comic corresponding to the number" // Help message for the !xkcd <comic number> command
+)
 
-	URL_SITE        string = "https://xkcd.com/%d/"            // Website URL format string
-	URL_JSON        string = "https://xkcd.com/%d/info.0.json" // JSON URL format string
-	URL_JSON_LATEST string = "https://xkcd.com/info.0.json"    // JSON URL for the current comic
+const (
+	urlWebsite    string = "https://xkcd.com/%d/"            // Website URL format string
+	urlJSON       string = "https://xkcd.com/%d/info.0.json" // JSON URL format string
+	urlLatestJSON string = "https://xkcd.com/info.0.json"    // JSON URL for the current comic
 )
 
 type xkcd struct {
@@ -41,10 +44,10 @@ func getComic(number int64) *xkcd {
 	var url string
 	if number <= 0 {
 		// Get latest comic
-		url = URL_JSON_LATEST
+		url = urlLatestJSON
 	} else {
 		// Get the comic corresponding to "number"
-		url = fmt.Sprintf(URL_JSON, number)
+		url = fmt.Sprintf(urlJSON, number)
 	}
 
 	response, err := http.Get(url)
@@ -54,7 +57,7 @@ func getComic(number int64) *xkcd {
 	}
 	defer response.Body.Close()
 
-	jsonDataFromHttp, err := ioutil.ReadAll(response.Body)
+	jsonDataFromHTTP, err := ioutil.ReadAll(response.Body)
 	if err != nil {
 		log.Println(err)
 		return nil
@@ -62,17 +65,17 @@ func getComic(number int64) *xkcd {
 	response.Body.Close()
 
 	result := new(xkcd)
-	err = json.Unmarshal(jsonDataFromHttp, result)
+	err = json.Unmarshal(jsonDataFromHTTP, result)
 	if err != nil {
 		log.Println(err)
 		return nil
 	}
 	// Add the full website link to the structure
-	result.Link = fmt.Sprintf(URL_SITE, result.Num)
+	result.Link = fmt.Sprintf(urlWebsite, result.Num)
 	return result
 }
 
-// Handler for the XKCD commands
+// HandleXKCDCmd Handles XKCD commands
 func HandleXKCDCmd(event *irc.Event, callback func(*core.ReplyCallbackData)) bool {
 	if callback == nil {
 		log.Println("Callback nil for the HandleXKCDCmd function")

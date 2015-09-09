@@ -19,41 +19,41 @@ var (
 	// mockFile string = "./tests_data/xkcd_1024.json" // JSON for comic 1024 (http://xkcd.com/1024/info.0.json)
 
 	// Expected results
-	expectedResult xkcd = xkcd{
+	expectedResult = xkcd{
 		Img:   "http://imgs.xkcd.com/comics/error_code.png",
 		Link:  "https://xkcd.com/1024/",
 		Num:   1024,
 		Title: "Error Code"}
 
 	// IRC Events
-	invalidEvent irc.Event = irc.Event{
+	invalidEvent = irc.Event{
 		Nick: "Sender",
 		Arguments: []string{
 			"#test_channel",
 			"this is not a !xkcd command"}}
 
-	validEvent irc.Event = irc.Event{
+	validEvent = irc.Event{
 		Nick:      "Sender",
 		Arguments: []string{"#test_channel", fmt.Sprintf(" \t  !xkcd   %d   ", expectedResult.Num)}}
 
-	validEventLastComic irc.Event = irc.Event{
+	validEventLastComic = irc.Event{
 		Nick:      "Sender",
 		Arguments: []string{"#test_channel", "  !xkcd      "}}
 
-	validEventNoResult irc.Event = irc.Event{
+	validEventNoResult = irc.Event{
 		Nick:      "Sender",
 		Arguments: []string{"#test_channel", " \t  !xkcd    1000000000000000000"}}
 
 	// Reply structs
-	validReply core.ReplyCallbackData = core.ReplyCallbackData{
+	validReply = core.ReplyCallbackData{
 		Nick:    "Sender",
 		Message: fmt.Sprintf("XKCD Comic #%d: %s => %s", expectedResult.Num, expectedResult.Title, expectedResult.Link)}
 
-	validReplyNoResult core.ReplyCallbackData = core.ReplyCallbackData{
+	validReplyNoResult = core.ReplyCallbackData{
 		Nick:    "Sender",
 		Message: fmt.Sprintf("There is no XKCD comic #1000000000000000000")}
 
-	re_validReplyLastComic *regexp.Regexp = regexp.MustCompile(`Last XKCD Comic: (\w+\s+)+=> \S+`)
+	reValidReplyLastComic = regexp.MustCompile(`Last XKCD Comic: (\w+\s+)+=> \S+`)
 )
 
 // --- --- --- General --- --- ---
@@ -74,7 +74,6 @@ func Test_HandleXKCDCmd(t *testing.T) {
 	// --- --- --- --- --- --- valid result
 	var testReply core.ReplyCallbackData
 	HandleXKCDCmd(&validEvent, func(data *core.ReplyCallbackData) {
-		fmt.Sprintf("\t%#v\n", data)
 		testReply = *data
 	})
 	if testReply != validReply {
@@ -85,11 +84,10 @@ func Test_HandleXKCDCmd(t *testing.T) {
 	// --- --- --- --- --- --- valid result - Last Comic
 	testReply = core.ReplyCallbackData{}
 	HandleXKCDCmd(&validEventLastComic, func(data *core.ReplyCallbackData) {
-		fmt.Sprintf("\t%#v\n", data)
 		testReply = *data
 	})
-	if !re_validReplyLastComic.MatchString(testReply.Message) {
-		t.Errorf("Regexp %q not matching %q", re_validReplyLastComic.String(), testReply.Message)
+	if !reValidReplyLastComic.MatchString(testReply.Message) {
+		t.Errorf("Regexp %q not matching %q", reValidReplyLastComic.String(), testReply.Message)
 	}
 	// --- --- --- --- --- ---
 

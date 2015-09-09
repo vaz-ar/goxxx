@@ -15,142 +15,142 @@ import (
 
 var (
 	// Search terms
-	searchTerms          string = "Unit Testing"
-	UD_searchTerms       string = "smh"
-	searchTermsNoResults string = "lfdsfahlkdhfaklfa"
+	searchTerms                 = "Unit Testing"
+	urbanDictionnarySearchTerms = "smh"
+	searchTermsNoResults        = "lfdsfahlkdhfaklfa"
 
 	// Mock files
-	DDG_mockFile string = "./tests_data/duckduckgo.html"       // HTML page for the search "Unit Testing"
-	W_mockFile   string = "./tests_data/wikipedia.json"        // JSON for "Unit Testing"
-	UD_mockFile  string = "./tests_data/urbanDictionnary.json" // JSON for "smh"
+	ddgMockFile              = "./tests_data/duckduckgo.html"       // HTML page for the search "Unit Testing"
+	wikipediaMockFile        = "./tests_data/wikipedia.json"        // JSON for "Unit Testing"
+	urbanDictionnaryMockFile = "./tests_data/urbanDictionnary.json" // JSON for "smh"
 
 	// Expected results
-	DDG_expectedResult string = "https://en.wikipedia.org/wiki/Unit_testing"
-	W_expectedResult   string = "https://en.wikipedia.org/wiki/Unit_Testing"
-	UD_expectedResult  string = "http://smh.urbanup.com/507685"
+	ddgExpectedResult              = "https://en.wikipedia.org/wiki/Unit_testing"
+	wikipediaExpectedResult        = "https://en.wikipedia.org/wiki/Unit_Testing"
+	urbanDictionnaryExpectedResult = "http://smh.urbanup.com/507685"
 
 	// IRC Events - General
-	invalidEvent irc.Event = irc.Event{
+	invalidEvent = irc.Event{
 		Nick: "Sender",
 		Arguments: []string{
 			"#test_channel",
 			"this is not a search command"}}
 
 	// IRC Events - DuckduckGo
-	DDG_validEvent irc.Event = irc.Event{
+	ddgValidEvent = irc.Event{
 		Nick: "Sender",
 		Arguments: []string{
 			"#test_channel",
 			fmt.Sprintf(" \t  !dg   %s      ", searchTerms)}}
 
-	DDG_validEventNoResults irc.Event = irc.Event{
+	ddgValidEventNoResults = irc.Event{
 		Nick: "Sender",
 		Arguments: []string{
 			"#test_channel",
 			fmt.Sprintf("!dg %s", searchTermsNoResults)}}
 
 	// IRC Events - Wikipedia
-	W_validEvent irc.Event = irc.Event{
+	wikipediaValidEvent = irc.Event{
 		Nick: "Sender",
 		Arguments: []string{
 			"#test_channel",
 			fmt.Sprintf(" \t  !w   %s      ", searchTerms)}}
 
-	W_validEventNoResults irc.Event = irc.Event{
+	wikipediaValidEventNoResults = irc.Event{
 		Nick: "Sender",
 		Arguments: []string{
 			"#test_channel",
 			fmt.Sprintf("!w %s", searchTermsNoResults)}}
 
 	// IRC Events - Urban Dictionnary
-	UD_validEvent irc.Event = irc.Event{
+	urbanDictionnaryValidEvent = irc.Event{
 		Nick: "Sender",
 		Arguments: []string{
 			"#test_channel",
-			fmt.Sprintf(" \t  !u   %s      ", UD_searchTerms)}}
+			fmt.Sprintf(" \t  !u   %s      ", urbanDictionnarySearchTerms)}}
 
-	UD_validEventNoResults irc.Event = irc.Event{
+	urbanDictionnaryValidEventNoResults = irc.Event{
 		Nick: "Sender",
 		Arguments: []string{
 			"#test_channel",
 			fmt.Sprintf("!u %s", searchTermsNoResults)}}
 
 	// Reply structs - DuckduckGo
-	DDG_validReply core.ReplyCallbackData = core.ReplyCallbackData{
+	ddgValidReply = core.ReplyCallbackData{
 		Nick:    "",
-		Message: fmt.Sprintf("DuckDuckGo: Best result for %q => %s", searchTerms, DDG_expectedResult)}
+		Message: fmt.Sprintf("DuckDuckGo: Best result for %q => %s", searchTerms, ddgExpectedResult)}
 
-	DDG_validReplyNoResults core.ReplyCallbackData = core.ReplyCallbackData{
+	ddgValidReplyNoResults = core.ReplyCallbackData{
 		Nick:    "",
 		Message: fmt.Sprintf("DuckDuckGo: No result for %q", searchTermsNoResults)}
 
 	// Reply structs - Wikipedia
-	W_validReply core.ReplyCallbackData = core.ReplyCallbackData{
+	wikipediaValidReply = core.ReplyCallbackData{
 		Nick:    "",
-		Message: fmt.Sprintf("Wikipedia result for %q => %s", searchTerms, W_expectedResult)}
+		Message: fmt.Sprintf("Wikipedia result for %q => %s", searchTerms, wikipediaExpectedResult)}
 
-	W_validReplyNoResults core.ReplyCallbackData = core.ReplyCallbackData{
+	wikipediaValidReplyNoResults = core.ReplyCallbackData{
 		Nick:    "",
 		Message: fmt.Sprintf("Wikipedia: No result for %q", searchTermsNoResults)}
 
 	// Reply structs - Urban Dictionnary
-	UD_validReply core.ReplyCallbackData = core.ReplyCallbackData{
+	urbanDictionnaryValidReply = core.ReplyCallbackData{
 		Nick:    "",
-		Message: fmt.Sprintf("Urban Dictionnary: Best result for %q => %s", UD_searchTerms, UD_expectedResult)}
+		Message: fmt.Sprintf("Urban Dictionnary: Best result for %q => %s", urbanDictionnarySearchTerms, urbanDictionnaryExpectedResult)}
 
-	UD_validReplyNoResults core.ReplyCallbackData = core.ReplyCallbackData{
+	urbanDictionnaryValidReplyNoResults = core.ReplyCallbackData{
 		Nick:    "",
 		Message: fmt.Sprintf("Urban Dictionnary: No result for %q", searchTermsNoResults)}
 )
 
 // --- --- --- General --- --- ---
 func Test_getResponseAsText(t *testing.T) {
-	if getResponseAsText(fmt.Sprintf(URL_DUCKDUCKGO, searchTerms)) == nil {
+	if getResponseAsText(fmt.Sprintf(duckduckgoURL, searchTerms)) == nil {
 		t.Errorf("getResponseAsText: No data returned for the search terms %q", searchTerms)
 	}
 }
 
 // --- --- --- DuckduckGo --- --- ---
 func Test_getDuckduckgoResultFromHtml(t *testing.T) {
-	content, err := ioutil.ReadFile(DDG_mockFile)
+	content, err := ioutil.ReadFile(ddgMockFile)
 	if err != nil {
 		t.Log("Failed to open the html file")
 		t.FailNow()
 	}
 
-	if result := getDuckduckgoResultFromHtml(content); result == "" {
+	if result := getDuckduckgoResultFromHTML(content); result == "" {
 		t.Error("No result returned by getDuckduckgoResultFromHtml")
-	} else if string(result) != DDG_expectedResult {
-		t.Errorf("Expected result: %q, got %q instead\n", DDG_expectedResult, result)
+	} else if string(result) != ddgExpectedResult {
+		t.Errorf("Expected result: %q, got %q instead\n", ddgExpectedResult, result)
 	}
 }
 
 func Test_getDuckduckgoSearchResult(t *testing.T) {
 	if result := getDuckduckgoSearchResult(searchTerms, ""); result == nil {
 		t.Error("No result returned by getDuckduckgoSearchResult")
-	} else if result[0] != DDG_expectedResult {
-		t.Errorf("Expected result: %q, got %q instead\n", DDG_expectedResult, result[0])
+	} else if result[0] != ddgExpectedResult {
+		t.Errorf("Expected result: %q, got %q instead\n", ddgExpectedResult, result[0])
 	}
 }
 
 func Test_HandleSearchCmd_DDG(t *testing.T) {
 	// --- --- --- --- --- --- valid result
 	var testReply core.ReplyCallbackData
-	HandleSearchCmd(&DDG_validEvent, func(data *core.ReplyCallbackData) {
+	HandleSearchCmd(&ddgValidEvent, func(data *core.ReplyCallbackData) {
 		testReply = *data
 	})
-	if testReply != DDG_validReply {
-		t.Errorf("Test data differ from reference data:\nTest data:\t%#v\nReference data: %#v\n\n", testReply, DDG_validReply)
+	if testReply != ddgValidReply {
+		t.Errorf("Test data differ from reference data:\nTest data:\t%#v\nReference data: %#v\n\n", testReply, ddgValidReply)
 	}
 	// --- --- --- --- --- ---
 
 	// --- --- --- --- --- --- no result
 	testReply = core.ReplyCallbackData{}
-	HandleSearchCmd(&DDG_validEventNoResults, func(data *core.ReplyCallbackData) {
+	HandleSearchCmd(&ddgValidEventNoResults, func(data *core.ReplyCallbackData) {
 		testReply = *data
 	})
-	if testReply != DDG_validReplyNoResults {
-		t.Errorf("Test data differ from reference data:\nTest data:\t%#v\nReference data: %#v\n\n", testReply, DDG_validReplyNoResults)
+	if testReply != ddgValidReplyNoResults {
+		t.Errorf("Test data differ from reference data:\nTest data:\t%#v\nReference data: %#v\n\n", testReply, ddgValidReplyNoResults)
 	}
 	// --- --- --- --- --- ---
 
@@ -164,45 +164,45 @@ func Test_HandleSearchCmd_DDG(t *testing.T) {
 
 // --- --- --- Wikipedia --- --- ---
 func Test_getWikipediaResultFromJson(t *testing.T) {
-	content, err := ioutil.ReadFile(W_mockFile)
+	content, err := ioutil.ReadFile(wikipediaMockFile)
 	if err != nil {
 		t.Log("Failed to open the json file")
 		t.FailNow()
 	}
 
-	if result := getWikipediaResultFromJson(content); result == nil {
+	if result := getWikipediaResultFromJSON(content); result == nil {
 		t.Error("No result returned by getWikipediaResultFromJson")
-	} else if result[0] != W_expectedResult {
-		t.Errorf("Expected result: %q, got %q instead\n", W_expectedResult, result[0])
+	} else if result[0] != wikipediaExpectedResult {
+		t.Errorf("Expected result: %q, got %q instead\n", wikipediaExpectedResult, result[0])
 	}
 }
 
 func Test_getWikipediaSearchResult(t *testing.T) {
 	if result := getWikipediaSearchResult(searchTerms, "en"); result == nil {
 		t.Error("No result returned by getWikipediaSearchResult")
-	} else if result[0] != W_expectedResult {
-		t.Errorf("Expected result: %q, got %q instead\n", W_expectedResult, result[0])
+	} else if result[0] != wikipediaExpectedResult {
+		t.Errorf("Expected result: %q, got %q instead\n", wikipediaExpectedResult, result[0])
 	}
 }
 
 func Test_HandleSearchCmd_W(t *testing.T) {
 	// --- --- --- --- --- --- valid result
 	var testReply []core.ReplyCallbackData
-	HandleSearchCmd(&W_validEvent, func(data *core.ReplyCallbackData) {
+	HandleSearchCmd(&wikipediaValidEvent, func(data *core.ReplyCallbackData) {
 		testReply = append(testReply, *data)
 	})
-	if testReply[0] != W_validReply {
-		t.Errorf("Test data differ from reference data:\nTest data:\t%#v\nReference data: %#v\n\n", testReply[0], W_validReply)
+	if testReply[0] != wikipediaValidReply {
+		t.Errorf("Test data differ from reference data:\nTest data:\t%#v\nReference data: %#v\n\n", testReply[0], wikipediaValidReply)
 	}
 	// --- --- --- --- --- ---
 
 	// --- --- --- --- --- --- no result
 	testReply = []core.ReplyCallbackData{}
-	HandleSearchCmd(&W_validEventNoResults, func(data *core.ReplyCallbackData) {
+	HandleSearchCmd(&wikipediaValidEventNoResults, func(data *core.ReplyCallbackData) {
 		testReply = append(testReply, *data)
 	})
-	if testReply[0] != W_validReplyNoResults {
-		t.Errorf("Test data differ from reference data:\nTest data:\t%#v\nReference data: %#v\n\n", testReply[0], W_validReplyNoResults)
+	if testReply[0] != wikipediaValidReplyNoResults {
+		t.Errorf("Test data differ from reference data:\nTest data:\t%#v\nReference data: %#v\n\n", testReply[0], wikipediaValidReplyNoResults)
 	}
 	// --- --- --- --- --- ---
 
@@ -216,45 +216,45 @@ func Test_HandleSearchCmd_W(t *testing.T) {
 
 // --- --- --- Urban Dictionnary --- --- ---
 func Test_getUrbanDictionnaryResultFromJson(t *testing.T) {
-	content, err := ioutil.ReadFile(UD_mockFile)
+	content, err := ioutil.ReadFile(urbanDictionnaryMockFile)
 	if err != nil {
 		t.Log("Failed to open the json file")
 		t.FailNow()
 	}
 
-	if result := getUrbanDictionnaryResultFromJson(content); result == nil {
-		t.Error("No result returned by getUrbanDictionnaryResultFromJson")
-	} else if result[0] != UD_expectedResult {
-		t.Errorf("Expected result: %q, got %q instead\n", UD_expectedResult, result[0])
+	if result := getUrbanDictionnaryResultFromJSON(content); result == nil {
+		t.Error("No result returned by getUrbanDictionnaryResultFromJSON")
+	} else if result[0] != urbanDictionnaryExpectedResult {
+		t.Errorf("Expected result: %q, got %q instead\n", urbanDictionnaryExpectedResult, result[0])
 	}
 }
 
 func Test_getUrbanDictionnarySearchResult(t *testing.T) {
-	if result := getUrbanDictionnarySearchResult(UD_searchTerms, ""); result == nil {
+	if result := getUrbanDictionnarySearchResult(urbanDictionnarySearchTerms, ""); result == nil {
 		t.Error("No result returned by getUrbanDictionnarySearchResult")
-	} else if result[0] != UD_expectedResult {
-		t.Errorf("Expected result: %q, got %q instead\n", UD_expectedResult, result[0])
+	} else if result[0] != urbanDictionnaryExpectedResult {
+		t.Errorf("Expected result: %q, got %q instead\n", urbanDictionnaryExpectedResult, result[0])
 	}
 }
 
 func Test_HandleSearchCmd_UD(t *testing.T) {
 	// --- --- --- --- --- --- valid result
 	var testReply []core.ReplyCallbackData
-	HandleSearchCmd(&UD_validEvent, func(data *core.ReplyCallbackData) {
+	HandleSearchCmd(&urbanDictionnaryValidEvent, func(data *core.ReplyCallbackData) {
 		testReply = append(testReply, *data)
 	})
-	if testReply[0] != UD_validReply {
-		t.Errorf("Test data differ from reference data:\nTest data:\t%#v\nReference data: %#v\n\n", testReply[0], UD_validReply)
+	if testReply[0] != urbanDictionnaryValidReply {
+		t.Errorf("Test data differ from reference data:\nTest data:\t%#v\nReference data: %#v\n\n", testReply[0], urbanDictionnaryValidReply)
 	}
 	// --- --- --- --- --- ---
 
 	// --- --- --- --- --- --- no result
 	testReply = []core.ReplyCallbackData{}
-	HandleSearchCmd(&UD_validEventNoResults, func(data *core.ReplyCallbackData) {
+	HandleSearchCmd(&urbanDictionnaryValidEventNoResults, func(data *core.ReplyCallbackData) {
 		testReply = append(testReply, *data)
 	})
-	if testReply[0] != UD_validReplyNoResults {
-		t.Errorf("Test data differ from reference data:\nTest data:\t%#v\nReference data: %#v\n\n", testReply[0], UD_validReplyNoResults)
+	if testReply[0] != urbanDictionnaryValidReplyNoResults {
+		t.Errorf("Test data differ from reference data:\nTest data:\t%#v\nReference data: %#v\n\n", testReply[0], urbanDictionnaryValidReplyNoResults)
 	}
 	// --- --- --- --- --- ---
 

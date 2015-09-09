@@ -4,7 +4,7 @@
 //
 // See LICENSE file.
 
-// Memo package
+// Package memo allow to leave memo for AFK users
 package memo
 
 import (
@@ -17,27 +17,28 @@ import (
 	"strings"
 )
 
+// Help messages
 const (
-	HELP_MEMO     string = "\t!memo/!m <nick> <message> \t=> Leave a memo for another user"                               // Help message for the memo command
-	HELP_MEMOSTAT string = "\t!memostat/!ms \t\t\t\t\t=> Get the list of the unread memos (List only the memos you left)" // Help message for the memo status command
+	HelpMemo     = "\t!memo/!m <nick> <message> \t=> Leave a memo for another user"                               // Help message for the memo command
+	HelpMemostat = "\t!memostat/!ms \t\t\t\t\t=> Get the list of the unread memos (List only the memos you left)" // Help message for the memo status command
 )
 
 var (
-	memo_cmd     = []string{"!memo", "!m"}      // Slice containing the possible memo commands
-	memostat_cmd = []string{"!memostat", "!ms"} // Slice containing the possible memo status commands
-	dbPtr        *sql.DB                        // Database pointer
+	memoCmd     = []string{"!memo", "!m"}      // Slice containing the possible memo commands
+	memostatCmd = []string{"!memostat", "!ms"} // Slice containing the possible memo status commands
+	dbPtr       *sql.DB                        // Database pointer
 )
 
-// Used to store memo data, based on the database table "Memo".
-type MemoData struct {
-	id        int
-	Date      string
-	Message   string
-	User_from string
-	User_to   string
+// data stores memo informations, based on the database table "Memo".
+type data struct {
+	id       int
+	date     string
+	message  string
+	userFrom string
+	userTo   string
 }
 
-// Store the database pointer and initialise the database table "Memo" if necessary.
+// Init stores the database pointer and initialises the database table "Memo" if necessary.
 func Init(db *sql.DB) {
 	dbPtr = db
 	sqlStmt := `CREATE TABLE IF NOT EXISTS Memo (
@@ -53,35 +54,35 @@ func Init(db *sql.DB) {
 	}
 }
 
-// Handler for the memo command.
+// HandleMemoCmd handles memo commands.
 func HandleMemoCmd(event *irc.Event, callback func(*core.ReplyCallbackData)) bool {
 	fields := strings.Fields(event.Message())
 	// fields[0]  => Command
 	// fields[1]  => recipient's nick
 	// fields[2:] => message
-	if len(fields) < 3 || !helpers.StringInSlice(fields[0], memo_cmd) {
+	if len(fields) < 3 || !helpers.StringInSlice(fields[0], memoCmd) {
 		return false
 	}
-	memo := MemoData{
-		User_to:   fields[1],
-		User_from: event.Nick,
-		Message:   strings.Join(fields[2:], " ")}
+	memo := data{
+		userTo:   fields[1],
+		userFrom: event.Nick,
+		message:  strings.Join(fields[2:], " ")}
 
 	sqlStmt := "INSERT INTO Memo (user_to, user_from, message) VALUES ($1, $2, $3)"
-	_, err := dbPtr.Exec(sqlStmt, memo.User_to, memo.User_from, memo.Message)
+	_, err := dbPtr.Exec(sqlStmt, memo.userTo, memo.userFrom, memo.message)
 	if err != nil {
 		log.Fatalf("%q: %s\n", err, sqlStmt)
 	}
 
 	if callback != nil {
 		callback(&core.ReplyCallbackData{
-			Message: fmt.Sprintf("%s: memo for %s saved", memo.User_from, memo.User_to),
-			Nick:    memo.User_from})
+			Message: fmt.Sprintf("%s: memo for %s saved", memo.userFrom, memo.userTo),
+			Nick:    memo.userFrom})
 	}
 	return true
 }
 
-// Message handler, will send memo(s) to an user when he post a message for the first time after a memo for him was created.
+// SendMemo is a message handler that will send memo(s) to an user when he post a message for the first time after a memo for him was created.
 func SendMemo(event *irc.Event, callback func(*core.ReplyCallbackData)) {
 	user := event.Nick
 	sqlQuery := "SELECT id, user_from, message, strftime('%d/%m/%Y @ %H:%M', datetime(date, 'localtime')) FROM Memo WHERE user_to = $1;"
@@ -91,15 +92,15 @@ func SendMemo(event *irc.Event, callback func(*core.ReplyCallbackData)) {
 	}
 	defer rows.Close()
 
-	user_to := event.Nick
-	var memoList []MemoData
+	userTo := event.Nick
+	var memoList []data
 	for rows.Next() {
-		var memo MemoData
-		rows.Scan(&memo.id, &memo.User_from, &memo.Message, &memo.Date)
+		var memo data
+		rows.Scan(&memo.id, &memo.userFrom, &memo.message, &memo.date)
 		memoList = append(memoList, memo)
 		callback(&core.ReplyCallbackData{
-			Message: fmt.Sprintf("%s: memo from %s => \"%s\" (%s)", user_to, memo.User_from, memo.Message, memo.Date),
-			Nick:    user_to})
+			Message: fmt.Sprintf("%s: memo from %s => \"%s\" (%s)", userTo, memo.userFrom, memo.message, memo.date),
+			Nick:    userTo})
 	}
 	rows.Close()
 
@@ -112,11 +113,11 @@ func SendMemo(event *irc.Event, callback func(*core.ReplyCallbackData)) {
 	}
 }
 
-// Handler for the memo status command.
+// HandleMemoStatusCmd handles memo status commands.
 func HandleMemoStatusCmd(event *irc.Event, callback func(*core.ReplyCallbackData)) bool {
 	fields := strings.Fields(event.Message())
 	// fields[0]  => Command
-	if len(fields) == 0 || !helpers.StringInSlice(fields[0], memostat_cmd) {
+	if len(fields) == 0 || !helpers.StringInSlice(fields[0], memostatCmd) {
 		return false
 	}
 
@@ -127,11 +128,11 @@ func HandleMemoStatusCmd(event *irc.Event, callback func(*core.ReplyCallbackData
 	}
 	defer rows.Close()
 
-	var memo MemoData
+	var memo data
 	for rows.Next() {
-		rows.Scan(&memo.id, &memo.User_to, &memo.Message, &memo.Date)
+		rows.Scan(&memo.id, &memo.userTo, &memo.message, &memo.date)
 		callback(&core.ReplyCallbackData{
-			Message: fmt.Sprintf("Memo for %s: \"%s\" (%s)", memo.User_to, memo.Message, memo.Date),
+			Message: fmt.Sprintf("Memo for %s: \"%s\" (%s)", memo.userTo, memo.message, memo.date),
 			Nick:    event.Nick})
 	}
 	rows.Close()

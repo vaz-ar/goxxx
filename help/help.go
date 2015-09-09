@@ -4,7 +4,7 @@
 //
 // See LICENSE file.
 
-// Help package
+// Package help manages the help messages
 package help
 
 import (
@@ -15,14 +15,14 @@ import (
 
 var messageList []string
 
-// Store messages to display them later via the help command
+// AddMessages stores messages to display them later via the help command
 func AddMessages(helpMessages ...string) {
 	for _, message := range helpMessages {
 		messageList = append(messageList, message)
 	}
 }
 
-// Handler for the !help command
+// HandleHelpCmd handles the !help command
 func HandleHelpCmd(event *irc.Event, callback func(*core.ReplyCallbackData)) bool {
 	fields := strings.Fields(event.Message())
 	if len(fields) == 0 || fields[0] != "!help" {

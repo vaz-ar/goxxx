@@ -4,7 +4,7 @@
 //
 // See LICENSE file.
 
-// Package Web Info
+// Package webinfo retrieves informations from links
 package webinfo
 
 import (
@@ -26,7 +26,7 @@ const maxUrlsCount int = 10 // Maximun number of URLs to search in one message
 
 var dbPtr *sql.DB // Database pointer
 
-// Store the database pointer and initialise the database table "Link" if necessary.
+// Init stores the database pointer and initialises the database table "Link" if necessary.
 func Init(db *sql.DB) {
 	dbPtr = db
 	sqlStmt := `CREATE TABLE IF NOT EXISTS Link (
@@ -41,7 +41,7 @@ func Init(db *sql.DB) {
 	}
 }
 
-// Message handler that search for URLs in a message
+// HandleUrls is a message handler that search for URLs in a message
 func HandleUrls(event *irc.Event, replyCallback func(*core.ReplyCallbackData)) {
 	allUrls := findUrls(event.Message())
 	for _, url := range allUrls {

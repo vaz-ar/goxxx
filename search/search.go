@@ -4,7 +4,14 @@
 //
 // See LICENSE file.
 
-// Package to search from various sources
+/*
+Package search allow to do web searches
+Current sources:
+	- DuckduckGo
+	- Urban Dictionnary
+	- Wikipedia EN
+	- Wikipedia FR
+*/
 package search
 
 import (
@@ -21,15 +28,18 @@ import (
 
 //  --- --- --- Constants --- --- ---
 const (
-	URL_DUCKDUCKGO       string = "https://duckduckgo.com/html/?q=%s"                                                                                         // Duckduckgo URL format string
-	URL_WIKIPEDIA        string = "https://%s.wikipedia.org/w/api.php?format=json&action=query&prop=extracts|info&exintro=&explaintext=&inprop=url&titles=%s" // Wikipedia URL format string
-	URL_URBANDICTIONNARY string = "http://api.urbandictionary.com/v0/define?term=%s"                                                                          // Urban Dictionnary URL format string
+	duckduckgoURL       = "https://duckduckgo.com/html/?q=%s"                                                                                         // Duckduckgo URL format string
+	wikipediaURL        = "https://%s.wikipedia.org/w/api.php?format=json&action=query&prop=extracts|info&exintro=&explaintext=&inprop=url&titles=%s" // Wikipedia URL format string
+	urbanDictionnaryURL = "http://api.urbandictionary.com/v0/define?term=%s"                                                                          // Urban Dictionnary URL format string
 
-	HELP_DUCKDUCKGO       string = "\t!d/!dg/!ddg <terms to search> \t=> Search on DuckduckGo"     // Help message for the Duckduckgo commands
-	HELP_WIKIPEDIA        string = "\t!w <terms to search> \t\t\t=> Search on Wikipedia EN"        // Help message for the Wikipedia EN commands
-	HELP_WIKIPEDIA_FR     string = "\t!wf/!wfr <terms to search> \t=> Search on Wikipedia FR"      // Help message for the Wikipedia FR commands
-	HELP_URBANDICTIONNARY string = "\t!u/!ud <terms to search> \t\t=> Search on Urban Dictionnary" // Help message for the Urban Dictionnary commands
+	HelpDuckduckgo       = "\t!d/!dg/!ddg <terms to search> \t=> Search on DuckduckGo"     // Help message for the Duckduckgo commands
+	HelpWikipedia        = "\t!w <terms to search> \t\t\t=> Search on Wikipedia EN"        // Help message for the Wikipedia EN commands
+	HelpWikipediaFr      = "\t!wf/!wfr <terms to search> \t=> Search on Wikipedia FR"      // Help message for the Wikipedia FR commands
+	HelpUrbanDictionnary = "\t!u/!ud <terms to search> \t\t=> Search on Urban Dictionnary" // Help message for the Urban Dictionnary commands
 )
+
+// --- --- --- Global variable --- --- ---
+var searchMap = make(map[string]*searchData)
 
 // --- --- --- Types --- --- ---
 // Wikipedia JSON struct
@@ -54,51 +64,50 @@ type urbanDictionnary struct {
 
 // General data structure to store search informations
 type searchData struct {
-	getUrl         func(string, string) []string
+	getURL         func(string, string) []string
 	extraParameter string
 	// First string is for the first result (URL), second string for the second result (Details/Definition/...)
-	text_result    [2]string
-	text_no_result string
+	textResult   [2]string
+	textNoResult string
 }
 
-// --- --- --- Global variable --- --- ---
-var searchMap = make(map[string]*searchData)
+// --- --- --- Functions --- --- ---
 
 func init() {
 	ddg := &searchData{
-		getUrl:         getDuckduckgoSearchResult,
-		text_result:    [2]string{"DuckDuckGo: Best result for %q => %s"},
-		text_no_result: "DuckDuckGo: No result for %q"}
+		getURL:       getDuckduckgoSearchResult,
+		textResult:   [2]string{"DuckDuckGo: Best result for %q => %s"},
+		textNoResult: "DuckDuckGo: No result for %q"}
 
 	searchMap["!d"] = ddg
 	searchMap["!dg"] = ddg
 	searchMap["!ddg"] = ddg
 
 	searchMap["!w"] = &searchData{
-		getUrl:         getWikipediaSearchResult,
+		getURL:         getWikipediaSearchResult,
 		extraParameter: "en",
-		text_result:    [2]string{"Wikipedia result for %q => %s"},
-		text_no_result: "Wikipedia: No result for %q"}
+		textResult:     [2]string{"Wikipedia result for %q => %s"},
+		textNoResult:   "Wikipedia: No result for %q"}
 
 	wfr := &searchData{
-		getUrl:         getWikipediaSearchResult,
+		getURL:         getWikipediaSearchResult,
 		extraParameter: "fr",
-		text_result:    [2]string{"Wikipedia result for %q => %s"},
-		text_no_result: "Wikipedia: No result for %q"}
+		textResult:     [2]string{"Wikipedia result for %q => %s"},
+		textNoResult:   "Wikipedia: No result for %q"}
 
 	searchMap["!wf"] = wfr
 	searchMap["!wfr"] = wfr
 
 	ud := &searchData{
-		getUrl:         getUrbanDictionnarySearchResult,
-		text_result:    [2]string{"Urban Dictionnary: Best result for %q => %s", "Definition: %s"},
-		text_no_result: "Urban Dictionnary: No result for %q"}
+		getURL:       getUrbanDictionnarySearchResult,
+		textResult:   [2]string{"Urban Dictionnary: Best result for %q => %s", "Definition: %s"},
+		textNoResult: "Urban Dictionnary: No result for %q"}
 
 	searchMap["!u"] = ud
 	searchMap["!ud"] = ud
 }
 
-// Handler for the search commands
+// HandleSearchCmd handles all the search commands
 func HandleSearchCmd(event *irc.Event, callback func(*core.ReplyCallbackData)) bool {
 	if callback == nil {
 		log.Println("Callback nil for the HandleSearchCmd function")
@@ -123,24 +132,24 @@ func HandleSearchCmd(event *irc.Event, callback func(*core.ReplyCallbackData)) b
 		return false
 	}
 
-	results := search.getUrl(message, search.extraParameter)
+	results := search.getURL(message, search.extraParameter)
 	if results == nil {
-		callback(&core.ReplyCallbackData{Message: fmt.Sprintf(search.text_no_result, message)})
+		callback(&core.ReplyCallbackData{Message: fmt.Sprintf(search.textNoResult, message)})
 		return true
 	}
 	for index, item := range results {
 		switch index {
 		// First part of the result is sent to everyone, no nick is sent
 		case 0:
-			if search.text_result[index] != "" {
-				callback(&core.ReplyCallbackData{Message: fmt.Sprintf(search.text_result[index], message, item)})
+			if search.textResult[index] != "" {
+				callback(&core.ReplyCallbackData{Message: fmt.Sprintf(search.textResult[index], message, item)})
 			} else {
 				callback(&core.ReplyCallbackData{Message: item})
 			}
 		// Second and following parts of the result are sent directly to the user
 		case 1:
-			if search.text_result[index] != "" {
-				callback(&core.ReplyCallbackData{Nick: event.Nick, Message: fmt.Sprintf(search.text_result[index], item)})
+			if search.textResult[index] != "" {
+				callback(&core.ReplyCallbackData{Nick: event.Nick, Message: fmt.Sprintf(search.textResult[index], item)})
 			} else {
 				callback(&core.ReplyCallbackData{Nick: event.Nick, Message: item})
 			}
@@ -174,7 +183,8 @@ func getResponseAsText(url string) []byte {
 // --- --- --- Search provider functions --- --- ---
 
 // --- Duckduckgo
-func getDuckduckgoResultFromHtml(page []byte) string {
+
+func getDuckduckgoResultFromHTML(page []byte) string {
 	re := regexp.MustCompile(`<a rel="nofollow" href="(.[^"]*)">`)
 	if result := re.FindSubmatch(page); result != nil && len(result) == 2 {
 		return string(result[1])
@@ -183,11 +193,11 @@ func getDuckduckgoResultFromHtml(page []byte) string {
 }
 
 func getDuckduckgoSearchResult(searchTerms string, extraParameter string) []string {
-	HtmlPageFromHttp := getResponseAsText(fmt.Sprintf(URL_DUCKDUCKGO, searchTerms))
-	if HtmlPageFromHttp == nil {
+	webPage := getResponseAsText(fmt.Sprintf(duckduckgoURL, searchTerms))
+	if webPage == nil {
 		return nil
 	}
-	result := getDuckduckgoResultFromHtml(HtmlPageFromHttp)
+	result := getDuckduckgoResultFromHTML(webPage)
 	if result == "" {
 		return nil
 	}
@@ -195,9 +205,9 @@ func getDuckduckgoSearchResult(searchTerms string, extraParameter string) []stri
 }
 
 // --- Wikipedia
-func getWikipediaResultFromJson(jsonDataFromHttp []byte) []string {
+func getWikipediaResultFromJSON(jsonDataFromHTTP []byte) []string {
 	var result wikipedia
-	err := json.Unmarshal(jsonDataFromHttp, &result)
+	err := json.Unmarshal(jsonDataFromHTTP, &result)
 	if err != nil {
 		log.Println(err)
 		return nil
@@ -215,11 +225,11 @@ func getWikipediaResultFromJson(jsonDataFromHttp []byte) []string {
 
 func getWikipediaSearchResult(searchTerms string, extraParameter string) []string {
 	searchTerms = strings.Replace(strings.Title(searchTerms), " ", "%20", -1)
-	jsonDataFromHttp := getResponseAsText(fmt.Sprintf(URL_WIKIPEDIA, extraParameter, searchTerms))
-	if jsonDataFromHttp == nil {
+	jsonDataFromHTTP := getResponseAsText(fmt.Sprintf(wikipediaURL, extraParameter, searchTerms))
+	if jsonDataFromHTTP == nil {
 		return nil
 	}
-	result := getWikipediaResultFromJson(jsonDataFromHttp)
+	result := getWikipediaResultFromJSON(jsonDataFromHTTP)
 	if result == nil {
 		return nil
 	}
@@ -227,9 +237,9 @@ func getWikipediaSearchResult(searchTerms string, extraParameter string) []strin
 }
 
 // --- Urban Dictionnary
-func getUrbanDictionnaryResultFromJson(jsonDataFromHttp []byte) []string {
+func getUrbanDictionnaryResultFromJSON(jsonDataFromHTTP []byte) []string {
 	var result urbanDictionnary
-	err := json.Unmarshal(jsonDataFromHttp, &result)
+	err := json.Unmarshal(jsonDataFromHTTP, &result)
 	if err != nil {
 		log.Println(err)
 		return nil
@@ -245,11 +255,11 @@ func getUrbanDictionnaryResultFromJson(jsonDataFromHttp []byte) []string {
 
 func getUrbanDictionnarySearchResult(searchTerms string, extraParameter string) []string {
 	searchTerms = strings.Replace(strings.Title(searchTerms), " ", "%20", -1)
-	jsonDataFromHttp := getResponseAsText(fmt.Sprintf(URL_URBANDICTIONNARY, searchTerms))
-	if jsonDataFromHttp == nil {
+	jsonDataFromHTTP := getResponseAsText(fmt.Sprintf(urbanDictionnaryURL, searchTerms))
+	if jsonDataFromHTTP == nil {
 		return nil
 	}
-	result := getUrbanDictionnaryResultFromJson(jsonDataFromHttp)
+	result := getUrbanDictionnaryResultFromJSON(jsonDataFromHTTP)
 	if result == nil {
 		return nil
 	}
