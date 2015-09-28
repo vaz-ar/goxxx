@@ -18,6 +18,7 @@ import (
 	"net/http"
 	"net/url"
 	"regexp"
+	"strings"
 )
 
 // BUG(romainletendart) Choose a better name for the HandleUrls function
@@ -80,7 +81,7 @@ func HandleUrls(event *irc.Event, replyCallback func(*core.ReplyCallbackData)) {
 
 		title, found := getTitleFromHTML(doc)
 		if found {
-			replyCallback(&core.ReplyCallbackData{Message: title})
+			replyCallback(&core.ReplyCallbackData{Message: strings.TrimSpace(title)})
 		}
 	}
 }
