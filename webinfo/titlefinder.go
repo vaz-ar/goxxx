@@ -10,6 +10,7 @@ package webinfo
 import (
 	"database/sql"
 	"fmt"
+	"github.com/emirozer/go-helpers"
 	"github.com/thoj/go-ircevent"
 	"github.com/vaz-ar/goxxx/core"
 	"golang.org/x/net/html"
@@ -25,7 +26,10 @@ import (
 
 const maxUrlsCount int = 10 // Maximun number of URLs to search in one message
 
-var dbPtr *sql.DB // Database pointer
+var (
+	dbPtr        *sql.DB // Database pointer
+	urlShortener = []string{"t.co", "bit.ly", "goo.gl"}
+)
 
 // Init stores the database pointer and initialises the database table "Link" if necessary.
 func Init(db *sql.DB) {
@@ -45,13 +49,14 @@ func Init(db *sql.DB) {
 // HandleUrls is a message handler that search for URLs in a message
 func HandleUrls(event *irc.Event, replyCallback func(*core.ReplyCallbackData)) {
 	allUrls := findUrls(event.Message())
-	for _, url := range allUrls {
-		log.Println("Detected URL:", url.String())
-		response, err := http.Get(url.String())
+	for _, currentUrl := range allUrls {
+		log.Println("Detected URL:", currentUrl.String())
+		response, err := http.Get(currentUrl.String())
 		if err != nil {
 			log.Println(err)
 			return
 		}
+
 		doc, err := html.Parse(response.Body)
 		response.Body.Close()
 		if err != nil {
@@ -61,7 +66,7 @@ func HandleUrls(event *irc.Event, replyCallback func(*core.ReplyCallbackData)) {
 
 		var user, date string
 		sqlQuery := "SELECT user, strftime('%d/%m/%Y @ %H:%M', datetime(date, 'localtime')) FROM Link WHERE url = $1"
-		rows, err := dbPtr.Query(sqlQuery, url.String())
+		rows, err := dbPtr.Query(sqlQuery, currentUrl.String())
 		if err != nil {
 			log.Fatalf("%q: %s\n", err, sqlQuery)
 		}
@@ -71,7 +76,7 @@ func HandleUrls(event *irc.Event, replyCallback func(*core.ReplyCallbackData)) {
 
 		if user == "" {
 			sqlQuery = "INSERT INTO Link (user, url) VALUES ($1, $2)"
-			_, err := dbPtr.Exec(sqlQuery, event.Nick, url.String())
+			_, err := dbPtr.Exec(sqlQuery, event.Nick, currentUrl.String())
 			if err != nil {
 				log.Fatalf("%q: %s\n", err, sqlQuery)
 			}
@@ -81,7 +86,11 @@ func HandleUrls(event *irc.Event, replyCallback func(*core.ReplyCallbackData)) {
 
 		title, found := getTitleFromHTML(doc)
 		if found {
-			replyCallback(&core.ReplyCallbackData{Message: strings.TrimSpace(title)})
+			title = strings.TrimSpace(title)
+			if helpers.StringInSlice(currentUrl.Host, urlShortener) {
+				title += fmt.Sprint(" (", response.Request.URL.String(), ")")
+			}
+			replyCallback(&core.ReplyCallbackData{Message: title})
 		}
 	}
 }
