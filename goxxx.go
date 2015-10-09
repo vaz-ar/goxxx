@@ -28,10 +28,12 @@ import (
 	"syscall"
 )
 
-const (
-	// globalVersion Application version
-	globalVersion = "0.0.2"
+var (
+	GlobalVersion string
+	BuildTime     string
+)
 
+const (
 	// Equivalent to enums (cf. https://golang.org/ref/spec#Iota)
 	flagsExit    = iota //  == 0
 	flagsSuccess        //  == 1
@@ -91,7 +93,7 @@ func getOptions() (config configData, returnCode int) {
 	config.modules = strings.Split(*modules, ",")
 
 	if *version {
-		fmt.Printf("\nGoxxx version: %s\n\n", globalVersion)
+		fmt.Printf("\nGoxxx version: %s\n\n", GlobalVersion)
 		returnCode = flagsExit
 		return
 	}
