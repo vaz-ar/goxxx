@@ -7,7 +7,7 @@ SOURCES := $(shell find $(SOURCEDIR) -name '*.go')
 
 LDFLAGS=-ldflags "-X main.GlobalVersion=${VERSION} -X main.BuildTime=${BUILD_TIME}"
 
-.DEFAULT_GOAL: $(BINARY)
+.DEFAULT_GOAL := $(BINARY)
 
 $(BINARY): $(SOURCES)
 	go build ${LDFLAGS} -o ${BINARY} goxxx.go
