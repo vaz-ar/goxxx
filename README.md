@@ -42,3 +42,7 @@ to run the tests, run the following command from the `goxxx` directory:
 $ go test -v ./...
 ```
 It will run the tests for all the packages.
+
+Notes
+=====
+The makefile only works with go >= 1.5 for now
