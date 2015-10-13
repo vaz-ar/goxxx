@@ -87,10 +87,13 @@ func HandleUrls(event *irc.Event, replyCallback func(*core.ReplyCallbackData)) {
 		title, found := getTitleFromHTML(doc)
 		if found {
 			title = strings.TrimSpace(title)
+			log.Println("Title found: ", title)
 			if helpers.StringInSlice(currentUrl.Host, urlShortener) {
 				title += fmt.Sprint(" (", response.Request.URL.String(), ")")
 			}
 			replyCallback(&core.ReplyCallbackData{Message: title})
+		} else {
+			log.Println("No title found for ", currentUrl.String())
 		}
 	}
 }
