@@ -22,13 +22,14 @@ import (
 	"strings"
 )
 
-// BUG(romainletendart) Choose a better name for the HandleUrls function
-
-const maxUrlsCount int = 10 // Maximun number of URLs to search in one message
+const (
+	maxUrlsCount int    = 10                                                                                     // Maximun number of URLs to search in one message
+	HelpURL      string = "\t!url <search terms>\t\t\t\t\t\t=> Return links with titles matching <search terms>" // Help message for the !url command
+)
 
 var (
-	dbPtr        *sql.DB // Database pointer
-	urlShortener = []string{"t.co", "bit.ly", "goo.gl"}
+	dbPtr        *sql.DB                                // Database pointer
+	urlShortener = []string{"t.co", "bit.ly", "goo.gl"} // URL shorteners base URL
 )
 
 // Init stores the database pointer and initialises the database table "Link" if necessary.
@@ -38,7 +39,8 @@ func Init(db *sql.DB) {
     id integer NOT NULL PRIMARY KEY,
     user TEXT,
     url TEXT,
-    date DATETIME DEFAULT CURRENT_TIMESTAMP);`
+    date DATETIME DEFAULT CURRENT_TIMESTAMP,
+    title TEXT);`
 
 	_, err := db.Exec(sqlStmt)
 	if err != nil {
@@ -46,12 +48,14 @@ func Init(db *sql.DB) {
 	}
 }
 
-// HandleUrls is a message handler that search for URLs in a message
-func HandleUrls(event *irc.Event, replyCallback func(*core.ReplyCallbackData)) {
-	allUrls := findUrls(event.Message())
-	for _, currentUrl := range allUrls {
-		log.Println("Detected URL:", currentUrl.String())
-		response, err := http.Get(currentUrl.String())
+// BUG(romainletendart) Choose a better name for the HandleUrls function
+
+// HandleURLs is a message handler that search for URLs in a message
+func HandleURLs(event *irc.Event, callback func(*core.ReplyCallbackData)) {
+
+	for _, currentURL := range findURLs(event.Message()) {
+		log.Println("Detected URL:", currentURL.String())
+		response, err := http.Get(currentURL.String())
 		if err != nil {
 			log.Println(err)
 			return
@@ -65,8 +69,9 @@ func HandleUrls(event *irc.Event, replyCallback func(*core.ReplyCallbackData)) {
 		}
 
 		var user, date string
+		// BUG(vaz-ar) Maybe not necessary to use Query + loop here, see if QueryRow can do the trick
 		sqlQuery := "SELECT user, strftime('%d/%m/%Y @ %H:%M', datetime(date, 'localtime')) FROM Link WHERE url = $1"
-		rows, err := dbPtr.Query(sqlQuery, currentUrl.String())
+		rows, err := dbPtr.Query(sqlQuery, currentURL.String())
 		if err != nil {
 			log.Fatalf("%q: %s\n", err, sqlQuery)
 		}
@@ -74,28 +79,66 @@ func HandleUrls(event *irc.Event, replyCallback func(*core.ReplyCallbackData)) {
 			rows.Scan(&user, &date)
 		}
 
-		if user == "" {
-			sqlQuery = "INSERT INTO Link (user, url) VALUES ($1, $2)"
-			_, err := dbPtr.Exec(sqlQuery, event.Nick, currentUrl.String())
-			if err != nil {
-				log.Fatalf("%q: %s\n", err, sqlQuery)
-			}
-		} else {
-			replyCallback(&core.ReplyCallbackData{Message: fmt.Sprintf("Link already posted by %s (%s)", user, date)})
+		if user != "" {
+			callback(&core.ReplyCallbackData{Message: fmt.Sprintf("Link already posted by %s (%s)", user, date)})
 		}
 
 		title, found := getTitleFromHTML(doc)
 		if found {
 			title = strings.TrimSpace(title)
 			log.Println("Title found: ", title)
-			if helpers.StringInSlice(currentUrl.Host, urlShortener) {
+			if helpers.StringInSlice(currentURL.Host, urlShortener) {
 				title += fmt.Sprint(" (", response.Request.URL.String(), ")")
 			}
-			replyCallback(&core.ReplyCallbackData{Message: title})
+			callback(&core.ReplyCallbackData{Message: title})
 		} else {
-			log.Println("No title found for ", currentUrl.String())
+			log.Println("No title found for ", currentURL.String())
+		}
+
+		// If the link was not found we save it in the database along with the user that posted it and it's title
+		if user == "" {
+			sqlQuery = "INSERT INTO Link (user, url, title) VALUES ($1, $2, $3)"
+			_, err := dbPtr.Exec(sqlQuery, event.Nick, currentURL.String(), title)
+			if err != nil {
+				log.Fatalf("%q: %s\n", err, sqlQuery)
+			}
 		}
 	}
+}
+
+// HandleSearchURLsCmd is a command handler that search in the database for page titles matching a pattern
+func HandleSearchURLsCmd(event *irc.Event, callback func(*core.ReplyCallbackData)) bool {
+	if callback == nil {
+		log.Println("Callback nil for the HandleSearchURLsCmd function")
+		return false
+	}
+
+	fields := strings.Fields(event.Message())
+	// fields[0]  => Command
+	// fields[1:]  => URL
+
+	if len(fields) < 2 || fields[0] != "!url" {
+		return false
+	}
+
+	var (
+		user, date, title, url string
+		search                 = strings.Join(fields[1:], " ")
+	)
+	// BUG(vaz-ar) Maybe not necessary to use Query + loop here, see if QueryRow can do the trick
+	sqlQuery := `SELECT user, strftime('%d/%m/%Y @ %H:%M', datetime(date, 'localtime')), title, url FROM Link WHERE title LIKE $1`
+	rows, err := dbPtr.Query(sqlQuery, "%"+search+"%")
+	if err != nil {
+		log.Fatalf("%q: %s\n", err, sqlQuery)
+	}
+	for rows.Next() {
+		rows.Scan(&user, &date, &title, &url)
+		if title == "" {
+			title = "No Title"
+		}
+		callback(&core.ReplyCallbackData{Message: fmt.Sprintf(`Link found for %q => %s (%s) [Posted by %s, %s]`, search, title, url, user, date)})
+	}
+	return true
 }
 
 // Extract the title from an HTML page
@@ -141,7 +184,7 @@ func getTitleFromHTML(document *html.Node) (title string, found bool) {
 }
 
 // Search for URLs in a string
-func findUrls(message string) (urls []*url.URL) {
+func findURLs(message string) (urls []*url.URL) {
 	// Source of the regular expression:
 	// http://daringfireball.net/2010/07/improved_regex_for_matching_urls
 	re := regexp.MustCompile("(?:https?://|www\\d{0,3}[.]|[a-z0-9.\\-]+[.][a-z]{2,4}/)(?:[^\\s()<>]+|\\(([^\\s()<>]+|(\\([^\\s()<>]+\\)))*\\))+(?:\\(([^\\s()<>]+|(\\([^\\s()<>]+\\)))*\\)|[^\\s`!()\\[\\]{};:'\".,<>?«»“”‘’])")

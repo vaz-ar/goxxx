@@ -85,10 +85,10 @@ func Test_getTitleFromHTML(t *testing.T) {
 	// --- --- --- --- --- ---
 }
 
-func Test_findUrls(t *testing.T) {
+func Test_findURLs(t *testing.T) {
 	// --- --- --- --- --- --- Messages with URLs
 	for i, message := range messagesWithUrls {
-		results := findUrls(message)
+		results := findURLs(message)
 		if len(results) != len(expectedUrls[i]) {
 			t.Errorf("Number of results different than what was expected (results: %d, expected: %d)", len(results), len(expectedUrls[i]))
 		}
@@ -101,20 +101,20 @@ func Test_findUrls(t *testing.T) {
 	// --- --- --- --- --- ---
 
 	// --- --- --- --- --- --- Message without any URL
-	if len(findUrls(messageWithoutURL)) != 0 {
+	if len(findURLs(messageWithoutURL)) != 0 {
 		t.Errorf("Found URL(s) in the message without any URL (Message %q)", messageWithoutURL)
 	}
 	// --- --- --- --- --- ---
 }
 
-func Test_HandleUrls(t *testing.T) {
+func Test_HandleURLs(t *testing.T) {
 	db := database.NewDatabase("./tests.sqlite", true)
 	defer db.Close()
 	Init(db)
 
 	// --- --- --- --- --- --- Valid Event
 	var testReply core.ReplyCallbackData
-	HandleUrls(&validEvent, func(data *core.ReplyCallbackData) {
+	HandleURLs(&validEvent, func(data *core.ReplyCallbackData) {
 		testReply = *data
 	})
 	if testReply != validReply {
@@ -123,7 +123,7 @@ func Test_HandleUrls(t *testing.T) {
 	// --- --- --- --- --- ---
 
 	// --- --- --- --- --- --- Invalid Event
-	HandleUrls(&invalidEvent, func(data *core.ReplyCallbackData) {
+	HandleURLs(&invalidEvent, func(data *core.ReplyCallbackData) {
 		// There is no memo command in the message, the callback should not be called
 		t.Errorf("Callback function not supposed to be called, the message does not contain any URL (Message: %q)\n\n", messageWithoutURL)
 	})
@@ -131,7 +131,7 @@ func Test_HandleUrls(t *testing.T) {
 
 	// --- --- --- --- --- --- Valid Event => Trigger the "link already posted" function
 	var testReplies []core.ReplyCallbackData
-	HandleUrls(&validEvent, func(data *core.ReplyCallbackData) {
+	HandleURLs(&validEvent, func(data *core.ReplyCallbackData) {
 		testReplies = append(testReplies, *data)
 	})
 	if len(testReplies) != 2 {

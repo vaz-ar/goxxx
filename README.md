@@ -12,6 +12,12 @@ Once you have a working installation of Go, you just need to run:
 $ go get github.com/vaz-ar/goxxx
 ```
 
+Build
+=======
+```
+$ make
+```
+
 Usage
 =====
 
@@ -27,18 +33,17 @@ $ goxxx
 ### Log file
 - The log file will be created in the directory where goxxx is started, and will be named `goxxx_logs.txt`.
 
+Tests
+=====
+
+to run the tests:
+```
+$ make test
+```
+It will run the tests for all the packages.
+
 
 Development / Contributions
 =====
 
 Pull requests are welcome.
-
-
-Tests
-=====
-
-to run the tests, run the following command from the `goxxx` directory:
-```
-$ go test -v ./...
-```
-It will run the tests for all the packages.

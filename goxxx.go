@@ -28,6 +28,7 @@ import (
 	"syscall"
 )
 
+// Version and build time
 var (
 	GlobalVersion string
 	BuildTime     string
@@ -184,7 +185,9 @@ func main() {
 
 		case "webinfo":
 			webinfo.Init(db)
-			bot.AddMsgHandler(webinfo.HandleUrls, bot.ReplyToAll)
+			bot.AddMsgHandler(webinfo.HandleURLs, bot.ReplyToAll)
+			bot.AddCmdHandler(webinfo.HandleSearchURLsCmd, bot.ReplyToAll)
+			help.AddMessages(webinfo.HelpURL)
 			log.Println("webinfo module loaded")
 
 		case "xkcd":
