@@ -18,9 +18,12 @@ import (
 )
 
 var (
-	htmlWithTitle    = "./tests_data/page_with_title.html"
+    htmlsWithTitle = []string{
+	    "./tests_data/page_with_title.html",
+        "./tests_data/page_with_title_containing_spaces.html",
+        "./tests_data/page_with_multiline_title.html"}
 	htmlWithoutTitle = "./tests_data/page_without_title.html"
-	expectedTitle    = "Unicorn"
+	expectedTitle    = "The Ultimate Unicorn"
 	expectedNick     = "Sender"
 
 	messagesWithUrls = []string{
@@ -48,32 +51,34 @@ var (
 )
 
 func Test_getTitleFromHTML(t *testing.T) {
-	// --- --- --- --- --- --- File with a title
-	fileContent, err := ioutil.ReadFile(htmlWithTitle)
+	// --- --- --- --- --- --- Files with a title
+    for _, fileName := range htmlsWithTitle {
+	    fileContent, err := ioutil.ReadFile(fileName)
+	    if err != nil {
+		    t.Log(err)
+		    t.FailNow()
+	    }
+	    doc, err := html.Parse(strings.NewReader(string(fileContent)))
+	    if err != nil {
+		    t.Log(err)
+		    t.FailNow()
+	    }
+
+	    if title, found := getTitleFromHTML(doc); !found {
+		    t.Errorf("No title found in the document with title %q", expectedTitle)
+	    } else if title != expectedTitle {
+		    t.Errorf("Wrong title found: %q instead of %q", title, expectedTitle)
+	    }
+    }
+	// --- --- --- --- --- ---
+
+	// --- --- --- --- --- --- File without a title
+	fileContent, err := ioutil.ReadFile(htmlWithoutTitle)
 	if err != nil {
 		t.Log(err)
 		t.FailNow()
 	}
 	doc, err := html.Parse(strings.NewReader(string(fileContent)))
-	if err != nil {
-		t.Log(err)
-		t.FailNow()
-	}
-
-	if title, found := getTitleFromHTML(doc); !found {
-		t.Errorf("No title found in the document with title %q", expectedTitle)
-	} else if title != expectedTitle {
-		t.Errorf("Wrong title found: %q instead of %q", title, expectedTitle)
-	}
-	// --- --- --- --- --- ---
-
-	// --- --- --- --- --- --- File without a title
-	fileContent, err = ioutil.ReadFile(htmlWithoutTitle)
-	if err != nil {
-		t.Log(err)
-		t.FailNow()
-	}
-	doc, err = html.Parse(strings.NewReader(string(fileContent)))
 	if err != nil {
 		t.Log(err)
 		t.FailNow()

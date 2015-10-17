@@ -85,7 +85,6 @@ func HandleURLs(event *irc.Event, callback func(*core.ReplyCallbackData)) {
 
 		title, found := getTitleFromHTML(doc)
 		if found {
-			title = strings.TrimSpace(title)
 			log.Println("Title found: ", title)
 			if helpers.StringInSlice(currentURL.Host, urlShortener) {
 				title += fmt.Sprint(" (", response.Request.URL.String(), ")")
@@ -176,8 +175,12 @@ func getTitleFromHTML(document *html.Node) (title string, found bool) {
 		return
 	}
 
-	// Retrieve the content inside the <title>
-	title = child.FirstChild.Data
+	// Retrieve the content inside the <title> and post-process it
+	title = strings.TrimSpace(child.FirstChild.Data)
+    // Replace every whitespaces or new lines sequence with a single
+    // whitespace
+    re := regexp.MustCompile("\\s+")
+    title = re.ReplaceAllString(title, " ")
 	found = true
 
 	return
