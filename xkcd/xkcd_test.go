@@ -53,7 +53,7 @@ var (
 		Nick:    "Sender",
 		Message: fmt.Sprintf("There is no XKCD comic #1000000000000000000")}
 
-	reValidReplyLastComic = regexp.MustCompile(`Last XKCD Comic: (\w+\s+)+=> \S+`)
+	reValidReplyLastComic = regexp.MustCompile(`Last XKCD Comic: (\S+\s+)+=> \S+`)
 )
 
 // --- --- --- General --- --- ---
