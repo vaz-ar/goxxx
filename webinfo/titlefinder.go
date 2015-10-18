@@ -23,8 +23,10 @@ import (
 )
 
 const (
-	maxUrlsCount int    = 10                                                                                     // Maximun number of URLs to search in one message
-	HelpURL      string = "\t!url <search terms>\t\t\t\t\t\t=> Return links with titles matching <search terms>" // Help message for the !url command
+	// maxUrlsCount Maximun number of URLs to search in one message
+	maxUrlsCount int = 10
+	// HelpURL Help message for the !url command
+	HelpURL string = "\t!url <search terms>\t\t\t\t\t\t=> Return links with titles matching <search terms>"
 )
 
 var (
@@ -177,10 +179,10 @@ func getTitleFromHTML(document *html.Node) (title string, found bool) {
 
 	// Retrieve the content inside the <title> and post-process it
 	title = strings.TrimSpace(child.FirstChild.Data)
-    // Replace every whitespaces or new lines sequence with a single
-    // whitespace
-    re := regexp.MustCompile("\\s+")
-    title = re.ReplaceAllString(title, " ")
+	// Replace every whitespaces or new lines sequence with a single
+	// whitespace
+	re := regexp.MustCompile("\\s+")
+	title = re.ReplaceAllString(title, " ")
 	found = true
 
 	return
