@@ -35,3 +35,9 @@ clean:
 .PHONY: test
 test:
 	go test -v ./... | sed -e /PASS/s//$$(printf "\033[32mPASS\033[0m")/ -e /FAIL/s//$$(printf "\033[31mFAIL\033[0m")/
+
+
+.PHONY: format
+format:
+	gofmt -s -w ./*.go
+	gofmt -s -w ./*/*.go
