@@ -18,6 +18,7 @@ import (
 	"github.com/vaz-ar/goxxx/help"
 	"github.com/vaz-ar/goxxx/invoke"
 	"github.com/vaz-ar/goxxx/memo"
+	"github.com/vaz-ar/goxxx/pictures"
 	"github.com/vaz-ar/goxxx/search"
 	"github.com/vaz-ar/goxxx/webinfo"
 	"github.com/vaz-ar/goxxx/xkcd"
@@ -64,7 +65,7 @@ func getOptions() (config configData, returnCode int) {
 	flag.StringVar(&config.channelKey, "key", "", "IRC channel key (optional)")
 	flag.StringVar(&config.nick, "nick", "goxxx", "the bot's nickname (optional)")
 	flag.StringVar(&config.server, "server", "chat.freenode.net:6697", "IRC_SERVER[:PORT] (optional)")
-	modules := flag.String("modules", "memo,webinfo,invoke,search,xkcd", "Modules to enable (separated by commas)")
+	modules := flag.String("modules", "memo,webinfo,invoke,search,xkcd,pictures", "Modules to enable (separated by commas)")
 	// Email
 	flag.StringVar(&config.emailServer, "email_server", "", "SMTP server address")
 	flag.IntVar(&config.emailPort, "email_port", 0, "SMTP server port")
@@ -194,6 +195,13 @@ func main() {
 			bot.AddCmdHandler(xkcd.HandleXKCDCmd, bot.ReplyToAll)
 			help.AddMessages(xkcd.HelpXkcd, xkcd.HelpXkcdNumber)
 			log.Println("xkcd module loaded")
+
+		case "pictures":
+			pictures.Init(db)
+			bot.AddCmdHandler(pictures.HandlePictureCmd, bot.ReplyToAll)
+			bot.AddCmdHandler(pictures.HandleAddPictureCmd, bot.ReplyToAll)
+			help.AddMessages(pictures.HelpPictures, pictures.HelpPicturesAdd)
+			log.Println("pictures module loaded")
 
 		default:
 		}
