@@ -25,8 +25,9 @@ const (
 	// HelpPictures is the help message for the !pic command
 	HelpPictures = "\t!p/!pic <search terms> \t=> Search in the database for pictures matching <search terms>"
 	// HelpPicturesAdd is the help message for the !addpic command
-	HelpPicturesAdd = "\t!addpic <tag> <url>  \t\t\t=> Add a picture in the database for <tag> (<url> must have an image extension)"
-	maxPictures     = 10
+	HelpPicturesAdd    = "\t!addpic <url> <tag> [#NSFW] \t=> Add a picture in the database for <tag> (<url> must have an image extension)"
+	HelpPicturesRemove = "\t!rmpic <url> <tag> \t=> Remove a picture in the database for <tag> (Admin only command)"
+	maxPictures        = 5
 )
 
 var (
@@ -34,23 +35,26 @@ var (
 	extList = []string{".png", ".jpg", ".jpeg"}
 	// Source of the regular expression:
 	// http://daringfireball.net/2010/07/improved_regex_for_matching_urls
-	reURL = regexp.MustCompile("(?:https?://|www\\d{0,3}[.]|[a-z0-9.\\-]+[.][a-z]{2,4}/)(?:[^\\s()<>]+|\\(([^\\s()<>]+|(\\([^\\s()<>]+\\)))*\\))+(?:\\(([^\\s()<>]+|(\\([^\\s()<>]+\\)))*\\)|[^\\s`!()\\[\\]{};:'\".,<>?«»“”‘’])")
+	reURL          = regexp.MustCompile("(?:https?://|www\\d{0,3}[.]|[a-z0-9.\\-]+[.][a-z]{2,4}/)(?:[^\\s()<>]+|\\(([^\\s()<>]+|(\\([^\\s()<>]+\\)))*\\))+(?:\\(([^\\s()<>]+|(\\([^\\s()<>]+\\)))*\\)|[^\\s`!()\\[\\]{};:'\".,<>?«»“”‘’])")
+	administrators []string
 )
 
 // Init stores the database pointer and initialises the database table "Pictures" if necessary.
-func Init(db *sql.DB) {
+func Init(db *sql.DB, admins []string) {
 	dbPtr = db
 	sqlStmt := `CREATE TABLE IF NOT EXISTS Picture (
-    id integer NOT NULL PRIMARY KEY,
+    id INTEGER NOT NULL PRIMARY KEY,
     tag TEXT,
     url TEXT,
     nick TEXT,
+    nsfw INTEGER,
     date DATETIME DEFAULT CURRENT_TIMESTAMP);`
 
 	_, err := db.Exec(sqlStmt)
 	if err != nil {
 		log.Fatalf("%q: %s\n", err, sqlStmt)
 	}
+	administrators = admins
 }
 
 // HandlePictureCmd returns the pictures associated with a tag
@@ -66,15 +70,32 @@ func HandlePictureCmd(event *irc.Event, callback func(*core.ReplyCallbackData)) 
 		return false
 	}
 
-	var tag, url string
-	sqlQuery := "SELECT tag, url FROM Picture WHERE tag LIKE $1"
-	rows, err := dbPtr.Query(sqlQuery, "%"+strings.ToLower(strings.Join(fields[1:], " "))+"%")
+	var (
+		requestedTag = strings.ToLower(strings.Join(fields[1:], " "))
+		tag, url     string
+		nsfw         int
+	)
+	sqlQuery := "SELECT tag, url, nsfw FROM Picture WHERE tag LIKE $1"
+	rows, err := dbPtr.Query(sqlQuery, "%"+requestedTag+"%")
 	if err != nil {
 		log.Fatalf("%q: %s\n", err, sqlQuery)
 	}
+	var (
+		message     string
+		resultCount int
+	)
 	for rows.Next() {
-		rows.Scan(&tag, &url)
-		callback(&core.ReplyCallbackData{Message: fmt.Sprintf("Picture for %q : %s", tag, url)})
+		resultCount++
+		rows.Scan(&tag, &url, &nsfw)
+		if nsfw == 0 {
+			message = fmt.Sprintf("Picture for %q : %s", tag, url)
+		} else {
+			message = fmt.Sprintf("Picture for %q (#NSFW) : %s", tag, url)
+		}
+		callback(&core.ReplyCallbackData{Message: message})
+	}
+	if resultCount == 0 {
+		callback(&core.ReplyCallbackData{Message: fmt.Sprintf("No picture found for tag %q", requestedTag)})
 	}
 
 	return true
@@ -101,9 +122,14 @@ func HandleAddPictureCmd(event *irc.Event, callback func(*core.ReplyCallbackData
 
 	var (
 		tag      = strings.ToLower(strings.Join(fields[2:], " "))
-		count    int
 		sqlQuery = "SELECT count(url) FROM Picture WHERE tag = $1"
+		nsfw     = strings.ToLower(fields[len(fields)-1]) == "#nsfw"
+		count    int
 	)
+	// Check if last element from fields is NSFW tag
+	if nsfw {
+		tag = strings.TrimSpace(strings.TrimSuffix(tag, "#nsfw"))
+	}
 	err := dbPtr.QueryRow(sqlQuery, tag).Scan(&count)
 	if err != sql.ErrNoRows && err != nil {
 		log.Fatalf("%q: %s\n", err, sqlQuery)
@@ -123,12 +149,47 @@ func HandleAddPictureCmd(event *irc.Event, callback func(*core.ReplyCallbackData
 		return true
 	}
 
-	sqlQuery = "INSERT INTO Picture (tag, url, nick) VALUES ($1, $2, $3)"
-	_, err = dbPtr.Exec(sqlQuery, tag, url, event.Nick)
+	sqlQuery = "INSERT INTO Picture (tag, url, nick, nsfw) VALUES ($1, $2, $3, $4)"
+	_, err = dbPtr.Exec(sqlQuery, tag, url, event.Nick, nsfw)
 	if err != nil {
 		log.Fatalf("%q: %s\n", err, sqlQuery)
 	}
 	callback(&core.ReplyCallbackData{Message: fmt.Sprintf("Picture %q added for tag %q", url, tag)})
 
+	return true
+}
+
+// HandleRmPictureCmd remove a picture for a given tag to the database
+func HandleRmPictureCmd(event *irc.Event, callback func(*core.ReplyCallbackData)) bool {
+	if callback == nil {
+		log.Println("Callback nil for the HandleRmPictureCmd function")
+		return false
+	}
+	fields := strings.Fields(event.Message())
+	// fields[0]  => Command
+	// fields[1] => url for the picture
+	// fields[2:] => Tag for the picture
+	if len(fields) < 3 || fields[0] != "!rmpic" {
+		return false
+	}
+	if !helpers.StringInSlice(event.Nick, administrators) {
+		callback(&core.ReplyCallbackData{Message: fmt.Sprintf("You need to be an administrator to run this command (Admins: %q)", strings.Join(administrators, ", "))})
+		return true
+	}
+
+	url := fields[1]
+	tag := strings.ToLower(strings.Join(fields[2:], " "))
+	sqlStmt := `DELETE FROM Picture WHERE tag = $1 AND url = $2`
+	result, err := dbPtr.Exec(sqlStmt, tag, url)
+	if err != nil {
+		log.Fatalf("%q: %s\n", err, sqlStmt)
+	}
+	rows, err := result.RowsAffected()
+	if err != nil {
+		log.Fatalf("%q: %s\n", err, sqlStmt)
+	}
+	if rows != 0 {
+		callback(&core.ReplyCallbackData{Message: fmt.Sprintf("Picture %q removed for tag %q", url, tag)})
+	}
 	return true
 }
