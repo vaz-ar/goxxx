@@ -68,7 +68,7 @@ func HandlePictureCmd(event *irc.Event, callback func(*core.ReplyCallbackData)) 
 
 	var tag, url string
 	sqlQuery := "SELECT tag, url FROM Picture WHERE tag LIKE $1"
-	rows, err := dbPtr.Query(sqlQuery, "%"+strings.Join(fields[1:], " ")+"%")
+	rows, err := dbPtr.Query(sqlQuery, "%"+strings.ToLower(strings.Join(fields[1:], " "))+"%")
 	if err != nil {
 		log.Fatalf("%q: %s\n", err, sqlQuery)
 	}
@@ -100,7 +100,7 @@ func HandleAddPictureCmd(event *irc.Event, callback func(*core.ReplyCallbackData
 	}
 
 	var (
-		tag      = strings.Join(fields[2:], " ")
+		tag      = strings.ToLower(strings.Join(fields[2:], " "))
 		count    int
 		sqlQuery = "SELECT count(url) FROM Picture WHERE tag = $1"
 	)
