@@ -167,7 +167,7 @@ func main() {
 				continue
 			}
 			bot.AddCmdHandler(invoke.HandleInvokeCmd, bot.ReplyToNick)
-			help.AddMessages(invoke.HelpInvoke)
+			help.AddMessages("invoke", invoke.HelpInvoke)
 			log.Println("invoke module loaded")
 
 		case "memo":
@@ -175,28 +175,24 @@ func main() {
 			bot.AddMsgHandler(memo.SendMemo, bot.ReplyToNick)
 			bot.AddCmdHandler(memo.HandleMemoCmd, bot.ReplyToAll)
 			bot.AddCmdHandler(memo.HandleMemoStatusCmd, bot.ReplyToNick)
-			help.AddMessages(memo.HelpMemo, memo.HelpMemostat)
+			help.AddMessages("memo", memo.HelpMemo, memo.HelpMemostat)
 			log.Println("memo module loaded")
 
 		case "search":
 			bot.AddCmdHandler(search.HandleSearchCmd, bot.Reply)
-			help.AddMessages(
-				search.HelpDuckduckgo,
-				search.HelpWikipedia,
-				search.HelpWikipediaFr,
-				search.HelpUrbanDictionnary)
+			help.AddMessages("search", search.HelpDuckduckgo, search.HelpWikipedia, search.HelpWikipediaFr, search.HelpUrbanDictionnary)
 			log.Println("search module loaded")
 
 		case "webinfo":
 			webinfo.Init(db)
 			bot.AddMsgHandler(webinfo.HandleURLs, bot.ReplyToAll)
 			bot.AddCmdHandler(webinfo.HandleSearchURLsCmd, bot.ReplyToAll)
-			help.AddMessages(webinfo.HelpURL)
+			help.AddMessages("url", webinfo.HelpURL)
 			log.Println("webinfo module loaded")
 
 		case "xkcd":
 			bot.AddCmdHandler(xkcd.HandleXKCDCmd, bot.ReplyToAll)
-			help.AddMessages(xkcd.HelpXkcd, xkcd.HelpXkcdNumber)
+			help.AddMessages("xkcd", xkcd.HelpXkcd, xkcd.HelpXkcdNumber)
 			log.Println("xkcd module loaded")
 
 		case "pictures":
@@ -204,7 +200,7 @@ func main() {
 			bot.AddCmdHandler(pictures.HandlePictureCmd, bot.ReplyToAll)
 			bot.AddCmdHandler(pictures.HandleAddPictureCmd, bot.ReplyToAll)
 			bot.AddCmdHandler(pictures.HandleRmPictureCmd, bot.ReplyToAll)
-			help.AddMessages(pictures.HelpPictures, pictures.HelpPicturesAdd, pictures.HelpPicturesRemove)
+			help.AddMessages("pictures", pictures.HelpPictures, pictures.HelpPicturesAdd, pictures.HelpPicturesRemove)
 			log.Println("pictures module loaded")
 
 		default:
