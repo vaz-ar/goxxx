@@ -18,8 +18,6 @@ import (
 )
 
 const (
-	// HelpInvoke Help message for the invoke command
-	HelpInvoke = "\t!invoke <nick> [<message>] \t=> Send an email to an user, with an optionnal message "
 	// Minimun delta between two mails (in minutes)
 	minDelta = 15
 )
@@ -66,6 +64,15 @@ func Init(db *sql.DB, sender, account, password, server string, port int) bool {
 	return true
 }
 
+// GetCommand returns a Command structure for the invoke command
+func GetCommand() *core.Command {
+	return &core.Command{
+		Module:      "invoke",
+		HelpMessage: "\t!invoke <nick> [<message>] \t=> Send an email to an user, with an optionnal message",
+		Triggers:    []string{"!invoke"},
+		Handler:     handleInvokeCmd}
+}
+
 func sendMail(message string, recipient *string) bool {
 	err := smtp.SendMail(
 		connection.server,
@@ -88,23 +95,13 @@ func generateMessage(headers map[string]string, body string) string {
 	return message + "\r\n" + body
 }
 
-// HandleInvokeCmd handles the invoke command
-func HandleInvokeCmd(event *irc.Event, callback func(*core.ReplyCallbackData)) bool {
-	if !initialised {
-		log.Println("Invoke package not initialised correctly")
-		return false
-	}
-	if callback == nil {
-		log.Println("Callback nil for the HandleInvokeCmd function")
-		return false
-	}
-
+// handleInvokeCmd handles the invoke command
+func handleInvokeCmd(event *irc.Event, callback func(*core.ReplyCallbackData)) bool {
 	fields := strings.Fields(event.Message())
 	// fields[0]  => Command
 	// fields[1]  => User
 	// fields[2:]  => Optionnal message
-
-	if len(fields) < 2 || fields[0] != "!invoke" {
+	if len(fields) < 2 {
 		return false
 	}
 	log.Println("Invoke command detected")

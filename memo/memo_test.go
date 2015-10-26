@@ -24,14 +24,10 @@ var (
 		Nick:      "Sender",
 		Arguments: []string{"#test_channel", validMessage}}
 
-	invalidEvent = irc.Event{
-		Nick:      "Sender",
-		Arguments: []string{"#test_channel", invalidMessage}}
-
 	replyCallbackDataReference = core.ReplyCallbackData{Nick: "Sender", Message: "Sender: memo for Receiver saved"}
 )
 
-func Test_HandleMemoCmd(t *testing.T) {
+func Test_handleMemoCmd(t *testing.T) {
 
 	db := database.NewDatabase("./tests.sqlite", true)
 	defer db.Close()
@@ -39,19 +35,12 @@ func Test_HandleMemoCmd(t *testing.T) {
 
 	// --- --- --- --- --- --- Valid Event
 	var testReply core.ReplyCallbackData
-	HandleMemoCmd(&validEvent, func(data *core.ReplyCallbackData) {
+	handleMemoCmd(&validEvent, func(data *core.ReplyCallbackData) {
 		testReply = *data
 	})
 	if testReply != replyCallbackDataReference {
 		t.Errorf("Test data differ from reference data:\nTest data:\t%#v\nReference data: %#v\n\n", testReply, replyCallbackDataReference)
 	}
-	// --- --- --- --- --- ---
-
-	// --- --- --- --- --- --- Invalid Event
-	HandleMemoCmd(&invalidEvent, func(data *core.ReplyCallbackData) {
-		// There is no memo command in the message, the callback should not be called
-		t.Errorf("Callback function not supposed to be called, the message does not contain the !memo command (Message: %q)\n\n", invalidMessage)
-	})
 	// --- --- --- --- --- ---
 }
 
@@ -62,7 +51,7 @@ func Test_SendMemo(t *testing.T) {
 	Init(db)
 
 	// Create Memo
-	HandleMemoCmd(&validEvent, nil)
+	handleMemoCmd(&validEvent, nil)
 
 	message := " this is a message to trigger the memo "
 	event := irc.Event{Nick: expectedNick, Arguments: []string{"#test_channel", message}}

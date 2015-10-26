@@ -166,47 +166,70 @@ func main() {
 				log.Println("Error while initialising invoke package")
 				continue
 			}
-			bot.AddCmdHandler(invoke.HandleInvokeCmd, bot.ReplyToNick)
-			help.AddMessages("invoke", invoke.HelpInvoke)
+			cmd := invoke.GetCommand()
+			bot.AddCmdHandler(cmd, bot.ReplyToNick)
+			help.AddMessages(cmd)
 			log.Println("invoke module loaded")
 
 		case "memo":
 			memo.Init(db)
 			bot.AddMsgHandler(memo.SendMemo, bot.ReplyToNick)
-			bot.AddCmdHandler(memo.HandleMemoCmd, bot.ReplyToAll)
-			bot.AddCmdHandler(memo.HandleMemoStatusCmd, bot.ReplyToNick)
-			help.AddMessages("memo", memo.HelpMemo, memo.HelpMemostat)
+			cmd := memo.GetMemoCommand()
+			bot.AddCmdHandler(cmd, bot.ReplyToAll)
+			help.AddMessages(cmd)
+			cmd = memo.GetMemoStatCommand()
+			bot.AddCmdHandler(cmd, bot.ReplyToNick)
+			help.AddMessages(cmd)
 			log.Println("memo module loaded")
 
 		case "search":
-			bot.AddCmdHandler(search.HandleSearchCmd, bot.Reply)
-			help.AddMessages("search", search.HelpDuckduckgo, search.HelpWikipedia, search.HelpWikipediaFr, search.HelpUrbanDictionnary)
+			cmd := search.GetDuckduckGoCmd()
+			bot.AddCmdHandler(cmd, bot.Reply)
+			help.AddMessages(cmd)
+			cmd = search.GetWikipediaCmd()
+			bot.AddCmdHandler(cmd, bot.Reply)
+			help.AddMessages(cmd)
+			cmd = search.GetWikipediaFRCmd()
+			bot.AddCmdHandler(cmd, bot.Reply)
+			help.AddMessages(cmd)
+			cmd = search.GetUrbanDictionnaryCmd()
+			bot.AddCmdHandler(cmd, bot.Reply)
+			help.AddMessages(cmd)
 			log.Println("search module loaded")
 
 		case "webinfo":
 			webinfo.Init(db)
 			bot.AddMsgHandler(webinfo.HandleURLs, bot.ReplyToAll)
-			bot.AddCmdHandler(webinfo.HandleSearchURLsCmd, bot.ReplyToAll)
-			help.AddMessages("url", webinfo.HelpURL)
+
+			cmd := webinfo.GetCommand()
+			bot.AddCmdHandler(cmd, bot.ReplyToAll)
+			help.AddMessages(cmd)
+
 			log.Println("webinfo module loaded")
 
 		case "xkcd":
-			bot.AddCmdHandler(xkcd.HandleXKCDCmd, bot.ReplyToAll)
-			help.AddMessages("xkcd", xkcd.HelpXkcd, xkcd.HelpXkcdNumber)
+			cmd := xkcd.GetCommand()
+			bot.AddCmdHandler(cmd, bot.ReplyToAll)
+			help.AddMessages(cmd)
 			log.Println("xkcd module loaded")
 
 		case "pictures":
 			pictures.Init(db, config.admins)
-			bot.AddCmdHandler(pictures.HandlePictureCmd, bot.ReplyToAll)
-			bot.AddCmdHandler(pictures.HandleAddPictureCmd, bot.ReplyToAll)
-			bot.AddCmdHandler(pictures.HandleRmPictureCmd, bot.ReplyToAll)
-			help.AddMessages("pictures", pictures.HelpPictures, pictures.HelpPicturesAdd, pictures.HelpPicturesRemove)
+			cmd := pictures.GetPicCommand()
+			bot.AddCmdHandler(cmd, bot.ReplyToAll)
+			help.AddMessages(cmd)
+			cmd = pictures.GetAddPicCommand()
+			bot.AddCmdHandler(cmd, bot.ReplyToAll)
+			help.AddMessages(cmd)
+			cmd = pictures.GetRmPicCommand()
+			bot.AddCmdHandler(cmd, bot.ReplyToAll)
+			help.AddMessages(cmd)
 			log.Println("pictures module loaded")
 
 		default:
 		}
 	}
-	bot.AddCmdHandler(help.HandleHelpCmd, bot.ReplyToNick)
+	bot.AddCmdHandler(help.GetCommand(), bot.ReplyToNick)
 
 	log.Println("Goxxx started")
 

@@ -22,12 +22,7 @@ import (
 )
 
 const (
-	// HelpPictures is the help message for the !pic command
-	HelpPictures = "\t!p/!pic <search terms> \t=> Search in the database for pictures matching <search terms>"
-	// HelpPicturesAdd is the help message for the !addpic command
-	HelpPicturesAdd    = "\t!addpic <url> <tag> [#NSFW] \t=> Add a picture in the database for <tag> (<url> must have an image extension)"
-	HelpPicturesRemove = "\t!rmpic <url> <tag> \t=> Remove a picture in the database for <tag> (Admin only command)"
-	maxPictures        = 5
+	maxPictures = 5
 )
 
 var (
@@ -38,6 +33,33 @@ var (
 	reURL          = regexp.MustCompile("(?:https?://|www\\d{0,3}[.]|[a-z0-9.\\-]+[.][a-z]{2,4}/)(?:[^\\s()<>]+|\\(([^\\s()<>]+|(\\([^\\s()<>]+\\)))*\\))+(?:\\(([^\\s()<>]+|(\\([^\\s()<>]+\\)))*\\)|[^\\s`!()\\[\\]{};:'\".,<>?«»“”‘’])")
 	administrators []string
 )
+
+// GetPicCommand returns a Command structure for the picture command
+func GetPicCommand() *core.Command {
+	return &core.Command{
+		Module:      "pictures",
+		HelpMessage: "\t!p/!pic <search terms> \t=> Search in the database for pictures matching <search terms>",
+		Triggers:    []string{"!p", "!pic"},
+		Handler:     handlePictureCmd}
+}
+
+// GetAddPicCommand returns a Command structure for the add picture command
+func GetAddPicCommand() *core.Command {
+	return &core.Command{
+		Module:      "pictures",
+		HelpMessage: "\t!addpic <url> <tag> [#NSFW] \t=> Add a picture in the database for <tag> (<url> must have an image extension)",
+		Triggers:    []string{"!addpic"},
+		Handler:     handleAddPictureCmd}
+}
+
+// GetRmPicCommand returns a Command structure for the remove picture command
+func GetRmPicCommand() *core.Command {
+	return &core.Command{
+		Module:      "pictures",
+		HelpMessage: "\t!rmpic <url> <tag> \t=> Remove a picture in the database for <tag> (Admin only command)",
+		Triggers:    []string{"!rmpic"},
+		Handler:     handleRmPictureCmd}
+}
 
 // Init stores the database pointer and initialises the database table "Pictures" if necessary.
 func Init(db *sql.DB, admins []string) {
@@ -57,19 +79,14 @@ func Init(db *sql.DB, admins []string) {
 	administrators = admins
 }
 
-// HandlePictureCmd returns the pictures associated with a tag
-func HandlePictureCmd(event *irc.Event, callback func(*core.ReplyCallbackData)) bool {
-	if callback == nil {
-		log.Println("Callback nil for the HandlePictureCmd function")
-		return false
-	}
+// handlePictureCmd returns the pictures associated with a tag
+func handlePictureCmd(event *irc.Event, callback func(*core.ReplyCallbackData)) bool {
 	fields := strings.Fields(event.Message())
 	// fields[0]  => Command
 	// fields[1:] => Tag to search for
-	if len(fields) < 2 || (fields[0] != "!p" && fields[0] != "!pic") {
+	if len(fields) < 2 {
 		return false
 	}
-
 	var (
 		requestedTag = strings.ToLower(strings.Join(fields[1:], " "))
 		tag, url     string
@@ -101,17 +118,13 @@ func HandlePictureCmd(event *irc.Event, callback func(*core.ReplyCallbackData)) 
 	return true
 }
 
-// HandleAddPictureCmd add a picture for a given tag to the database
-func HandleAddPictureCmd(event *irc.Event, callback func(*core.ReplyCallbackData)) bool {
-	if callback == nil {
-		log.Println("Callback nil for the HandleAddPictureCmd function")
-		return false
-	}
+// handleAddPictureCmd add a picture for a given tag to the database
+func handleAddPictureCmd(event *irc.Event, callback func(*core.ReplyCallbackData)) bool {
 	fields := strings.Fields(event.Message())
 	// fields[0]  => Command
 	// fields[1] => url for the picture
 	// fields[2:] => Tag for the picture
-	if len(fields) < 3 || fields[0] != "!addpic" {
+	if len(fields) < 3 {
 		return false
 	}
 	url := fields[1]
@@ -159,17 +172,13 @@ func HandleAddPictureCmd(event *irc.Event, callback func(*core.ReplyCallbackData
 	return true
 }
 
-// HandleRmPictureCmd remove a picture for a given tag to the database
-func HandleRmPictureCmd(event *irc.Event, callback func(*core.ReplyCallbackData)) bool {
-	if callback == nil {
-		log.Println("Callback nil for the HandleRmPictureCmd function")
-		return false
-	}
+// handleRmPictureCmd remove a picture for a given tag to the database
+func handleRmPictureCmd(event *irc.Event, callback func(*core.ReplyCallbackData)) bool {
 	fields := strings.Fields(event.Message())
 	// fields[0]  => Command
 	// fields[1] => url for the picture
 	// fields[2:] => Tag for the picture
-	if len(fields) < 3 || fields[0] != "!rmpic" {
+	if len(fields) < 3 {
 		return false
 	}
 	if !helpers.StringInSlice(event.Nick, administrators) {

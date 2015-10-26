@@ -25,14 +25,21 @@ import (
 const (
 	// maxUrlsCount Maximun number of URLs to search in one message
 	maxUrlsCount int = 10
-	// HelpURL Help message for the !url command
-	HelpURL string = "\t!url <search terms>\t\t\t\t\t\t=> Return links with titles matching <search terms>"
 )
 
 var (
 	dbPtr        *sql.DB                                // Database pointer
 	urlShortener = []string{"t.co", "bit.ly", "goo.gl"} // URL shorteners base URL
 )
+
+// GetCommand returns a Command structure for url search command
+func GetCommand() *core.Command {
+	return &core.Command{
+		Module:      "url",
+		HelpMessage: "\t!url <search terms>\t\t\t\t\t\t=> Return links with titles matching <search terms>",
+		Triggers:    []string{"!url"},
+		Handler:     handleSearchURLsCmd}
+}
 
 // Init stores the database pointer and initialises the database table "Link" if necessary.
 func Init(db *sql.DB) {
@@ -107,21 +114,14 @@ func HandleURLs(event *irc.Event, callback func(*core.ReplyCallbackData)) {
 	}
 }
 
-// HandleSearchURLsCmd is a command handler that search in the database for page titles matching a pattern
-func HandleSearchURLsCmd(event *irc.Event, callback func(*core.ReplyCallbackData)) bool {
-	if callback == nil {
-		log.Println("Callback nil for the HandleSearchURLsCmd function")
-		return false
-	}
-
+// handleSearchURLsCmd is a command handler that search in the database for page titles matching a pattern
+func handleSearchURLsCmd(event *irc.Event, callback func(*core.ReplyCallbackData)) bool {
 	fields := strings.Fields(event.Message())
 	// fields[0]  => Command
 	// fields[1:]  => URL
-
-	if len(fields) < 2 || fields[0] != "!url" {
+	if len(fields) < 2 {
 		return false
 	}
-
 	var (
 		user, date, title, url string
 		search                 = strings.Join(fields[1:], " ")

@@ -10,17 +10,10 @@ package memo
 import (
 	"database/sql"
 	"fmt"
-	"github.com/emirozer/go-helpers"
 	"github.com/thoj/go-ircevent"
 	"github.com/vaz-ar/goxxx/core"
 	"log"
 	"strings"
-)
-
-// Help messages
-const (
-	HelpMemo     = "\t!memo/!m <nick> <message> \t=> Leave a memo for another user"                               // Help message for the memo command
-	HelpMemostat = "\t!memostat/!ms \t\t\t\t\t=> Get the list of the unread memos (List only the memos you left)" // Help message for the memo status command
 )
 
 var (
@@ -36,6 +29,24 @@ type data struct {
 	message  string
 	userFrom string
 	userTo   string
+}
+
+// GetMemoCommand returns a Command structure for the memo command
+func GetMemoCommand() *core.Command {
+	return &core.Command{
+		Module:      "memo",
+		HelpMessage: "\t!memo/!m <nick> <message> \t=> Leave a memo for another user",
+		Triggers:    []string{"!memo", "!m"},
+		Handler:     handleMemoCmd}
+}
+
+// GetMemoStatCommand returns a Command structure for the memo status command
+func GetMemoStatCommand() *core.Command {
+	return &core.Command{
+		Module:      "memo",
+		HelpMessage: "\t!memostat/!ms \t\t\t\t\t=> Get the list of the unread memos (List only the memos you left)",
+		Triggers:    []string{"!memostat", "!ms"},
+		Handler:     handleMemoCmd}
 }
 
 // Init stores the database pointer and initialises the database table "Memo" if necessary.
@@ -54,13 +65,13 @@ func Init(db *sql.DB) {
 	}
 }
 
-// HandleMemoCmd handles memo commands.
-func HandleMemoCmd(event *irc.Event, callback func(*core.ReplyCallbackData)) bool {
+// handleMemoCmd handles memo commands.
+func handleMemoCmd(event *irc.Event, callback func(*core.ReplyCallbackData)) bool {
 	fields := strings.Fields(event.Message())
 	// fields[0]  => Command
 	// fields[1]  => recipient's nick
 	// fields[2:] => message
-	if len(fields) < 3 || !helpers.StringInSlice(fields[0], memoCmd) {
+	if len(fields) < 3 {
 		return false
 	}
 	memo := data{
@@ -113,14 +124,8 @@ func SendMemo(event *irc.Event, callback func(*core.ReplyCallbackData)) {
 	}
 }
 
-// HandleMemoStatusCmd handles memo status commands.
-func HandleMemoStatusCmd(event *irc.Event, callback func(*core.ReplyCallbackData)) bool {
-	fields := strings.Fields(event.Message())
-	// fields[0]  => Command
-	if len(fields) == 0 || !helpers.StringInSlice(fields[0], memostatCmd) {
-		return false
-	}
-
+// handleMemoStatusCmd handles memo status commands.
+func handleMemoStatusCmd(event *irc.Event, callback func(*core.ReplyCallbackData)) bool {
 	sqlQuery := "SELECT id, user_to, message, strftime('%d/%m/%Y @ %H:%M', datetime(date, 'localtime')) FROM Memo WHERE user_from = $1 ORDER BY id"
 	rows, err := dbPtr.Query(sqlQuery, event.Nick)
 	if err != nil {

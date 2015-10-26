@@ -26,12 +26,6 @@ var (
 		Title: "Error Code"}
 
 	// IRC Events
-	invalidEvent = irc.Event{
-		Nick: "Sender",
-		Arguments: []string{
-			"#test_channel",
-			"this is not a !xkcd command"}}
-
 	validEvent = irc.Event{
 		Nick:      "Sender",
 		Arguments: []string{"#test_channel", fmt.Sprintf(" \t  !xkcd   %d   ", expectedResult.Num)}}
@@ -68,12 +62,12 @@ func Test_getComic(t *testing.T) {
 	}
 }
 
-func Test_HandleXKCDCmd(t *testing.T) {
+func Test_handleXKCDCmd(t *testing.T) {
 	log.SetFlags(log.LstdFlags | log.Lshortfile)
 
 	// --- --- --- --- --- --- valid result
 	var testReply core.ReplyCallbackData
-	HandleXKCDCmd(&validEvent, func(data *core.ReplyCallbackData) {
+	handleXKCDCmd(&validEvent, func(data *core.ReplyCallbackData) {
 		testReply = *data
 	})
 	if testReply != validReply {
@@ -83,7 +77,7 @@ func Test_HandleXKCDCmd(t *testing.T) {
 
 	// --- --- --- --- --- --- valid result - Last Comic
 	testReply = core.ReplyCallbackData{}
-	HandleXKCDCmd(&validEventLastComic, func(data *core.ReplyCallbackData) {
+	handleXKCDCmd(&validEventLastComic, func(data *core.ReplyCallbackData) {
 		testReply = *data
 	})
 	if !reValidReplyLastComic.MatchString(testReply.Message) {
@@ -93,18 +87,11 @@ func Test_HandleXKCDCmd(t *testing.T) {
 
 	// --- --- --- --- --- --- no result
 	testReply = core.ReplyCallbackData{}
-	HandleXKCDCmd(&validEventNoResult, func(data *core.ReplyCallbackData) {
+	handleXKCDCmd(&validEventNoResult, func(data *core.ReplyCallbackData) {
 		testReply = *data
 	})
 	if testReply != validReplyNoResult {
 		t.Errorf("Test data differ from reference data:\nTest data:\t%#v\nReference data: %#v\n\n", testReply, validReplyNoResult)
 	}
-	// --- --- --- --- --- ---
-
-	// --- --- --- --- --- --- no search command
-	HandleXKCDCmd(&invalidEvent, func(data *core.ReplyCallbackData) {
-		// There is no memo command in the message, the callback should not be called
-		t.Errorf("Callback function not supposed to be called, the message does not contain a search command (Message: %q)\n\n", invalidEvent.Arguments[1])
-	})
 	// --- --- --- --- --- ---
 }

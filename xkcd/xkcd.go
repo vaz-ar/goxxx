@@ -19,12 +19,6 @@ import (
 	"strings"
 )
 
-// Help messages.
-const (
-	HelpXkcd       string = "\t!xkcd \t\t\t\t\t\t=> Return the last XKCD comic"                               // Help message for the !xkcd command
-	HelpXkcdNumber string = "\t!xkcd <comic number> \t\t=> Return the XKCD comic corresponding to the number" // Help message for the !xkcd <comic number> command
-)
-
 const (
 	urlWebsite    string = "https://xkcd.com/%d/"            // Website URL format string
 	urlJSON       string = "https://xkcd.com/%d/info.0.json" // JSON URL format string
@@ -36,6 +30,15 @@ type xkcd struct {
 	Link  string `json:"link"`
 	Num   int64  `json:"num"`
 	Title string `json:"title"`
+}
+
+// GetCommand returns a Command structure for the XKCD command
+func GetCommand() *core.Command {
+	return &core.Command{
+		Module:      "xkcd",
+		HelpMessage: "\t!xkcd [<comic number>] \t\t=> Return the XKCD comic corresponding to the number. If number is not specified, returns the last comic.",
+		Triggers:    []string{"!xkcd"},
+		Handler:     handleXKCDCmd}
 }
 
 // If number is superior to 0 attempt to get informations on the corresponding comic, else return the inforamtions for the current comic.
@@ -75,8 +78,8 @@ func getComic(number int64) *xkcd {
 	return result
 }
 
-// HandleXKCDCmd Handles XKCD commands
-func HandleXKCDCmd(event *irc.Event, callback func(*core.ReplyCallbackData)) bool {
+// handleXKCDCmd Handles XKCD commands
+func handleXKCDCmd(event *irc.Event, callback func(*core.ReplyCallbackData)) bool {
 	if callback == nil {
 		log.Println("Callback nil for the HandleXKCDCmd function")
 		return false

@@ -9,6 +9,7 @@ package core
 
 import (
 	"github.com/thoj/go-ircevent"
+	"strings"
 )
 
 // Bot structure that contains connection informations, IRC connection, command handlers and message handlers
@@ -19,15 +20,23 @@ type Bot struct {
 	channelKey        string
 	ircConn           *irc.Connection
 	msgHandlers       []func(*irc.Event, func(*ReplyCallbackData))
-	cmdHandlers       []func(*irc.Event, func(*ReplyCallbackData)) bool
 	msgReplyCallbacks []func(*ReplyCallbackData)
-	cmdReplyCallbacks []func(*ReplyCallbackData)
+	cmdHandlers       map[string]func(*irc.Event, func(*ReplyCallbackData)) bool
+	cmdReplyCallbacks map[string]func(*ReplyCallbackData)
 }
 
 // ReplyCallbackData Structure used by the handlers to send data in a standardized format
 type ReplyCallbackData struct {
 	Message string
 	Nick    string
+}
+
+// Command structure
+type Command struct {
+	Module      string
+	HelpMessage string
+	Triggers    []string
+	Handler     func(event *irc.Event, callback func(*ReplyCallbackData)) bool
 }
 
 // NewBot creates a new Bot, sets the required parameters and open the connection to the server.
@@ -38,6 +47,8 @@ func NewBot(nick, server, channel, channelKey string) *Bot {
 	bot.ircConn.Connect(server)
 	bot.ircConn.Join(channel + " " + channelKey)
 	bot.ircConn.AddCallback("PRIVMSG", bot.mainHandler)
+	bot.cmdHandlers = make(map[string]func(*irc.Event, func(*ReplyCallbackData)) bool)
+	bot.cmdReplyCallbacks = make(map[string]func(*ReplyCallbackData))
 	return &bot
 }
 
@@ -56,10 +67,13 @@ func (bot *Bot) AddMsgHandler(msgProcessCallback func(*irc.Event, func(*ReplyCal
 // replyCallback is to be called by cmdProcessCallback (or not) to yield and process its result as a string message.
 // cmdProcessCallback must check if their replyCallback is nil before using it
 // Command handlers must return true if they found a command to process, false otherwise
-func (bot *Bot) AddCmdHandler(cmdProcessCallback func(*irc.Event, func(*ReplyCallbackData)) bool, replyCallback func(*ReplyCallbackData)) {
-	if cmdProcessCallback != nil {
-		bot.cmdHandlers = append(bot.cmdHandlers, cmdProcessCallback)
-		bot.cmdReplyCallbacks = append(bot.cmdReplyCallbacks, replyCallback)
+func (bot *Bot) AddCmdHandler(cmdStruct *Command, replyCallback func(*ReplyCallbackData)) {
+	if cmdStruct.Handler == nil {
+		return
+	}
+	for _, command := range cmdStruct.Triggers {
+		bot.cmdHandlers[command] = cmdStruct.Handler
+		bot.cmdReplyCallbacks[command] = replyCallback
 	}
 }
 
@@ -99,11 +113,13 @@ func (bot *Bot) Reply(data *ReplyCallbackData) {
 
 // mainHandler is called on every message posted in the channel where the bot is connected or directly sent to the bot.
 func (bot *Bot) mainHandler(event *irc.Event) {
-	for i, handler := range bot.cmdHandlers {
-		if handler(event, bot.cmdReplyCallbacks[i]) {
-			return
-		}
+
+	cmd := strings.Fields(event.Message())[0]
+	cmdHandler, present := bot.cmdHandlers[cmd]
+	if present && cmdHandler(event, bot.cmdReplyCallbacks[cmd]) {
+		return
 	}
+
 	for i, handler := range bot.msgHandlers {
 		handler(event, bot.msgReplyCallbacks[i])
 	}

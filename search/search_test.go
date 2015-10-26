@@ -29,13 +29,6 @@ var (
 	wikipediaExpectedResult        = "https://en.wikipedia.org/wiki/Unit_Testing"
 	urbanDictionnaryExpectedResult = "http://smh.urbanup.com/507685"
 
-	// IRC Events - General
-	invalidEvent = irc.Event{
-		Nick: "Sender",
-		Arguments: []string{
-			"#test_channel",
-			"this is not a search command"}}
-
 	// IRC Events - DuckduckGo
 	ddgValidEvent = irc.Event{
 		Nick: "Sender",
@@ -126,17 +119,17 @@ func Test_getDuckduckgoResultFromHtml(t *testing.T) {
 }
 
 func Test_getDuckduckgoSearchResult(t *testing.T) {
-	if result := getDuckduckgoSearchResult(searchTerms, ""); result == nil {
+	if result := getDuckduckgoSearchResult(searchTerms); result == nil {
 		t.Error("No result returned by getDuckduckgoSearchResult")
 	} else if result[0] != ddgExpectedResult {
 		t.Errorf("Expected result: %q, got %q instead\n", ddgExpectedResult, result[0])
 	}
 }
 
-func Test_HandleSearchCmd_DDG(t *testing.T) {
+func Test_handleSearchCmd_DDG(t *testing.T) {
 	// --- --- --- --- --- --- valid result
 	var testReply core.ReplyCallbackData
-	HandleSearchCmd(&ddgValidEvent, func(data *core.ReplyCallbackData) {
+	handleDuckduckGoCmd(&ddgValidEvent, func(data *core.ReplyCallbackData) {
 		testReply = *data
 	})
 	if testReply != ddgValidReply {
@@ -146,19 +139,12 @@ func Test_HandleSearchCmd_DDG(t *testing.T) {
 
 	// --- --- --- --- --- --- no result
 	testReply = core.ReplyCallbackData{}
-	HandleSearchCmd(&ddgValidEventNoResults, func(data *core.ReplyCallbackData) {
+	handleDuckduckGoCmd(&ddgValidEventNoResults, func(data *core.ReplyCallbackData) {
 		testReply = *data
 	})
 	if testReply != ddgValidReplyNoResults {
 		t.Errorf("Test data differ from reference data:\nTest data:\t%#v\nReference data: %#v\n\n", testReply, ddgValidReplyNoResults)
 	}
-	// --- --- --- --- --- ---
-
-	// --- --- --- --- --- --- no search command
-	HandleSearchCmd(&invalidEvent, func(data *core.ReplyCallbackData) {
-		// There is no memo command in the message, the callback should not be called
-		t.Errorf("Callback function not supposed to be called, the message does not contain a search command (Message: %q)\n\n", invalidEvent.Arguments[1])
-	})
 	// --- --- --- --- --- ---
 }
 
@@ -185,10 +171,10 @@ func Test_getWikipediaSearchResult(t *testing.T) {
 	}
 }
 
-func Test_HandleSearchCmd_W(t *testing.T) {
+func Test_handleSearchCmd_W(t *testing.T) {
 	// --- --- --- --- --- --- valid result
 	var testReply []core.ReplyCallbackData
-	HandleSearchCmd(&wikipediaValidEvent, func(data *core.ReplyCallbackData) {
+	handleWikipediaCmd(&wikipediaValidEvent, func(data *core.ReplyCallbackData) {
 		testReply = append(testReply, *data)
 	})
 	if testReply[0] != wikipediaValidReply {
@@ -198,19 +184,12 @@ func Test_HandleSearchCmd_W(t *testing.T) {
 
 	// --- --- --- --- --- --- no result
 	testReply = []core.ReplyCallbackData{}
-	HandleSearchCmd(&wikipediaValidEventNoResults, func(data *core.ReplyCallbackData) {
+	handleWikipediaCmd(&wikipediaValidEventNoResults, func(data *core.ReplyCallbackData) {
 		testReply = append(testReply, *data)
 	})
 	if testReply[0] != wikipediaValidReplyNoResults {
 		t.Errorf("Test data differ from reference data:\nTest data:\t%#v\nReference data: %#v\n\n", testReply[0], wikipediaValidReplyNoResults)
 	}
-	// --- --- --- --- --- ---
-
-	// --- --- --- --- --- --- no search command
-	HandleSearchCmd(&invalidEvent, func(data *core.ReplyCallbackData) {
-		// There is no memo command in the message, the callback should not be called
-		t.Errorf("Callback function not supposed to be called, the message does not contain a search command (Message: %q)\n\n", invalidEvent.Arguments[1])
-	})
 	// --- --- --- --- --- ---
 }
 
@@ -230,7 +209,7 @@ func Test_getUrbanDictionnaryResultFromJson(t *testing.T) {
 }
 
 func Test_getUrbanDictionnarySearchResult(t *testing.T) {
-	if result := getUrbanDictionnarySearchResult(urbanDictionnarySearchTerms, ""); result == nil {
+	if result := getUrbanDictionnarySearchResult(urbanDictionnarySearchTerms); result == nil {
 		t.Error("No result returned by getUrbanDictionnarySearchResult")
 	} else if result[0] != urbanDictionnaryExpectedResult {
 		t.Errorf("Expected result: %q, got %q instead\n", urbanDictionnaryExpectedResult, result[0])
@@ -240,7 +219,7 @@ func Test_getUrbanDictionnarySearchResult(t *testing.T) {
 func Test_HandleSearchCmd_UD(t *testing.T) {
 	// --- --- --- --- --- --- valid result
 	var testReply []core.ReplyCallbackData
-	HandleSearchCmd(&urbanDictionnaryValidEvent, func(data *core.ReplyCallbackData) {
+	handleUrbanDictionnaryCmd(&urbanDictionnaryValidEvent, func(data *core.ReplyCallbackData) {
 		testReply = append(testReply, *data)
 	})
 	if testReply[0] != urbanDictionnaryValidReply {
@@ -250,18 +229,11 @@ func Test_HandleSearchCmd_UD(t *testing.T) {
 
 	// --- --- --- --- --- --- no result
 	testReply = []core.ReplyCallbackData{}
-	HandleSearchCmd(&urbanDictionnaryValidEventNoResults, func(data *core.ReplyCallbackData) {
+	handleUrbanDictionnaryCmd(&urbanDictionnaryValidEventNoResults, func(data *core.ReplyCallbackData) {
 		testReply = append(testReply, *data)
 	})
 	if testReply[0] != urbanDictionnaryValidReplyNoResults {
 		t.Errorf("Test data differ from reference data:\nTest data:\t%#v\nReference data: %#v\n\n", testReply[0], urbanDictionnaryValidReplyNoResults)
 	}
-	// --- --- --- --- --- ---
-
-	// --- --- --- --- --- --- no search command
-	HandleSearchCmd(&invalidEvent, func(data *core.ReplyCallbackData) {
-		// There is no memo command in the message, the callback should not be called
-		t.Errorf("Callback function not supposed to be called, the message does not contain a search command (Message: %q)\n\n", invalidEvent.Arguments[1])
-	})
 	// --- --- --- --- --- ---
 }
