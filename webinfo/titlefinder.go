@@ -24,7 +24,10 @@ import (
 
 const (
 	// maxUrlsCount Maximun number of URLs to search in one message
-	maxUrlsCount int = 10
+	maxUrlsCount        = 10
+	sqlSelectExist      = "SELECT user, strftime('%d/%m/%Y @ %H:%M', datetime(date, 'localtime')) FROM Link WHERE url = $1"
+	sqlSelectWhereTitle = "SELECT user, strftime('%d/%m/%Y @ %H:%M', datetime(date, 'localtime')), title, url FROM Link WHERE title LIKE $1"
+	sqlInsert           = "INSERT INTO Link (user, url, title) VALUES ($1, $2, $3)"
 )
 
 var (
@@ -79,10 +82,9 @@ func HandleURLs(event *irc.Event, callback func(*core.ReplyCallbackData)) {
 
 		var user, date string
 		// BUG(vaz-ar) Maybe not necessary to use Query + loop here, see if QueryRow can do the trick
-		sqlQuery := "SELECT user, strftime('%d/%m/%Y @ %H:%M', datetime(date, 'localtime')) FROM Link WHERE url = $1"
-		rows, err := dbPtr.Query(sqlQuery, currentURL.String())
+		rows, err := dbPtr.Query(sqlSelectExist, currentURL.String())
 		if err != nil {
-			log.Fatalf("%q: %s\n", err, sqlQuery)
+			log.Fatalf("%q: %s\n", err, sqlSelectExist)
 		}
 		for rows.Next() {
 			rows.Scan(&user, &date)
@@ -105,10 +107,9 @@ func HandleURLs(event *irc.Event, callback func(*core.ReplyCallbackData)) {
 
 		// If the link was not found we save it in the database along with the user that posted it and it's title
 		if user == "" {
-			sqlQuery = "INSERT INTO Link (user, url, title) VALUES ($1, $2, $3)"
-			_, err := dbPtr.Exec(sqlQuery, event.Nick, currentURL.String(), title)
+			_, err := dbPtr.Exec(sqlInsert, event.Nick, currentURL.String(), title)
 			if err != nil {
-				log.Fatalf("%q: %s\n", err, sqlQuery)
+				log.Fatalf("%q: %s\n", err, sqlInsert)
 			}
 		}
 	}
@@ -127,10 +128,9 @@ func handleSearchURLsCmd(event *irc.Event, callback func(*core.ReplyCallbackData
 		search                 = strings.Join(fields[1:], " ")
 	)
 	// BUG(vaz-ar) Maybe not necessary to use Query + loop here, see if QueryRow can do the trick
-	sqlQuery := `SELECT user, strftime('%d/%m/%Y @ %H:%M', datetime(date, 'localtime')), title, url FROM Link WHERE title LIKE $1`
-	rows, err := dbPtr.Query(sqlQuery, "%"+search+"%")
+	rows, err := dbPtr.Query(sqlSelectWhereTitle, "%"+search+"%")
 	if err != nil {
-		log.Fatalf("%q: %s\n", err, sqlQuery)
+		log.Fatalf("%q: %s\n", err, sqlSelectWhereTitle)
 	}
 	for rows.Next() {
 		rows.Scan(&user, &date, &title, &url)

@@ -22,16 +22,20 @@ import (
 )
 
 const (
-	maxPictures = 5
+	maxPictures           = 5
+	sqlInsert             = "INSERT INTO Picture (tag, url, nick, nsfw) VALUES ($1, $2, $3, $4)"
+	sqlSelectTagWhereURL  = "SELECT tag FROM Picture WHERE url = $1"
+	sqlCount              = "SELECT count(url) FROM Picture WHERE tag = $1"
+	sqlDelete             = "DELETE FROM Picture WHERE tag = $1 AND url = $2"
+	sqlSelectWhereTagLike = "SELECT tag, url, nsfw FROM Picture WHERE tag LIKE $1"
 )
 
 var (
-	dbPtr   *sql.DB // Database pointer
-	extList = []string{".png", ".jpg", ".jpeg"}
-	// Source of the regular expression:
-	// http://daringfireball.net/2010/07/improved_regex_for_matching_urls
-	reURL          = regexp.MustCompile("(?:https?://|www\\d{0,3}[.]|[a-z0-9.\\-]+[.][a-z]{2,4}/)(?:[^\\s()<>]+|\\(([^\\s()<>]+|(\\([^\\s()<>]+\\)))*\\))+(?:\\(([^\\s()<>]+|(\\([^\\s()<>]+\\)))*\\)|[^\\s`!()\\[\\]{};:'\".,<>?«»“”‘’])")
+	dbPtr          *sql.DB // Database pointer
+	extList        = []string{".png", ".jpg", ".jpeg"}
 	administrators []string
+	// Source of the regular expression: http://daringfireball.net/2010/07/improved_regex_for_matching_urls
+	reURL = regexp.MustCompile("(?:https?://|www\\d{0,3}[.]|[a-z0-9.\\-]+[.][a-z]{2,4}/)(?:[^\\s()<>]+|\\(([^\\s()<>]+|(\\([^\\s()<>]+\\)))*\\))+(?:\\(([^\\s()<>]+|(\\([^\\s()<>]+\\)))*\\)|[^\\s`!()\\[\\]{};:'\".,<>?«»“”‘’])")
 )
 
 // GetPicCommand returns a Command structure for the picture command
@@ -61,7 +65,7 @@ func GetRmPicCommand() *core.Command {
 		Handler:     handleRmPictureCmd}
 }
 
-// Init stores the database pointer and initialises the database table "Pictures" if necessary.
+// Init stores the database pointer and initialises the database table "Picture" if necessary.
 func Init(db *sql.DB, admins []string) {
 	dbPtr = db
 	sqlStmt := `CREATE TABLE IF NOT EXISTS Picture (
@@ -92,10 +96,9 @@ func handlePictureCmd(event *irc.Event, callback func(*core.ReplyCallbackData)) 
 		tag, url     string
 		nsfw         int
 	)
-	sqlQuery := "SELECT tag, url, nsfw FROM Picture WHERE tag LIKE $1"
-	rows, err := dbPtr.Query(sqlQuery, "%"+requestedTag+"%")
+	rows, err := dbPtr.Query(sqlSelectWhereTagLike, "%"+requestedTag+"%")
 	if err != nil {
-		log.Fatalf("%q: %s\n", err, sqlQuery)
+		log.Fatalf("%q: %s\n", err, sqlSelectWhereTagLike)
 	}
 	var (
 		message     string
@@ -134,38 +137,35 @@ func handleAddPictureCmd(event *irc.Event, callback func(*core.ReplyCallbackData
 	}
 
 	var (
-		tag      = strings.ToLower(strings.Join(fields[2:], " "))
-		sqlQuery = "SELECT count(url) FROM Picture WHERE tag = $1"
-		nsfw     = strings.ToLower(fields[len(fields)-1]) == "#nsfw"
-		count    int
+		tag   = strings.ToLower(strings.Join(fields[2:], " "))
+		nsfw  = strings.ToLower(fields[len(fields)-1]) == "#nsfw"
+		count int
 	)
 	// Check if last element from fields is NSFW tag
 	if nsfw {
 		tag = strings.TrimSpace(strings.TrimSuffix(tag, "#nsfw"))
 	}
-	err := dbPtr.QueryRow(sqlQuery, tag).Scan(&count)
+	err := dbPtr.QueryRow(sqlCount, tag).Scan(&count)
 	if err != sql.ErrNoRows && err != nil {
-		log.Fatalf("%q: %s\n", err, sqlQuery)
+		log.Fatalf("%q: %s\n", err, sqlCount)
 	}
 	if count >= maxPictures {
 		callback(&core.ReplyCallbackData{Message: fmt.Sprintf("There is already too much pictures for the tag %q", tag)})
 		return true
 	}
 
-	sqlQuery = "SELECT tag FROM Picture WHERE url = $1"
-	rows, err := dbPtr.Query(sqlQuery, url)
+	rows, err := dbPtr.Query(sqlSelectTagWhereURL, url)
 	if err != nil {
-		log.Fatalf("%q: %s\n", err, sqlQuery)
+		log.Fatalf("%q: %s\n", err, sqlSelectTagWhereURL)
 	}
 	if rows.Next() {
 		callback(&core.ReplyCallbackData{Message: fmt.Sprintf("This picture is already present for the tag %q", tag)})
 		return true
 	}
 
-	sqlQuery = "INSERT INTO Picture (tag, url, nick, nsfw) VALUES ($1, $2, $3, $4)"
-	_, err = dbPtr.Exec(sqlQuery, tag, url, event.Nick, nsfw)
+	_, err = dbPtr.Exec(sqlInsert, tag, url, event.Nick, nsfw)
 	if err != nil {
-		log.Fatalf("%q: %s\n", err, sqlQuery)
+		log.Fatalf("%q: %s\n", err, sqlInsert)
 	}
 	callback(&core.ReplyCallbackData{Message: fmt.Sprintf("Picture %q added for tag %q", url, tag)})
 
@@ -188,14 +188,14 @@ func handleRmPictureCmd(event *irc.Event, callback func(*core.ReplyCallbackData)
 
 	url := fields[1]
 	tag := strings.ToLower(strings.Join(fields[2:], " "))
-	sqlStmt := `DELETE FROM Picture WHERE tag = $1 AND url = $2`
-	result, err := dbPtr.Exec(sqlStmt, tag, url)
+
+	result, err := dbPtr.Exec(sqlDelete, tag, url)
 	if err != nil {
-		log.Fatalf("%q: %s\n", err, sqlStmt)
+		log.Fatalf("%q: %s\n", err, sqlDelete)
 	}
 	rows, err := result.RowsAffected()
 	if err != nil {
-		log.Fatalf("%q: %s\n", err, sqlStmt)
+		log.Fatalf("%q: %s\n", err, sqlDelete)
 	}
 	if rows != 0 {
 		callback(&core.ReplyCallbackData{Message: fmt.Sprintf("Picture %q removed for tag %q", url, tag)})

@@ -56,16 +56,15 @@ func NewBot(nick, server, channel, channelKey string) *Bot {
 // msgProcessCallback will be called on every user message the bot reads (if a command was not found previously in the message).
 // replyCallback is to be called by msgProcessCallback (or not) to yield and process its result as a string message.
 func (bot *Bot) AddMsgHandler(msgProcessCallback func(*irc.Event, func(*ReplyCallbackData)), replyCallback func(*ReplyCallbackData)) {
-	if msgProcessCallback != nil && replyCallback != nil {
+	if msgProcessCallback != nil {
 		bot.msgHandlers = append(bot.msgHandlers, msgProcessCallback)
 		bot.msgReplyCallbacks = append(bot.msgReplyCallbacks, replyCallback)
 	}
 }
 
 // AddCmdHandler adds a command handler to bot.
-// cmdProcessCallback will be called on every user message the bot reads (if a command was not found previously in the message).
+// cmdStruct is a pointer to a Command structure.
 // replyCallback is to be called by cmdProcessCallback (or not) to yield and process its result as a string message.
-// cmdProcessCallback must check if their replyCallback is nil before using it
 // Command handlers must return true if they found a command to process, false otherwise
 func (bot *Bot) AddCmdHandler(cmdStruct *Command, replyCallback func(*ReplyCallbackData)) {
 	if cmdStruct.Handler == nil {

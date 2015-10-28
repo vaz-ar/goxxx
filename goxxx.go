@@ -19,6 +19,7 @@ import (
 	"github.com/vaz-ar/goxxx/invoke"
 	"github.com/vaz-ar/goxxx/memo"
 	"github.com/vaz-ar/goxxx/pictures"
+	"github.com/vaz-ar/goxxx/quote"
 	"github.com/vaz-ar/goxxx/search"
 	"github.com/vaz-ar/goxxx/webinfo"
 	"github.com/vaz-ar/goxxx/xkcd"
@@ -67,7 +68,7 @@ func getOptions() (config configData, returnCode int) {
 	flag.StringVar(&config.nick, "nick", "goxxx", "the bot's nickname (optional)")
 	flag.StringVar(&config.server, "server", "chat.freenode.net:6697", "IRC_SERVER[:PORT] (optional)")
 	admins := flag.String("admin", "", "Administrators nick (separated by commas)")
-	modules := flag.String("modules", "memo,webinfo,invoke,search,xkcd,pictures", "Modules to enable (separated by commas)")
+	modules := flag.String("modules", "memo,webinfo,invoke,search,xkcd,pictures,quote", "Modules to enable (separated by commas)")
 	// Email
 	flag.StringVar(&config.emailServer, "email_server", "", "SMTP server address")
 	flag.IntVar(&config.emailPort, "email_port", 0, "SMTP server port")
@@ -216,7 +217,6 @@ func main() {
 		case "pictures":
 			pictures.Init(db, config.admins)
 			cmd := pictures.GetPicCommand()
-			bot.AddCmdHandler(cmd, bot.ReplyToAll)
 			help.AddMessages(cmd)
 			cmd = pictures.GetAddPicCommand()
 			bot.AddCmdHandler(cmd, bot.ReplyToAll)
@@ -225,6 +225,17 @@ func main() {
 			bot.AddCmdHandler(cmd, bot.ReplyToAll)
 			help.AddMessages(cmd)
 			log.Println("pictures module loaded")
+
+		case "quote":
+			quote.Init(db, config.admins)
+			bot.AddMsgHandler(quote.HandleMessages, nil)
+			cmd := quote.GetQuoteCommand()
+			bot.AddCmdHandler(cmd, bot.ReplyToAll)
+			help.AddMessages(cmd)
+			cmd = quote.GetRmQuoteCommand()
+			bot.AddCmdHandler(cmd, bot.ReplyToAll)
+			help.AddMessages(cmd)
+			log.Println("quote module loaded")
 
 		default:
 		}
