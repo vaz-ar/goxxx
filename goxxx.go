@@ -175,9 +175,11 @@ func main() {
 		case "memo":
 			memo.Init(db)
 			bot.AddMsgHandler(memo.SendMemo, bot.ReplyToNick)
+
 			cmd := memo.GetMemoCommand()
 			bot.AddCmdHandler(cmd, bot.ReplyToAll)
 			help.AddMessages(cmd)
+
 			cmd = memo.GetMemoStatCommand()
 			bot.AddCmdHandler(cmd, bot.ReplyToNick)
 			help.AddMessages(cmd)
@@ -187,12 +189,15 @@ func main() {
 			cmd := search.GetDuckduckGoCmd()
 			bot.AddCmdHandler(cmd, bot.Reply)
 			help.AddMessages(cmd)
+
 			cmd = search.GetWikipediaCmd()
 			bot.AddCmdHandler(cmd, bot.Reply)
 			help.AddMessages(cmd)
+
 			cmd = search.GetWikipediaFRCmd()
 			bot.AddCmdHandler(cmd, bot.Reply)
 			help.AddMessages(cmd)
+
 			cmd = search.GetUrbanDictionnaryCmd()
 			bot.AddCmdHandler(cmd, bot.Reply)
 			help.AddMessages(cmd)
@@ -205,7 +210,6 @@ func main() {
 			cmd := webinfo.GetCommand()
 			bot.AddCmdHandler(cmd, bot.ReplyToAll)
 			help.AddMessages(cmd)
-
 			log.Println("webinfo module loaded")
 
 		case "xkcd":
@@ -216,11 +220,15 @@ func main() {
 
 		case "pictures":
 			pictures.Init(db, config.admins)
+
 			cmd := pictures.GetPicCommand()
+			bot.AddCmdHandler(cmd, bot.ReplyToAll)
 			help.AddMessages(cmd)
+
 			cmd = pictures.GetAddPicCommand()
 			bot.AddCmdHandler(cmd, bot.ReplyToAll)
 			help.AddMessages(cmd)
+
 			cmd = pictures.GetRmPicCommand()
 			bot.AddCmdHandler(cmd, bot.ReplyToAll)
 			help.AddMessages(cmd)
@@ -229,9 +237,11 @@ func main() {
 		case "quote":
 			quote.Init(db, config.admins)
 			bot.AddMsgHandler(quote.HandleMessages, nil)
+
 			cmd := quote.GetQuoteCommand()
 			bot.AddCmdHandler(cmd, bot.ReplyToAll)
 			help.AddMessages(cmd)
+
 			cmd = quote.GetRmQuoteCommand()
 			bot.AddCmdHandler(cmd, bot.ReplyToAll)
 			help.AddMessages(cmd)
