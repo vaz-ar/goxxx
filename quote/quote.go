@@ -116,6 +116,24 @@ func handleRmQuoteCmd(event *irc.Event, callback func(*core.ReplyCallbackData)) 
 	return true
 }
 
+func prepareForSearch(message string) string {
+	message = strings.TrimSpace(message)
+
+	// Remove basic punctuation
+	re := regexp.MustCompile(`[.,;:!'"-]`)
+	message = re.ReplaceAllString(message, " ")
+
+	// Replace every whitespaces or new lines sequence with a single
+	// whitespace
+	re = regexp.MustCompile("\\s+")
+	message = re.ReplaceAllString(message, " ")
+
+	// Remove case-sentivity using only lowercase
+	message = strings.ToLower(message)
+
+	return message
+}
+
 func addQuote(fields []string, event *irc.Event, callback func(*core.ReplyCallbackData)) bool {
 	nick := fields[1]
 	size := len(lastMessages[nick])
@@ -131,12 +149,15 @@ func addQuote(fields []string, event *irc.Event, callback func(*core.ReplyCallba
 		matched bool
 		msg     string
 	)
+
+	// Look for the needle (search pattern) in one of the haystacks (messages)
+	needle := prepareForSearch(strings.Join(fields[2:], " "))
 	for i := max; i >= 1; {
 		i--
 		msg = lastMessages[nick][i]
-		if matched, err = regexp.MatchString(fmt.Sprintf(reMsg, strings.Join(fields[2:], " ")), msg); err != nil {
-			log.Fatalf("Quote: Error while matching string (%s)\n", err)
-		} else if !matched {
+
+		haystack := prepareForSearch(msg)
+		if !strings.Contains(haystack, needle) {
 			continue
 		}
 		_, err := dbPtr.Exec(sqlInsert, nick, msg)
