@@ -145,8 +145,6 @@ func addQuote(fields []string, event *irc.Event, callback func(*core.ReplyCallba
 		max = size
 	}
 	var (
-		err     error
-		matched bool
 		msg     string
 	)
 
