@@ -35,7 +35,8 @@ var (
 	extList        = []string{".png", ".jpg", ".jpeg"}
 	administrators []string
 	// Source of the regular expression: http://daringfireball.net/2010/07/improved_regex_for_matching_urls
-	reURL = regexp.MustCompile("(?:https?://|www\\d{0,3}[.]|[a-z0-9.\\-]+[.][a-z]{2,4}/)(?:[^\\s()<>]+|\\(([^\\s()<>]+|(\\([^\\s()<>]+\\)))*\\))+(?:\\(([^\\s()<>]+|(\\([^\\s()<>]+\\)))*\\)|[^\\s`!()\\[\\]{};:'\".,<>?«»“”‘’])")
+	reURL      = regexp.MustCompile("(?:https?://|www\\d{0,3}[.]|[a-z0-9.\\-]+[.][a-z]{2,4}/)(?:[^\\s()<>]+|\\(([^\\s()<>]+|(\\([^\\s()<>]+\\)))*\\))+(?:\\(([^\\s()<>]+|(\\([^\\s()<>]+\\)))*\\)|[^\\s`!()\\[\\]{};:'\".,<>?«»“”‘’])")
+	reSanitize = regexp.MustCompile(`[%?_$:@]`)
 )
 
 // GetPicCommand returns a Command structure for the picture command
@@ -91,28 +92,30 @@ func handlePictureCmd(event *irc.Event, callback func(*core.ReplyCallbackData)) 
 	if len(fields) < 2 {
 		return false
 	}
-	var (
-		requestedTag = strings.ToLower(strings.Join(fields[1:], " "))
-		tag, url     string
-		nsfw         int
-	)
+
+	requestedTag := prepareTagString(strings.Join(fields[1:], " "))
+	if requestedTag == "" {
+		callback(&core.ReplyCallbackData{Message: "Picture command: No data remaining for the tag value after sanitization."})
+		return true
+	}
+
 	rows, err := dbPtr.Query(sqlSelectWhereTagLike, "%"+requestedTag+"%")
 	if err != nil {
 		log.Fatalf("%q: %s\n", err, sqlSelectWhereTagLike)
 	}
 	var (
-		message     string
-		resultCount int
+		message, tag, url string
+		resultCount, nsfw int
 	)
 	for rows.Next() {
 		resultCount++
 		rows.Scan(&tag, &url, &nsfw)
 		if nsfw == 0 {
-			message = fmt.Sprintf("Picture for %q : %s", tag, url)
+			message = "Picture for %q : %s"
 		} else {
-			message = fmt.Sprintf("Picture for %q (#NSFW) : %s", tag, url)
+			message = "Picture for %q (#NSFW) : %s"
 		}
-		callback(&core.ReplyCallbackData{Message: message})
+		callback(&core.ReplyCallbackData{Message: fmt.Sprintf(message, tag, url)})
 	}
 	if resultCount == 0 {
 		callback(&core.ReplyCallbackData{Message: fmt.Sprintf("No picture found for tag %q", requestedTag)})
@@ -137,8 +140,8 @@ func handleAddPictureCmd(event *irc.Event, callback func(*core.ReplyCallbackData
 	}
 
 	var (
-		tag   = strings.ToLower(strings.Join(fields[2:], " "))
-		nsfw  = strings.ToLower(fields[len(fields)-1]) == "#nsfw"
+		tag   = prepareTagString(strings.Join(fields[2:], " "))
+		nsfw  = prepareTagString(fields[len(fields)-1]) == "#nsfw"
 		count int
 	)
 	// Check if last element from fields is NSFW tag
@@ -201,4 +204,8 @@ func handleRmPictureCmd(event *irc.Event, callback func(*core.ReplyCallbackData)
 		callback(&core.ReplyCallbackData{Message: fmt.Sprintf("Picture %q removed for tag %q", url, tag)})
 	}
 	return true
+}
+
+func prepareTagString(str string) string {
+	return strings.TrimSpace(strings.ToLower(reSanitize.ReplaceAllString(str, "")))
 }

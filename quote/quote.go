@@ -117,21 +117,11 @@ func handleRmQuoteCmd(event *irc.Event, callback func(*core.ReplyCallbackData)) 
 }
 
 func prepareForSearch(message string) string {
-	message = strings.TrimSpace(message)
-
-	// Remove basic punctuation
-	re := regexp.MustCompile(`[.,;:!'"-]`)
-	message = re.ReplaceAllString(message, " ")
-
-	// Replace every whitespaces or new lines sequence with a single
-	// whitespace
-	re = regexp.MustCompile("\\s+")
-	message = re.ReplaceAllString(message, " ")
-
+	// Replace basic punctuation with a space
+	// Replace every whitespaces or new lines sequence with a single whitespace
 	// Remove case-sentivity using only lowercase
-	message = strings.ToLower(message)
-
-	return message
+	re := regexp.MustCompile(`[\t\n\f\r .,;:!'"-]`)
+	return strings.TrimSpace(re.ReplaceAllString(strings.ToLower(message), " "))
 }
 
 func addQuote(fields []string, event *irc.Event, callback func(*core.ReplyCallbackData)) bool {
@@ -144,25 +134,25 @@ func addQuote(fields []string, event *irc.Event, callback func(*core.ReplyCallba
 	} else if size < max {
 		max = size
 	}
-	var (
-		msg     string
-	)
 
-	// Look for the needle (search pattern) in one of the haystacks (messages)
-	needle := prepareForSearch(strings.Join(fields[2:], " "))
+	var (
+		rawMsg   string
+		cleanMsg string
+		pattern  = prepareForSearch(strings.Join(fields[2:], " "))
+	)
+	// Look for the search pattern in one of the last messages from "nick"
 	for i := max; i >= 1; {
 		i--
-		msg = lastMessages[nick][i]
-
-		haystack := prepareForSearch(msg)
-		if !strings.Contains(haystack, needle) {
+		rawMsg = lastMessages[nick][i]
+		cleanMsg = prepareForSearch(rawMsg)
+		if !strings.Contains(cleanMsg, pattern) {
 			continue
 		}
-		_, err := dbPtr.Exec(sqlInsert, nick, msg)
+		_, err := dbPtr.Exec(sqlInsert, nick, rawMsg)
 		if err != nil {
 			log.Fatalf("%q: %s\n", err, sqlInsert)
 		}
-		callback(&core.ReplyCallbackData{Message: fmt.Sprintf("Quote %q added for nick %q", msg, nick), Nick: event.Nick})
+		callback(&core.ReplyCallbackData{Message: fmt.Sprintf("Quote %q added for nick %q", rawMsg, nick), Nick: event.Nick})
 		break
 	}
 	return true
