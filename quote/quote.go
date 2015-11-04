@@ -117,11 +117,16 @@ func handleRmQuoteCmd(event *irc.Event, callback func(*core.ReplyCallbackData)) 
 }
 
 func prepareForSearch(message string) string {
-	// Replace basic punctuation with a space
-	// Replace every whitespaces or new lines sequence with a single whitespace
+	// Replace basic punctuation with a single space
+	re := regexp.MustCompile(`[.,;:!'"-]`)
+	message = re.ReplaceAllString(message, " ")
+
+	// Replace every whitespaces or new lines sequence with a single space
+	re = regexp.MustCompile("\\s+")
+	message = re.ReplaceAllString(message, " ")
+
 	// Remove case-sentivity using only lowercase
-	re := regexp.MustCompile(`[\t\n\f\r .,;:!'"-]`)
-	return strings.TrimSpace(re.ReplaceAllString(strings.ToLower(message), " "))
+	return strings.TrimSpace(strings.ToLower(message))
 }
 
 func addQuote(fields []string, event *irc.Event, callback func(*core.ReplyCallbackData)) bool {
