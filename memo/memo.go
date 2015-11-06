@@ -140,7 +140,6 @@ func handleMemoStatusCmd(event *irc.Event, callback func(*core.ReplyCallbackData
 			Message: fmt.Sprintf("Memo for %s: \"%s\" (%s)", memo.userTo, memo.message, memo.date),
 			Nick:    event.Nick})
 	}
-	rows.Close()
 
 	if memo.id == 0 {
 		callback(&core.ReplyCallbackData{Message: "No memo saved", Nick: event.Nick})

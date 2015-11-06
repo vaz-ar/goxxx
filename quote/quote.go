@@ -169,6 +169,8 @@ func getQuotes(fields []string, event *irc.Event, callback func(*core.ReplyCallb
 	if err != nil {
 		log.Fatalf("%q: %s\n", err, sqlSelect)
 	}
+	defer rows.Close()
+
 	var content, date string
 	for rows.Next() {
 		rows.Scan(&content, &date)

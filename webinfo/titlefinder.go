@@ -86,6 +86,8 @@ func HandleURLs(event *irc.Event, callback func(*core.ReplyCallbackData)) {
 		if err != nil {
 			log.Fatalf("%q: %s\n", err, sqlSelectExist)
 		}
+		defer rows.Close()
+
 		for rows.Next() {
 			rows.Scan(&user, &date)
 		}
@@ -132,6 +134,8 @@ func handleSearchURLsCmd(event *irc.Event, callback func(*core.ReplyCallbackData
 	if err != nil {
 		log.Fatalf("%q: %s\n", err, sqlSelectWhereTitle)
 	}
+	defer rows.Close()
+
 	for rows.Next() {
 		rows.Scan(&user, &date, &title, &url)
 		if title == "" {
