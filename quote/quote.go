@@ -21,7 +21,7 @@ import (
 )
 
 const (
-	maxMessages = 5
+	maxMessages = 10
 	sqlInsert   = "INSERT INTO Quote (user, content) VALUES ($1, $2)"
 	sqlSelect   = "SELECT content, strftime('%d/%m/%Y @ %H:%M', datetime(date, 'localtime')) FROM Quote where user = $1"
 	sqlDelete   = "DELETE FROM Quote where user = $1 and content LIKE $2"
