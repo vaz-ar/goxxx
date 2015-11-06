@@ -24,10 +24,11 @@ import (
 const (
 	maxPictures           = 5
 	sqlInsert             = "INSERT INTO Picture (tag, url, nick, nsfw) VALUES ($1, $2, $3, $4)"
-	sqlSelectTagWhereURL  = "SELECT tag FROM Picture WHERE url = $1"
+	sqlSelectTagWhereURL  = "SELECT tag FROM Picture WHERE url = $1 AND tag = $2"
 	sqlCount              = "SELECT count(url) FROM Picture WHERE tag = $1"
 	sqlDelete             = "DELETE FROM Picture WHERE tag = $1 AND url = $2"
 	sqlSelectWhereTagLike = "SELECT tag, url, nsfw FROM Picture WHERE tag LIKE $1"
+	sqlSelectAll          = "SELECT tag, url, nsfw FROM Picture ORDER BY tag"
 )
 
 var (
@@ -43,7 +44,7 @@ var (
 func GetPicCommand() *core.Command {
 	return &core.Command{
 		Module:      "pictures",
-		HelpMessage: "\t!p/!pic <search terms> \t=> Search in the database for pictures matching <search terms>",
+		HelpMessage: "\t!p/!pic <search terms> \t=> Search in the database for pictures matching <search terms> (if <search terms> is \"all\", return all pictures)",
 		Triggers:    []string{"!p", "!pic"},
 		Handler:     handlePictureCmd}
 }
@@ -93,16 +94,27 @@ func handlePictureCmd(event *irc.Event, callback func(*core.ReplyCallbackData)) 
 		return false
 	}
 
-	requestedTag := prepareTagString(strings.Join(fields[1:], " "))
+	var (
+		requestedTag = prepareTagString(strings.Join(fields[1:], " "))
+		rows         *sql.Rows
+		err          error
+	)
 	if requestedTag == "" {
 		callback(&core.ReplyCallbackData{Message: "Picture command: No data remaining for the tag value after sanitization."})
 		return true
+	} else if requestedTag == "all" {
+		rows, err = dbPtr.Query(sqlSelectAll)
+		if err != nil {
+			log.Fatalf("%q: %s\n", err, sqlSelectAll)
+		}
+	} else {
+		rows, err = dbPtr.Query(sqlSelectWhereTagLike, "%"+requestedTag+"%")
+		if err != nil {
+			log.Fatalf("%q: %s\n", err, sqlSelectWhereTagLike)
+		}
 	}
+	defer rows.Close()
 
-	rows, err := dbPtr.Query(sqlSelectWhereTagLike, "%"+requestedTag+"%")
-	if err != nil {
-		log.Fatalf("%q: %s\n", err, sqlSelectWhereTagLike)
-	}
 	var (
 		message, tag, url string
 		resultCount, nsfw int
@@ -157,10 +169,12 @@ func handleAddPictureCmd(event *irc.Event, callback func(*core.ReplyCallbackData
 		return true
 	}
 
-	rows, err := dbPtr.Query(sqlSelectTagWhereURL, url)
+	rows, err := dbPtr.Query(sqlSelectTagWhereURL, url, tag)
 	if err != nil {
 		log.Fatalf("%q: %s\n", err, sqlSelectTagWhereURL)
 	}
+	defer rows.Close()
+
 	if rows.Next() {
 		callback(&core.ReplyCallbackData{Message: fmt.Sprintf("This picture is already present for the tag %q", tag)})
 		return true
@@ -196,11 +210,11 @@ func handleRmPictureCmd(event *irc.Event, callback func(*core.ReplyCallbackData)
 	if err != nil {
 		log.Fatalf("%q: %s\n", err, sqlDelete)
 	}
-	rows, err := result.RowsAffected()
+	rowCount, err := result.RowsAffected()
 	if err != nil {
 		log.Fatalf("%q: %s\n", err, sqlDelete)
 	}
-	if rows != 0 {
+	if rowCount != 0 {
 		callback(&core.ReplyCallbackData{Message: fmt.Sprintf("Picture %q removed for tag %q", url, tag)})
 	}
 	return true
