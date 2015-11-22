@@ -52,17 +52,6 @@ func GetMemoStatCommand() *core.Command {
 // Init stores the database pointer and initialises the database table "Memo" if necessary.
 func Init(db *sql.DB) {
 	dbPtr = db
-	sqlStmt := `CREATE TABLE IF NOT EXISTS Memo (
-    id integer NOT NULL PRIMARY KEY,
-    user_to TEXT,
-    user_from TEXT,
-    message TEXT,
-    date DATETIME DEFAULT CURRENT_TIMESTAMP);`
-
-	_, err := db.Exec(sqlStmt)
-	if err != nil {
-		log.Fatalf("%q: %s\n", err, sqlStmt)
-	}
 }
 
 // handleMemoCmd handles memo commands.

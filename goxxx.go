@@ -143,7 +143,7 @@ func main() {
 	}
 
 	// Create the database
-	db := database.NewDatabase("", false)
+	db := database.NewDatabase("", "", false)
 	defer db.Close()
 
 	// Process commands if necessary
@@ -239,6 +239,10 @@ func main() {
 			bot.AddMsgHandler(quote.HandleMessages, nil)
 
 			cmd := quote.GetQuoteCommand()
+			bot.AddCmdHandler(cmd, bot.ReplyToAll)
+			help.AddMessages(cmd)
+
+			cmd = quote.GetAddQuoteCommand()
 			bot.AddCmdHandler(cmd, bot.ReplyToAll)
 			help.AddMessages(cmd)
 

@@ -65,17 +65,6 @@ func GetRmQuoteCommand() *core.Command {
 // Init stores the database pointer and initialises the database table "Quote" if necessary.
 func Init(db *sql.DB, admins []string) {
 	dbPtr = db
-	sqlStmt := `CREATE TABLE IF NOT EXISTS Quote (
-    id integer NOT NULL PRIMARY KEY,
-    user TEXT,
-    content TEXT,
-    date DATETIME DEFAULT CURRENT_TIMESTAMP);`
-
-	_, err := db.Exec(sqlStmt)
-	if err != nil {
-		log.Fatalf("%q: %s\n", err, sqlStmt)
-	}
-
 	lastMessages = make(map[string][]string)
 	administrators = admins
 }

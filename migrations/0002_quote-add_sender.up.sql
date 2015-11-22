@@ -1,0 +1,3 @@
+
+ALTER TABLE Quote ADD COLUMN sender TEXT DEFAULT "?";
+

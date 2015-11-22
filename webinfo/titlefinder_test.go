@@ -113,7 +113,7 @@ func Test_findURLs(t *testing.T) {
 }
 
 func Test_HandleURLs(t *testing.T) {
-	db := database.NewDatabase("./tests.sqlite", true)
+	db := database.NewDatabase("./tests.sqlite", "../migrations", true)
 	defer db.Close()
 	Init(db)
 

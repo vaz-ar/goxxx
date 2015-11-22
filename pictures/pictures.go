@@ -70,18 +70,6 @@ func GetRmPicCommand() *core.Command {
 // Init stores the database pointer and initialises the database table "Picture" if necessary.
 func Init(db *sql.DB, admins []string) {
 	dbPtr = db
-	sqlStmt := `CREATE TABLE IF NOT EXISTS Picture (
-    id INTEGER NOT NULL PRIMARY KEY,
-    tag TEXT,
-    url TEXT,
-    nick TEXT,
-    nsfw INTEGER,
-    date DATETIME DEFAULT CURRENT_TIMESTAMP);`
-
-	_, err := db.Exec(sqlStmt)
-	if err != nil {
-		log.Fatalf("%q: %s\n", err, sqlStmt)
-	}
 	administrators = admins
 }
 
@@ -102,11 +90,11 @@ func handlePictureCmd(event *irc.Event, callback func(*core.ReplyCallbackData)) 
 	if requestedTag == "" {
 		callback(&core.ReplyCallbackData{Message: "Picture command: No data remaining for the tag value after sanitization."})
 		return true
-	} else if requestedTag == "all" {
-		rows, err = dbPtr.Query(sqlSelectAll)
-		if err != nil {
-			log.Fatalf("%q: %s\n", err, sqlSelectAll)
-		}
+		//	} else if requestedTag == "all" {
+		//		rows, err = dbPtr.Query(sqlSelectAll)
+		//		if err != nil {
+		//			log.Fatalf("%q: %s\n", err, sqlSelectAll)
+		//		}
 	} else {
 		rows, err = dbPtr.Query(sqlSelectWhereTagLike, "%"+requestedTag+"%")
 		if err != nil {

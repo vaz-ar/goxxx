@@ -47,17 +47,6 @@ func GetCommand() *core.Command {
 // Init stores the database pointer and initialises the database table "Link" if necessary.
 func Init(db *sql.DB) {
 	dbPtr = db
-	sqlStmt := `CREATE TABLE IF NOT EXISTS Link (
-    id integer NOT NULL PRIMARY KEY,
-    user TEXT,
-    url TEXT,
-    date DATETIME DEFAULT CURRENT_TIMESTAMP,
-    title TEXT);`
-
-	_, err := db.Exec(sqlStmt)
-	if err != nil {
-		log.Fatalf("%q: %s\n", err, sqlStmt)
-	}
 }
 
 // BUG(romainletendart) Choose a better name for the HandleUrls function

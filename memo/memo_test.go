@@ -29,7 +29,7 @@ var (
 
 func Test_handleMemoCmd(t *testing.T) {
 
-	db := database.NewDatabase("./tests.sqlite", true)
+	db := database.NewDatabase("./tests.sqlite", "../migrations", true)
 	defer db.Close()
 	Init(db)
 
@@ -46,7 +46,7 @@ func Test_handleMemoCmd(t *testing.T) {
 
 func Test_SendMemo(t *testing.T) {
 
-	db := database.NewDatabase("./tests.sqlite", true)
+	db := database.NewDatabase("./tests.sqlite", "../migrations", true)
 	defer db.Close()
 	Init(db)
 

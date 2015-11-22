@@ -10,7 +10,8 @@ package database
 import (
 	"database/sql"
 	"errors"
-	// Imported blank because we only use the driver
+	_ "github.com/mattes/migrate/driver/sqlite3"
+	"github.com/mattes/migrate/migrate"
 	_ "github.com/mattn/go-sqlite3"
 	"log"
 	"os"
@@ -20,9 +21,9 @@ var dbPtr *sql.DB
 
 // NewDatabase creates a new database.
 // If database name is an empty string the default path will be used ("./storage/db.sqlite"),
-//else it will be used as the path for the database file.
+// else it will be used as the path for the database file.
 // If reset is true destroy the database before opening it (which will recreate it).
-func NewDatabase(databaseName string, reset bool) *sql.DB {
+func NewDatabase(databaseName string, migrationsFolder string, reset bool) *sql.DB {
 	// Use default name if not specified
 	if databaseName == "" {
 		// check if the storage directory exist, if not create it
@@ -42,13 +43,16 @@ func NewDatabase(databaseName string, reset bool) *sql.DB {
 	if err != nil {
 		log.Fatal(err)
 	}
-
-	sqlStmt := `CREATE TABLE IF NOT EXISTS User (
-    nick TEXT NOT NULL PRIMARY KEY,
-    email TEXT);`
-	_, err = db.Exec(sqlStmt)
-	if err != nil {
-		log.Fatalf("%q: %s\n", err, sqlStmt)
+	if migrationsFolder == "" {
+		migrationsFolder = "./migrations"
+	}
+	// Apply migrations
+	allErrors, ok := migrate.UpSync("sqlite3://"+databaseName, migrationsFolder)
+	if !ok {
+		for _, err := range allErrors {
+			log.Println(err)
+		}
+		log.Fatal("Error while applying migrations, exiting ...")
 	}
 
 	dbPtr = db

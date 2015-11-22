@@ -43,14 +43,6 @@ func Init(db *sql.DB, sender, account, password, server string, port int) bool {
 	}
 	dbPtr = db
 
-	sqlStmt := `CREATE TABLE IF NOT EXISTS Invoke (
-    nick TEXT NOT NULL PRIMARY KEY,
-    date DATETIME DEFAULT CURRENT_TIMESTAMP);`
-	_, err := db.Exec(sqlStmt)
-	if err != nil {
-		log.Fatalf("%q: %s\n", err, sqlStmt)
-	}
-
 	connection.account = account
 	connection.sender = sender
 	connection.server = fmt.Sprint(server, ":", port)

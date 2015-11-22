@@ -55,10 +55,6 @@ type urbanDictionnary struct {
 	} `json:"list"`
 }
 
-func init() {
-	// , "!u", "!ud", "!wf", "!wfr", "!w"
-}
-
 // GetDuckduckGoCmd returns a Command structure for the duckduckGo command
 func GetDuckduckGoCmd() *core.Command {
 	return &core.Command{
