@@ -44,7 +44,7 @@ var (
 func GetPicCommand() *core.Command {
 	return &core.Command{
 		Module:      "pictures",
-		HelpMessage: "\t!p/!pic <search terms> \t=> Search in the database for pictures matching <search terms> (if <search terms> is \"all\", return all pictures)",
+		HelpMessage: "\t!p/!pic <search terms> \t=> Search in the database for pictures matching <search terms>",
 		Triggers:    []string{"!p", "!pic"},
 		Handler:     handlePictureCmd}
 }

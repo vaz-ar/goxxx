@@ -39,6 +39,9 @@ Commands
 
 Currently implemented commands:
 
+### invoke
+- !invoke \<nick\> \[\<message\>\] => Send an email to an user, with an optionnal message
+
 ### memo
 - !memo/!m \<nick\> \<message\> => Leave a memo for another user
 - !memostat/!ms => Get the list of the unread memos (List only the memos you left)
@@ -48,8 +51,10 @@ Currently implemented commands:
 - !addpic \<url\> \<tag\> \[#NSFW\] => Add a picture in the database for \<tag\> (\<url\> must have an image extension)
 - !rmpic \<url\> \<tag\> => Remove a picture in the database for \<tag\> (Admin only command)
 
-### url
-- !url \<search terms\>=> Return links with titles matching \<search terms\>
+### quote
+- !q/!quote \<nick\> \[\<part of message\>\]
+- !aq/!addquote \<nick\> \<part of message\>
+- !rmq/!rmquote \<nick\> \<part of the quote\> (Admins only)
 
 ### search
 - !d/!dg/!ddg \<terms to search\> => Search on DuckduckGo
@@ -57,17 +62,11 @@ Currently implemented commands:
 - !wf/!wfr \<terms to search\> => Search on Wikipedia FR
 - !u/!ud \<terms to search\> => Search on Urban Dictionnary
 
-### invoke
-- !invoke \<nick\> \[\<message\>\] => Send an email to an user, with an optionnal message
+### url
+- !url \<search terms\>=> Return links with titles matching \<search terms\>
 
 ### xkcd
 - !xkcd \[\<comic number\>\] => Return the XKCD comic corresponding to the number. If number is not specified, returns the last comic.
-
-### quote
-- !q/!quote \<nick\> \[\<part of message\>\] (If \<part of message\> is not supplied, it will list the quotes for \<nick\>)
-- !rmq/!rmquote \<nick\> \<part of the quote\> (Admins only)
-
-
 
 Tests
 =====
