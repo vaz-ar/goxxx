@@ -126,28 +126,6 @@ func Test_getDuckduckgoSearchResult(t *testing.T) {
 	}
 }
 
-func Test_handleSearchCmd_DDG(t *testing.T) {
-	// --- --- --- --- --- --- valid result
-	var testReply core.ReplyCallbackData
-	handleDuckduckGoCmd(&ddgValidEvent, func(data *core.ReplyCallbackData) {
-		testReply = *data
-	})
-	if testReply != ddgValidReply {
-		t.Errorf("Test data differ from reference data:\nTest data:\t%#v\nReference data: %#v\n\n", testReply, ddgValidReply)
-	}
-	// --- --- --- --- --- ---
-
-	// --- --- --- --- --- --- no result
-	testReply = core.ReplyCallbackData{}
-	handleDuckduckGoCmd(&ddgValidEventNoResults, func(data *core.ReplyCallbackData) {
-		testReply = *data
-	})
-	if testReply != ddgValidReplyNoResults {
-		t.Errorf("Test data differ from reference data:\nTest data:\t%#v\nReference data: %#v\n\n", testReply, ddgValidReplyNoResults)
-	}
-	// --- --- --- --- --- ---
-}
-
 // --- --- --- Wikipedia --- --- ---
 func Test_getWikipediaResultFromJson(t *testing.T) {
 	content, err := ioutil.ReadFile(wikipediaMockFile)
@@ -216,7 +194,7 @@ func Test_getUrbanDictionnarySearchResult(t *testing.T) {
 	}
 }
 
-func Test_HandleSearchCmd_UD(t *testing.T) {
+func Test_handleSearchCmd_UD(t *testing.T) {
 	// --- --- --- --- --- --- valid result
 	var testReply []core.ReplyCallbackData
 	handleUrbanDictionnaryCmd(&urbanDictionnaryValidEvent, func(data *core.ReplyCallbackData) {
