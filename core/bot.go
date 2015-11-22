@@ -115,11 +115,12 @@ func (bot *Bot) mainHandler(event *irc.Event) {
 
 	cmd := strings.Fields(event.Message())[0]
 	cmdHandler, present := bot.cmdHandlers[cmd]
-	if present && cmdHandler(event, bot.cmdReplyCallbacks[cmd]) {
+	if present {
+		go cmdHandler(event, bot.cmdReplyCallbacks[cmd])
 		return
 	}
 
 	for i, handler := range bot.msgHandlers {
-		handler(event, bot.msgReplyCallbacks[i])
+		go handler(event, bot.msgReplyCallbacks[i])
 	}
 }
