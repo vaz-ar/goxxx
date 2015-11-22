@@ -21,10 +21,11 @@ import (
 )
 
 const (
-	maxMessages = 10
-	sqlInsert   = "INSERT INTO Quote (user, content) VALUES ($1, $2)"
-	sqlSelect   = "SELECT content, strftime('%d/%m/%Y @ %H:%M', datetime(date, 'localtime')) FROM Quote where user = $1"
-	sqlDelete   = "DELETE FROM Quote where user = $1 and content LIKE $2"
+	maxMessages  = 10
+	sqlInsert    = "INSERT INTO Quote (user, content, sender) VALUES ($1, $2, $3)"
+	sqlSelect    = "SELECT content, strftime('%d/%m/%Y @ %H:%M', datetime(date, 'localtime')), sender FROM Quote WHERE user = $1 AND content LIKE $2"
+	sqlSelectAll = "SELECT content, strftime('%d/%m/%Y @ %H:%M', datetime(date, 'localtime')), sender FROM Quote WHERE user = $1"
+	sqlDelete    = "DELETE FROM Quote where user = $1 AND content LIKE $2"
 )
 
 var (
@@ -38,9 +39,18 @@ var (
 func GetQuoteCommand() *core.Command {
 	return &core.Command{
 		Module:      "quote",
-		HelpMessage: "\t!q/!quote <nick> [<part of message>] (If <part of message> is not supplied, it will list the quotes for <nick>)",
+		HelpMessage: "\t!q/!quote <nick> [<part of message>]",
 		Triggers:    []string{"!q", "!quote"},
 		Handler:     handleQuoteCmd}
+}
+
+// GetAddQuoteCommand returns a Command structure for the addquote command
+func GetAddQuoteCommand() *core.Command {
+	return &core.Command{
+		Module:      "quote",
+		HelpMessage: "\t!aq/!addquote <nick> <part of message>",
+		Triggers:    []string{"!aq", "!addquote"},
+		Handler:     handleAddQuoteCmd}
 }
 
 // GetRmQuoteCommand returns a Command structure for the remove quote command
@@ -78,11 +88,73 @@ func handleQuoteCmd(event *irc.Event, callback func(*core.ReplyCallbackData)) bo
 	// fields[2:] => part of the message to search for
 	if len(fields) == 1 {
 		return true
-	} else if len(fields) == 2 {
-		return getQuotes(fields, event, callback)
-	} else {
-		return addQuote(fields, event, callback)
 	}
+	var (
+		rows *sql.Rows
+		err  error
+	)
+	if len(fields) >= 3 {
+		// Search with part of the message
+		messagePart := prepareForSearch(strings.Join(fields[2:], " "))
+		rows, err = dbPtr.Query(sqlSelect, fields[1], "%"+messagePart+"%")
+	} else {
+		// Search without part of the message
+		rows, err = dbPtr.Query(sqlSelectAll, fields[1])
+	}
+	if err != nil {
+		log.Fatalf("%q: %s\n", err, sqlSelect)
+	}
+	defer rows.Close()
+
+	var content, date, sender string
+	for rows.Next() {
+		rows.Scan(&content, &date, &sender)
+		callback(&core.ReplyCallbackData{
+			Message: fmt.Sprintf("%q [%s, %s, quoted by %s]", content, fields[1], date, sender),
+			Nick:    event.Nick})
+	}
+
+	return true
+}
+
+func handleAddQuoteCmd(event *irc.Event, callback func(*core.ReplyCallbackData)) bool {
+	fields := strings.Fields(event.Message())
+
+	if len(fields) < 3 {
+		return false
+	}
+
+	nick := fields[1]
+	size := len(lastMessages[nick])
+	max := maxMessages
+
+	if size == 0 {
+		return true
+	} else if size < max {
+		max = size
+	}
+
+	var (
+		rawMsg   string
+		cleanMsg string
+		pattern  = prepareForSearch(strings.Join(fields[2:], " "))
+	)
+	// Look for the search pattern in one of the last messages from "nick"
+	for i := max; i >= 1; {
+		i--
+		rawMsg = lastMessages[nick][i]
+		cleanMsg = prepareForSearch(rawMsg)
+		if !strings.Contains(cleanMsg, pattern) {
+			continue
+		}
+		_, err := dbPtr.Exec(sqlInsert, nick, rawMsg, event.Nick)
+		if err != nil {
+			log.Fatalf("%q: %s\n", err, sqlInsert)
+		}
+		callback(&core.ReplyCallbackData{Message: fmt.Sprintf("Quote %q added for nick %q", rawMsg, nick), Nick: event.Nick})
+		break
+	}
+	return true
 }
 
 // handleRmQuoteCmd
@@ -111,7 +183,7 @@ func handleRmQuoteCmd(event *irc.Event, callback func(*core.ReplyCallbackData)) 
 		log.Fatalf("%q: %s\n", err, sqlDelete)
 	}
 	if rows != 0 {
-		callback(&core.ReplyCallbackData{Message: fmt.Sprintf("Quote %q removed for user %q", quote, user)})
+		callback(&core.ReplyCallbackData{Message: fmt.Sprintf("Quote(s) matching %%%q%% removed for user %q", quote, user)})
 	}
 	return true
 }
@@ -127,57 +199,6 @@ func prepareForSearch(message string) string {
 
 	// Remove case-sentivity using only lowercase
 	return strings.TrimSpace(strings.ToLower(message))
-}
-
-func addQuote(fields []string, event *irc.Event, callback func(*core.ReplyCallbackData)) bool {
-	nick := fields[1]
-	size := len(lastMessages[nick])
-	max := maxMessages
-
-	if size == 0 {
-		return true
-	} else if size < max {
-		max = size
-	}
-
-	var (
-		rawMsg   string
-		cleanMsg string
-		pattern  = prepareForSearch(strings.Join(fields[2:], " "))
-	)
-	// Look for the search pattern in one of the last messages from "nick"
-	for i := max; i >= 1; {
-		i--
-		rawMsg = lastMessages[nick][i]
-		cleanMsg = prepareForSearch(rawMsg)
-		if !strings.Contains(cleanMsg, pattern) {
-			continue
-		}
-		_, err := dbPtr.Exec(sqlInsert, nick, rawMsg)
-		if err != nil {
-			log.Fatalf("%q: %s\n", err, sqlInsert)
-		}
-		callback(&core.ReplyCallbackData{Message: fmt.Sprintf("Quote %q added for nick %q", rawMsg, nick), Nick: event.Nick})
-		break
-	}
-	return true
-}
-
-func getQuotes(fields []string, event *irc.Event, callback func(*core.ReplyCallbackData)) bool {
-
-	rows, err := dbPtr.Query(sqlSelect, fields[1])
-	if err != nil {
-		log.Fatalf("%q: %s\n", err, sqlSelect)
-	}
-	defer rows.Close()
-
-	var content, date string
-	for rows.Next() {
-		rows.Scan(&content, &date)
-		callback(&core.ReplyCallbackData{Message: fmt.Sprintf("%q [%s, %s]", content, fields[1], date), Nick: event.Nick})
-	}
-
-	return true
 }
 
 // HandleMessages is a message handler that stores the last messages by users
