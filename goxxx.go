@@ -160,7 +160,13 @@ func main() {
 	for _, module := range config.modules {
 		switch strings.TrimSpace(module) {
 		case "invoke":
-			if !invoke.Init(db, config.emailSender, config.emailAccount, config.emailPassword, config.emailServer, config.emailPort) {
+			if !invoke.Init(db,
+				config.emailSender,
+				config.emailAccount,
+				config.emailPassword,
+				config.emailServer,
+				config.channel,
+				config.emailPort) {
 				log.Println("Error while initialising invoke package")
 				continue
 			}

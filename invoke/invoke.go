@@ -29,29 +29,25 @@ var (
 		sender  string
 		server  string
 	}
-	dbPtr       *sql.DB // Database pointer
-	initialised bool
+	dbPtr          *sql.DB // Database pointer
+	initialised    bool
+	currentChannel string
 )
 
 // Init initialises the connection for the SMTP server, the database table and stores the database pointer for later use.
-func Init(db *sql.DB, sender, account, password, server string, port int) bool {
-	if account == "" || password == "" || server == "" || port == 0 {
+func Init(db *sql.DB, sender, account, password, server, channel string, port int) bool {
+	if account == "" || password == "" || server == "" || port == 0 || channel == "" {
 		return false
 	}
 	if sender == "" {
 		sender = account
 	}
 	dbPtr = db
-
 	connection.account = account
 	connection.sender = sender
 	connection.server = fmt.Sprint(server, ":", port)
-	connection.auth = smtp.PlainAuth(
-		"",
-		account,
-		password,
-		server)
-
+	connection.auth = smtp.PlainAuth("", account, password, server)
+	currentChannel = channel
 	initialised = true
 	return true
 }
@@ -139,7 +135,7 @@ func handleInvokeCmd(event *irc.Event, callback func(*core.ReplyCallbackData)) b
 
 	var message string
 	if len(fields) < 3 {
-		message = fmt.Sprintf("Your presence has been requested by %s on the %s channel.\n Hurry up!\n", event.Nick, event.Arguments[0])
+		message = fmt.Sprintf("Your presence has been requested by %s on the %s channel.\n Hurry up!\n", event.Nick, currentChannel)
 	} else {
 		message = fmt.Sprintf(
 			"Your presence has been requested by %s on the %s channel.\n Here is a message from him/her:\n\n%q\n",
