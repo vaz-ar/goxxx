@@ -34,7 +34,7 @@ const (
 var (
 	dbPtr          *sql.DB // Database pointer
 	extList        = []string{".png", ".jpg", ".jpeg"}
-	administrators []string
+	administrators *[]string
 	// Source of the regular expression: http://daringfireball.net/2010/07/improved_regex_for_matching_urls
 	reURL      = regexp.MustCompile("(?:https?://|www\\d{0,3}[.]|[a-z0-9.\\-]+[.][a-z]{2,4}/)(?:[^\\s()<>]+|\\(([^\\s()<>]+|(\\([^\\s()<>]+\\)))*\\))+(?:\\(([^\\s()<>]+|(\\([^\\s()<>]+\\)))*\\)|[^\\s`!()\\[\\]{};:'\".,<>?«»“”‘’])")
 	reSanitize = regexp.MustCompile(`[%?_$:@]`)
@@ -67,8 +67,8 @@ func GetRmPicCommand() *core.Command {
 		Handler:     handleRmPictureCmd}
 }
 
-// Init stores the database pointer and initialises the database table "Picture" if necessary.
-func Init(db *sql.DB, admins []string) {
+// Init stores the database pointer and the administrators list.
+func Init(db *sql.DB, admins *[]string) {
 	dbPtr = db
 	administrators = admins
 }
@@ -186,8 +186,18 @@ func handleRmPictureCmd(event *irc.Event, callback func(*core.ReplyCallbackData)
 	if len(fields) < 3 {
 		return false
 	}
-	if !helpers.StringInSlice(event.Nick, administrators) {
-		callback(&core.ReplyCallbackData{Message: fmt.Sprintf("You need to be an administrator to run this command (Admins: %q)", strings.Join(administrators, ", "))})
+
+	// update the administrators list
+	core.UpdateAdministrators(event)
+
+	if !helpers.StringInSlice(event.Nick, *administrators) {
+		if len(*administrators) > 1 {
+			callback(&core.ReplyCallbackData{Message: fmt.Sprintf("You need to be an administrator to run this command (Admins: %q)", strings.Join(*administrators, ", "))})
+		} else if len(*administrators) == 1 {
+			callback(&core.ReplyCallbackData{Message: fmt.Sprintf("You need to be an administrator to run this command (Admin: %q)", (*administrators)[0])})
+		} else {
+			callback(&core.ReplyCallbackData{Message: fmt.Sprintln("You need to be an administrator to run this command (No admin set!)")})
+		}
 		return true
 	}
 

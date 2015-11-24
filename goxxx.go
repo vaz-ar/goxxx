@@ -57,7 +57,6 @@ type configData struct {
 	emailSender   string
 	emailAccount  string
 	emailPassword string
-	admins        []string
 }
 
 // getOptions processes the command line arguments
@@ -67,7 +66,6 @@ func getOptions() (config configData, returnCode int) {
 	flag.StringVar(&config.channelKey, "key", "", "IRC channel key (optional)")
 	flag.StringVar(&config.nick, "nick", "goxxx", "the bot's nickname (optional)")
 	flag.StringVar(&config.server, "server", "chat.freenode.net:6697", "IRC_SERVER[:PORT] (optional)")
-	admins := flag.String("admin", "", "Administrators nick (separated by commas)")
 	modules := flag.String("modules", "memo,webinfo,invoke,search,xkcd,pictures,quote", "Modules to enable (separated by commas)")
 	// Email
 	flag.StringVar(&config.emailServer, "email_server", "", "SMTP server address")
@@ -96,7 +94,6 @@ func getOptions() (config configData, returnCode int) {
 	}
 
 	config.modules = strings.Split(*modules, ",")
-	config.admins = strings.Split(*admins, ",")
 
 	if *version {
 		fmt.Printf("\nGoxxx version: %s\n\n", GlobalVersion)
@@ -219,7 +216,7 @@ func main() {
 			log.Println("xkcd module loaded")
 
 		case "pictures":
-			pictures.Init(db, config.admins)
+			pictures.Init(db, bot.Admins)
 
 			cmd := pictures.GetPicCommand()
 			bot.AddCmdHandler(cmd, bot.ReplyToAll)
@@ -235,7 +232,7 @@ func main() {
 			log.Println("pictures module loaded")
 
 		case "quote":
-			quote.Init(db, config.admins)
+			quote.Init(db, bot.Admins)
 			bot.AddMsgHandler(quote.HandleMessages, nil)
 
 			cmd := quote.GetQuoteCommand()
@@ -249,6 +246,7 @@ func main() {
 			cmd = quote.GetRmQuoteCommand()
 			bot.AddCmdHandler(cmd, bot.ReplyToAll)
 			help.AddMessages(cmd)
+
 			log.Println("quote module loaded")
 
 		default:

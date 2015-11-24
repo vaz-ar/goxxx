@@ -44,7 +44,7 @@ func GetCommand() *core.Command {
 		Handler:     handleSearchURLsCmd}
 }
 
-// Init stores the database pointer and initialises the database table "Link" if necessary.
+// Init stores the database pointer.
 func Init(db *sql.DB) {
 	dbPtr = db
 }

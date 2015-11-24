@@ -49,7 +49,7 @@ func GetMemoStatCommand() *core.Command {
 		Handler:     handleMemoCmd}
 }
 
-// Init stores the database pointer and initialises the database table "Memo" if necessary.
+// Init stores the database pointer.
 func Init(db *sql.DB) {
 	dbPtr = db
 }

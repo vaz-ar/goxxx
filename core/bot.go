@@ -9,7 +9,12 @@ package core
 
 import (
 	"github.com/thoj/go-ircevent"
+	"log"
 	"strings"
+)
+
+var (
+	updateAdminsDone = make(chan bool, 1)
 )
 
 // Bot structure that contains connection informations, IRC connection, command handlers and message handlers
@@ -18,6 +23,7 @@ type Bot struct {
 	server            string
 	channel           string
 	channelKey        string
+	Admins            *[]string
 	ircConn           *irc.Connection
 	msgHandlers       []func(*irc.Event, func(*ReplyCallbackData))
 	msgReplyCallbacks []func(*ReplyCallbackData)
@@ -41,12 +47,36 @@ type Command struct {
 
 // NewBot creates a new Bot, sets the required parameters and open the connection to the server.
 func NewBot(nick, server, channel, channelKey string) *Bot {
-	bot := Bot{nick: nick, server: server, channel: channel, channelKey: channelKey}
+	bot := Bot{nick: nick, server: server, channel: channel, channelKey: channelKey, Admins: new([]string)}
+
 	bot.ircConn = irc.IRC(nick, nick)
 	bot.ircConn.UseTLS = true
 	bot.ircConn.Connect(server)
-	bot.ircConn.Join(channel + " " + channelKey)
+
+	//PRIVMSG
 	bot.ircConn.AddCallback("PRIVMSG", bot.mainHandler)
+
+	// RPL_WELCOME
+	bot.ircConn.AddCallback("001", func(event *irc.Event) {
+		bot.ircConn.Join(channel + " " + channelKey)
+		// Necessary because the callback for RPL_NAMREPLY is called after joining the channel (NAMES command)
+		// If not called here updateAdminsDone will always contains a value before being read by UpdateAdministrators()
+		<-updateAdminsDone
+	})
+
+	// RPL_NAMREPLY
+	bot.ircConn.AddCallback("353", func(event *irc.Event) {
+		var currentAdmins []string
+		for _, user := range strings.Split(event.Message(), " ") {
+			if strings.HasPrefix(user, "@") {
+				currentAdmins = append(currentAdmins, strings.TrimPrefix(user, "@"))
+			}
+		}
+		*bot.Admins = currentAdmins
+		log.Printf("Current admnistrators: %s", strings.Join(currentAdmins, ", "))
+		updateAdminsDone <- true
+	})
+
 	bot.cmdHandlers = make(map[string]func(*irc.Event, func(*ReplyCallbackData)) bool)
 	bot.cmdReplyCallbacks = make(map[string]func(*ReplyCallbackData))
 	return &bot
@@ -123,4 +153,9 @@ func (bot *Bot) mainHandler(event *irc.Event) {
 	for i, handler := range bot.msgHandlers {
 		go handler(event, bot.msgReplyCallbacks[i])
 	}
+}
+
+func UpdateAdministrators(event *irc.Event) {
+	event.Connection.SendRawf("NAMES %s", event.Arguments[0])
+	<-updateAdminsDone
 }

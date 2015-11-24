@@ -32,7 +32,7 @@ var (
 	dbPtr          *sql.DB // Database pointer
 	lastMessages   map[string][]string
 	reMsg          = `.*%s.*`
-	administrators []string
+	administrators *[]string
 )
 
 // GetQuoteCommand returns a Command structure for the quote command
@@ -62,10 +62,10 @@ func GetRmQuoteCommand() *core.Command {
 		Handler:     handleRmQuoteCmd}
 }
 
-// Init stores the database pointer and initialises the database table "Quote" if necessary.
-func Init(db *sql.DB, admins []string) {
-	dbPtr = db
+// Init stores the database pointer and the administrators list.
+func Init(db *sql.DB, admins *[]string) {
 	lastMessages = make(map[string][]string)
+	dbPtr = db
 	administrators = admins
 }
 
@@ -156,8 +156,17 @@ func handleRmQuoteCmd(event *irc.Event, callback func(*core.ReplyCallbackData)) 
 		return false
 	}
 
-	if !helpers.StringInSlice(event.Nick, administrators) {
-		callback(&core.ReplyCallbackData{Message: fmt.Sprintf("You need to be an administrator to run this command (Admins: %q)", strings.Join(administrators, ", "))})
+	// update the administrators list
+	core.UpdateAdministrators(event)
+
+	if !helpers.StringInSlice(event.Nick, *administrators) {
+		if len(*administrators) > 1 {
+			callback(&core.ReplyCallbackData{Message: fmt.Sprintf("You need to be an administrator to run this command (Admins: %q)", strings.Join(*administrators, ", "))})
+		} else if len(*administrators) == 1 {
+			callback(&core.ReplyCallbackData{Message: fmt.Sprintf("You need to be an administrator to run this command (Admin: %q)", (*administrators)[0])})
+		} else {
+			callback(&core.ReplyCallbackData{Message: fmt.Sprintln("You need to be an administrator to run this command (No admin set!)")})
+		}
 		return true
 	}
 
@@ -172,7 +181,7 @@ func handleRmQuoteCmd(event *irc.Event, callback func(*core.ReplyCallbackData)) 
 		log.Fatalf("%q: %s\n", err, sqlDelete)
 	}
 	if rows != 0 {
-		callback(&core.ReplyCallbackData{Message: fmt.Sprintf("Quote(s) matching %%%q%% removed for user %q", quote, user)})
+		callback(&core.ReplyCallbackData{Message: fmt.Sprintf("Quote(s) matching \"%%%s%%\" removed for user %q", quote, user)})
 	}
 	return true
 }

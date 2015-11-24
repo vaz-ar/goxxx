@@ -3,4 +3,4 @@
 /storage/*
 *.sqlite
 *.txt
-goxxx_testing.ini
+*testing.ini
