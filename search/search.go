@@ -112,7 +112,7 @@ func handleDuckduckGoCmd(event *irc.Event, callback func(*core.ReplyCallbackData
 			callback(&core.ReplyCallbackData{Message: fmt.Sprintf("DuckDuckGo: Best result for %q => %s", message, item)})
 		} else {
 			// Second and following parts of the result are sent directly to the user
-			callback(&core.ReplyCallbackData{Nick: event.Nick, Message: item})
+			callback(&core.ReplyCallbackData{Target: event.Nick, Message: item})
 		}
 	}
 	return true
@@ -139,7 +139,7 @@ func handleUrbanDictionnaryCmd(event *irc.Event, callback func(*core.ReplyCallba
 			callback(&core.ReplyCallbackData{Message: fmt.Sprintf("Urban Dictionnary: Best result for %q => %s", message, item)})
 		} else {
 			// Second and following parts of the result are sent directly to the user
-			callback(&core.ReplyCallbackData{Nick: event.Nick, Message: fmt.Sprintf("Definition: %s", item)})
+			callback(&core.ReplyCallbackData{Target: event.Nick, Message: fmt.Sprintf("Definition: %s", item)})
 		}
 	}
 	return true
@@ -166,7 +166,7 @@ func handleWikipediaCmd(event *irc.Event, callback func(*core.ReplyCallbackData)
 			callback(&core.ReplyCallbackData{Message: fmt.Sprintf("Wikipedia result for %q => %s", message, item)})
 		} else {
 			// Second and following parts of the result are sent directly to the user
-			callback(&core.ReplyCallbackData{Nick: event.Nick, Message: item})
+			callback(&core.ReplyCallbackData{Target: event.Nick, Message: item})
 		}
 	}
 	return true
@@ -193,7 +193,7 @@ func handleWikipediaFRCmd(event *irc.Event, callback func(*core.ReplyCallbackDat
 			callback(&core.ReplyCallbackData{Message: fmt.Sprintf("Wikipedia result for %q => %s", message, item)})
 		} else {
 			// Second and following parts of the result are sent directly to the user
-			callback(&core.ReplyCallbackData{Nick: event.Nick, Message: item})
+			callback(&core.ReplyCallbackData{Target: event.Nick, Message: item})
 		}
 	}
 	return true

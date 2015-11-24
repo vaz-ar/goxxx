@@ -111,7 +111,7 @@ func handleInvokeCmd(event *irc.Event, callback func(*core.ReplyCallbackData)) b
 		if delta < minDelta {
 			message := fmt.Sprintf("The user %q was already invoked less than %d minutes ago", recipient, minDelta)
 			log.Println(message)
-			callback(&core.ReplyCallbackData{Message: message, Nick: event.Nick})
+			callback(&core.ReplyCallbackData{Message: message, Target: event.Nick})
 			return true
 		}
 	}
@@ -123,7 +123,7 @@ func handleInvokeCmd(event *irc.Event, callback func(*core.ReplyCallbackData)) b
 	case err == sql.ErrNoRows:
 		message := fmt.Sprintf("No user in the datbase with %q for nick, call the cops! (or maybe just the bot admin)", recipient)
 		log.Println(message)
-		callback(&core.ReplyCallbackData{Message: message, Nick: event.Nick})
+		callback(&core.ReplyCallbackData{Message: message, Target: event.Nick})
 		return true
 
 	case err != nil:
@@ -152,7 +152,7 @@ func handleInvokeCmd(event *irc.Event, callback func(*core.ReplyCallbackData)) b
 		log.Println("Invoke command: sendMail failed to send the email")
 		callback(&core.ReplyCallbackData{
 			Message: "The invoke command failed, the email was not sent",
-			Nick:    event.Nick})
+			Target:  event.Nick})
 		return true
 	}
 	log.Println("Invoke command: email sent")
@@ -165,7 +165,7 @@ func handleInvokeCmd(event *irc.Event, callback func(*core.ReplyCallbackData)) b
 
 	callback(&core.ReplyCallbackData{
 		Message: fmt.Sprintf("Email sent to %s", recipient),
-		Nick:    event.Nick})
+		Target:  event.Nick})
 
 	return true
 }

@@ -165,20 +165,20 @@ func main() {
 				continue
 			}
 			cmd := invoke.GetCommand()
-			bot.AddCmdHandler(cmd, bot.ReplyToNick)
+			bot.AddCmdHandler(cmd, bot.Reply)
 			help.AddMessages(cmd)
 			log.Println("invoke module loaded")
 
 		case "memo":
 			memo.Init(db)
-			bot.AddMsgHandler(memo.SendMemo, bot.ReplyToNick)
+			bot.AddMsgHandler(memo.SendMemo, bot.Reply)
 
 			cmd := memo.GetMemoCommand()
 			bot.AddCmdHandler(cmd, bot.ReplyToAll)
 			help.AddMessages(cmd)
 
 			cmd = memo.GetMemoStatCommand()
-			bot.AddCmdHandler(cmd, bot.ReplyToNick)
+			bot.AddCmdHandler(cmd, bot.Reply)
 			help.AddMessages(cmd)
 			log.Println("memo module loaded")
 
@@ -246,13 +246,13 @@ func main() {
 			cmd = quote.GetRmQuoteCommand()
 			bot.AddCmdHandler(cmd, bot.ReplyToAll)
 			help.AddMessages(cmd)
-
 			log.Println("quote module loaded")
 
 		default:
+
 		}
 	}
-	bot.AddCmdHandler(help.GetCommand(), bot.ReplyToNick)
+	bot.AddCmdHandler(help.GetCommand(), bot.Reply)
 
 	log.Println("Goxxx started")
 

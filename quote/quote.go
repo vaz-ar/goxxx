@@ -100,7 +100,7 @@ func handleQuoteCmd(event *irc.Event, callback func(*core.ReplyCallbackData)) bo
 		rows.Scan(&content, &date, &sender)
 		callback(&core.ReplyCallbackData{
 			Message: fmt.Sprintf("%q [%s, %s, quoted by %s]", content, fields[1], date, sender),
-			Nick:    event.Nick})
+			Target:  event.Nick})
 	}
 
 	return true
@@ -140,7 +140,7 @@ func handleAddQuoteCmd(event *irc.Event, callback func(*core.ReplyCallbackData))
 		if err != nil {
 			log.Fatalf("%q: %s\n", err, sqlInsert)
 		}
-		callback(&core.ReplyCallbackData{Message: fmt.Sprintf("Quote %q added for nick %q", rawMsg, nick), Nick: event.Nick})
+		callback(&core.ReplyCallbackData{Message: fmt.Sprintf("Quote %q added for nick %q", rawMsg, nick), Target: event.Nick})
 		break
 	}
 	return true

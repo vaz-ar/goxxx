@@ -48,16 +48,16 @@ func handleHelpCmd(event *irc.Event, callback func(*core.ReplyCallbackData)) boo
 	// fields[0]  => Command
 	// fields[1] => module
 	if len(fields) != 2 {
-		callback(&core.ReplyCallbackData{Message: fmt.Sprintf(defaultMessage, strings.Join(modules, ", ")), Nick: event.Nick})
+		callback(&core.ReplyCallbackData{Message: fmt.Sprintf(defaultMessage, strings.Join(modules, ", ")), Target: event.Nick})
 		return true
 	}
 	list, ok := helpMessages[fields[1]]
 	if !ok {
-		callback(&core.ReplyCallbackData{Message: fmt.Sprintf(defaultMessage, strings.Join(modules, ", ")), Nick: event.Nick})
+		callback(&core.ReplyCallbackData{Message: fmt.Sprintf(defaultMessage, strings.Join(modules, ", ")), Target: event.Nick})
 		return true
 	}
 	for _, message := range list {
-		callback(&core.ReplyCallbackData{Message: message, Nick: event.Nick})
+		callback(&core.ReplyCallbackData{Message: message, Target: event.Nick})
 	}
 	return true
 }

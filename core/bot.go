@@ -33,8 +33,8 @@ type Bot struct {
 
 // ReplyCallbackData Structure used by the handlers to send data in a standardized format
 type ReplyCallbackData struct {
-	Message string
-	Nick    string
+	Message string // Message to send
+	Target  string // Destination target of the message (Channel or Nick)
 }
 
 // Command structure
@@ -122,21 +122,10 @@ func (bot *Bot) ReplyToAll(data *ReplyCallbackData) {
 	bot.ircConn.Privmsg(bot.channel, data.Message)
 }
 
-// ReplyToNick sends a private message to the user "data.Nick".
-// If data.Nick is an empty string, do nothing
-func (bot *Bot) ReplyToNick(data *ReplyCallbackData) {
-	if data.Nick != "" {
-		bot.ircConn.Privmsg(data.Nick, data.Message)
-	}
-}
-
-// Reply sends a private message to the user "data.Nick" if "data.Nick" isn't an empty string.
-// If "data.Nick" is an empty string then send the message to the channel where the bot is connected.
+// Reply sends a message to the user or channel specifed by "data.Target".
 func (bot *Bot) Reply(data *ReplyCallbackData) {
-	if data.Nick == "" {
-		bot.ircConn.Privmsg(bot.channel, data.Message)
-	} else {
-		bot.ircConn.Privmsg(data.Nick, data.Message)
+	if data.Target != "" {
+		bot.ircConn.Privmsg(data.Target, data.Message)
 	}
 }
 

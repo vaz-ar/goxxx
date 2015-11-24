@@ -77,7 +77,7 @@ func handleMemoCmd(event *irc.Event, callback func(*core.ReplyCallbackData)) boo
 	if callback != nil {
 		callback(&core.ReplyCallbackData{
 			Message: fmt.Sprintf("%s: memo for %s saved", memo.userFrom, memo.userTo),
-			Nick:    memo.userFrom})
+			Target:  memo.userFrom})
 	}
 	return true
 }
@@ -100,7 +100,7 @@ func SendMemo(event *irc.Event, callback func(*core.ReplyCallbackData)) {
 		memoList = append(memoList, memo)
 		callback(&core.ReplyCallbackData{
 			Message: fmt.Sprintf("%s: memo from %s => \"%s\" (%s)", userTo, memo.userFrom, memo.message, memo.date),
-			Nick:    userTo})
+			Target:  userTo})
 	}
 	rows.Close()
 
@@ -127,11 +127,11 @@ func handleMemoStatusCmd(event *irc.Event, callback func(*core.ReplyCallbackData
 		rows.Scan(&memo.id, &memo.userTo, &memo.message, &memo.date)
 		callback(&core.ReplyCallbackData{
 			Message: fmt.Sprintf("Memo for %s: \"%s\" (%s)", memo.userTo, memo.message, memo.date),
-			Nick:    event.Nick})
+			Target:  event.Nick})
 	}
 
 	if memo.id == 0 {
-		callback(&core.ReplyCallbackData{Message: "No memo saved", Nick: event.Nick})
+		callback(&core.ReplyCallbackData{Message: "No memo saved", Target: event.Nick})
 	}
 	return true
 }
