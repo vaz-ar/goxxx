@@ -100,7 +100,7 @@ func handleQuoteCmd(event *irc.Event, callback func(*core.ReplyCallbackData)) bo
 		rows.Scan(&content, &date, &sender)
 		callback(&core.ReplyCallbackData{
 			Message: fmt.Sprintf("%q [%s, %s, quoted by %s]", content, fields[1], date, sender),
-			Target:  event.Nick})
+			Target:  core.GetTargetFromEvent(event)})
 	}
 
 	return true
@@ -140,7 +140,9 @@ func handleAddQuoteCmd(event *irc.Event, callback func(*core.ReplyCallbackData))
 		if err != nil {
 			log.Fatalf("%q: %s\n", err, sqlInsert)
 		}
-		callback(&core.ReplyCallbackData{Message: fmt.Sprintf("Quote %q added for nick %q", rawMsg, nick), Target: event.Nick})
+		callback(&core.ReplyCallbackData{
+			Message: fmt.Sprintf("Quote %q added for nick %q", rawMsg, nick),
+			Target:  core.GetTargetFromEvent(event)})
 		break
 	}
 	return true
@@ -161,11 +163,17 @@ func handleRmQuoteCmd(event *irc.Event, callback func(*core.ReplyCallbackData)) 
 
 	if !helpers.StringInSlice(event.Nick, *administrators) {
 		if len(*administrators) > 1 {
-			callback(&core.ReplyCallbackData{Message: fmt.Sprintf("You need to be an administrator to run this command (Admins: %q)", strings.Join(*administrators, ", "))})
+			callback(&core.ReplyCallbackData{
+				Message: fmt.Sprintf("You need to be an administrator to run this command (Admins: %q)", strings.Join(*administrators, ", ")),
+				Target:  core.GetTargetFromEvent(event)})
 		} else if len(*administrators) == 1 {
-			callback(&core.ReplyCallbackData{Message: fmt.Sprintf("You need to be an administrator to run this command (Admin: %q)", (*administrators)[0])})
+			callback(&core.ReplyCallbackData{
+				Message: fmt.Sprintf("You need to be an administrator to run this command (Admin: %q)", (*administrators)[0]),
+				Target:  core.GetTargetFromEvent(event)})
 		} else {
-			callback(&core.ReplyCallbackData{Message: fmt.Sprintln("You need to be an administrator to run this command (No admin set!)")})
+			callback(&core.ReplyCallbackData{
+				Message: fmt.Sprintln("You need to be an administrator to run this command (No admin set!)"),
+				Target:  core.GetTargetFromEvent(event)})
 		}
 		return true
 	}
@@ -181,7 +189,9 @@ func handleRmQuoteCmd(event *irc.Event, callback func(*core.ReplyCallbackData)) 
 		log.Fatalf("%q: %s\n", err, sqlDelete)
 	}
 	if rows != 0 {
-		callback(&core.ReplyCallbackData{Message: fmt.Sprintf("Quote(s) matching \"%%%s%%\" removed for user %q", quote, user)})
+		callback(&core.ReplyCallbackData{
+			Message: fmt.Sprintf("Quote(s) matching \"%%%s%%\" removed for user %q", quote, user),
+			Target:  core.GetTargetFromEvent(event)})
 	}
 	return true
 }

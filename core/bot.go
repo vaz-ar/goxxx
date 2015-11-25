@@ -148,3 +148,12 @@ func UpdateAdministrators(event *irc.Event) {
 	event.Connection.SendRawf("NAMES %s", event.Arguments[0])
 	<-updateAdminsDone
 }
+
+func GetTargetFromEvent(event *irc.Event) string {
+	source := strings.TrimSpace(event.Arguments[0])
+	if strings.HasPrefix(source, "#") {
+		return source
+	} else {
+		return event.Nick
+	}
+}

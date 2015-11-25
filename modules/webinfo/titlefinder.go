@@ -82,7 +82,9 @@ func HandleURLs(event *irc.Event, callback func(*core.ReplyCallbackData)) {
 		}
 
 		if user != "" {
-			callback(&core.ReplyCallbackData{Message: fmt.Sprintf("Link already posted by %s (%s)", user, date)})
+			callback(&core.ReplyCallbackData{
+				Message: fmt.Sprintf("Link already posted by %s (%s)", user, date),
+				Target:  core.GetTargetFromEvent(event)})
 		}
 
 		title, found := getTitleFromHTML(doc)
@@ -91,7 +93,9 @@ func HandleURLs(event *irc.Event, callback func(*core.ReplyCallbackData)) {
 			if helpers.StringInSlice(currentURL.Host, urlShortener) {
 				title += fmt.Sprint(" (", response.Request.URL.String(), ")")
 			}
-			callback(&core.ReplyCallbackData{Message: title})
+			callback(&core.ReplyCallbackData{
+				Message: title,
+				Target:  core.GetTargetFromEvent(event)})
 		} else {
 			log.Println("No title found for ", currentURL.String())
 		}
@@ -130,7 +134,9 @@ func handleSearchURLsCmd(event *irc.Event, callback func(*core.ReplyCallbackData
 		if title == "" {
 			title = "No Title"
 		}
-		callback(&core.ReplyCallbackData{Message: fmt.Sprintf(`Link found for %q => %s (%s) [Posted by %s, %s]`, search, title, url, user, date)})
+		callback(&core.ReplyCallbackData{
+			Message: fmt.Sprintf(`Link found for %q => %s (%s) [Posted by %s, %s]`, search, title, url, user, date),
+			Target:  core.GetTargetFromEvent(event)})
 	}
 	return true
 }

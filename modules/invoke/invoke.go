@@ -131,7 +131,7 @@ func handleInvokeCmd(event *irc.Event, callback func(*core.ReplyCallbackData)) b
 	headers := map[string]string{
 		"From":    connection.sender,
 		"To":      email,
-		"Subject": "Goxxx: Your presence is requested on " + event.Arguments[0]}
+		"Subject": "Goxxx: Your presence is requested on " + currentChannel}
 
 	var message string
 	if len(fields) < 3 {
@@ -140,7 +140,7 @@ func handleInvokeCmd(event *irc.Event, callback func(*core.ReplyCallbackData)) b
 		message = fmt.Sprintf(
 			"Your presence has been requested by %s on the %s channel.\n Here is a message from him/her:\n\n%q\n",
 			event.Nick,
-			event.Arguments[0],
+			currentChannel,
 			strings.Join(fields[2:], " "))
 	}
 

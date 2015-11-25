@@ -45,7 +45,7 @@ var (
 		Nick:      expectedNick,
 		Arguments: []string{"#test_channel", messageWithoutURL}}
 
-	validReply = core.ReplyCallbackData{Target: "", Message: "Effective Go - The Go Programming Language"} // -- 1
+	validReply = core.ReplyCallbackData{Target: "#test_channel", Message: "Effective Go - The Go Programming Language"} // -- 1
 
 	re = regexp.MustCompile(fmt.Sprintf(`^Link already posted by %s \(\d{2}/\d{2}/\d{4} @ \d{2}:\d{2}\)$`, expectedNick))
 )

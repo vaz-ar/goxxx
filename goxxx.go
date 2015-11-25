@@ -180,7 +180,7 @@ func main() {
 			bot.AddMsgHandler(memo.SendMemo, bot.Reply)
 
 			cmd := memo.GetMemoCommand()
-			bot.AddCmdHandler(cmd, bot.ReplyToAll)
+			bot.AddCmdHandler(cmd, bot.Reply)
 			help.AddMessages(cmd)
 
 			cmd = memo.GetMemoStatCommand()
@@ -211,13 +211,13 @@ func main() {
 			bot.AddMsgHandler(webinfo.HandleURLs, bot.ReplyToAll)
 
 			cmd := webinfo.GetCommand()
-			bot.AddCmdHandler(cmd, bot.ReplyToAll)
+			bot.AddCmdHandler(cmd, bot.Reply)
 			help.AddMessages(cmd)
 			log.Println("webinfo module loaded")
 
 		case "xkcd":
 			cmd := xkcd.GetCommand()
-			bot.AddCmdHandler(cmd, bot.ReplyToAll)
+			bot.AddCmdHandler(cmd, bot.Reply)
 			help.AddMessages(cmd)
 			log.Println("xkcd module loaded")
 
@@ -225,15 +225,15 @@ func main() {
 			pictures.Init(db, bot.Admins)
 
 			cmd := pictures.GetPicCommand()
-			bot.AddCmdHandler(cmd, bot.ReplyToAll)
+			bot.AddCmdHandler(cmd, bot.Reply)
 			help.AddMessages(cmd)
 
 			cmd = pictures.GetAddPicCommand()
-			bot.AddCmdHandler(cmd, bot.ReplyToAll)
+			bot.AddCmdHandler(cmd, bot.Reply)
 			help.AddMessages(cmd)
 
 			cmd = pictures.GetRmPicCommand()
-			bot.AddCmdHandler(cmd, bot.ReplyToAll)
+			bot.AddCmdHandler(cmd, bot.Reply)
 			help.AddMessages(cmd)
 			log.Println("pictures module loaded")
 
@@ -242,15 +242,15 @@ func main() {
 			bot.AddMsgHandler(quote.HandleMessages, nil)
 
 			cmd := quote.GetQuoteCommand()
-			bot.AddCmdHandler(cmd, bot.ReplyToAll)
+			bot.AddCmdHandler(cmd, bot.Reply)
 			help.AddMessages(cmd)
 
 			cmd = quote.GetAddQuoteCommand()
-			bot.AddCmdHandler(cmd, bot.ReplyToAll)
+			bot.AddCmdHandler(cmd, bot.Reply)
 			help.AddMessages(cmd)
 
 			cmd = quote.GetRmQuoteCommand()
-			bot.AddCmdHandler(cmd, bot.ReplyToAll)
+			bot.AddCmdHandler(cmd, bot.Reply)
 			help.AddMessages(cmd)
 			log.Println("quote module loaded")
 

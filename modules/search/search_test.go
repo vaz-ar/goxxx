@@ -70,29 +70,29 @@ var (
 
 	// Reply structs - DuckduckGo
 	ddgValidReply = core.ReplyCallbackData{
-		Target:  "",
+		Target:  "#test_channel",
 		Message: fmt.Sprintf("DuckDuckGo: Best result for %q => %s", searchTerms, ddgExpectedResult)}
 
 	ddgValidReplyNoResults = core.ReplyCallbackData{
-		Target:  "",
+		Target:  "#test_channel",
 		Message: fmt.Sprintf("DuckDuckGo: No result for %q", searchTermsNoResults)}
 
 	// Reply structs - Wikipedia
 	wikipediaValidReply = core.ReplyCallbackData{
-		Target:  "",
+		Target:  "#test_channel",
 		Message: fmt.Sprintf("Wikipedia result for %q => %s", searchTerms, wikipediaExpectedResult)}
 
 	wikipediaValidReplyNoResults = core.ReplyCallbackData{
-		Target:  "",
+		Target:  "#test_channel",
 		Message: fmt.Sprintf("Wikipedia: No result for %q", searchTermsNoResults)}
 
 	// Reply structs - Urban Dictionnary
 	urbanDictionnaryValidReply = core.ReplyCallbackData{
-		Target:  "",
+		Target:  "#test_channel",
 		Message: fmt.Sprintf("Urban Dictionnary: Best result for %q => %s", urbanDictionnarySearchTerms, urbanDictionnaryExpectedResult)}
 
 	urbanDictionnaryValidReplyNoResults = core.ReplyCallbackData{
-		Target:  "",
+		Target:  "#test_channel",
 		Message: fmt.Sprintf("Urban Dictionnary: No result for %q", searchTermsNoResults)}
 )
 

@@ -121,6 +121,6 @@ func handleXKCDCmd(event *irc.Event, callback func(*core.ReplyCallbackData)) boo
 		}
 	}
 	log.Println(message)
-	callback(&core.ReplyCallbackData{Message: message, Target: event.Nick})
+	callback(&core.ReplyCallbackData{Message: message, Target: core.GetTargetFromEvent(event)})
 	return true
 }

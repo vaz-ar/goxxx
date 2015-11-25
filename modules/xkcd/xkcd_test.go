@@ -40,11 +40,11 @@ var (
 
 	// Reply structs
 	validReply = core.ReplyCallbackData{
-		Target:  "Sender",
+		Target:  "#test_channel",
 		Message: fmt.Sprintf("XKCD Comic #%d: %s => %s", expectedResult.Num, expectedResult.Title, expectedResult.Link)}
 
 	validReplyNoResult = core.ReplyCallbackData{
-		Target:  "Sender",
+		Target:  "#test_channel",
 		Message: fmt.Sprintf("There is no XKCD comic #1000000000000000000")}
 
 	reValidReplyLastComic = regexp.MustCompile(`Last XKCD Comic: (\S+\s+)+=> \S+`)
