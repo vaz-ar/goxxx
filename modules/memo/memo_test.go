@@ -24,12 +24,12 @@ var (
 		Nick:      "Sender",
 		Arguments: []string{"#test_channel", validMessage}}
 
-	replyCallbackDataReference = core.ReplyCallbackData{Nick: "Sender", Message: "Sender: memo for Receiver saved"}
+	replyCallbackDataReference = core.ReplyCallbackData{Target: "Sender", Message: "Sender: memo for Receiver saved"}
 )
 
 func Test_handleMemoCmd(t *testing.T) {
 
-	db := database.NewDatabase("./tests.sqlite", "../migrations", true)
+	db := database.NewDatabase("./tests.sqlite", "../../database/migrations", true)
 	defer db.Close()
 	Init(db)
 
@@ -46,7 +46,7 @@ func Test_handleMemoCmd(t *testing.T) {
 
 func Test_SendMemo(t *testing.T) {
 
-	db := database.NewDatabase("./tests.sqlite", "../migrations", true)
+	db := database.NewDatabase("./tests.sqlite", "../../database/migrations", true)
 	defer db.Close()
 	Init(db)
 
@@ -65,7 +65,7 @@ func Test_SendMemo(t *testing.T) {
 	if !re.MatchString(testReply.Message) {
 		t.Errorf("Regexp %q not matching %q", re.String(), testReply.Message)
 	}
-	if testReply.Nick != expectedNick {
-		t.Errorf("Incorrect Nick: should be %q, is %q", expectedNick, testReply.Nick)
+	if testReply.Target != expectedNick {
+		t.Errorf("Incorrect Nick: should be %q, is %q", expectedNick, testReply.Target)
 	}
 }

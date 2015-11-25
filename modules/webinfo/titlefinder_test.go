@@ -45,7 +45,7 @@ var (
 		Nick:      expectedNick,
 		Arguments: []string{"#test_channel", messageWithoutURL}}
 
-	validReply = core.ReplyCallbackData{Nick: "", Message: "Effective Go - The Go Programming Language"} // -- 1
+	validReply = core.ReplyCallbackData{Target: "", Message: "Effective Go - The Go Programming Language"} // -- 1
 
 	re = regexp.MustCompile(fmt.Sprintf(`^Link already posted by %s \(\d{2}/\d{2}/\d{4} @ \d{2}:\d{2}\)$`, expectedNick))
 )
@@ -113,7 +113,7 @@ func Test_findURLs(t *testing.T) {
 }
 
 func Test_HandleURLs(t *testing.T) {
-	db := database.NewDatabase("./tests.sqlite", "../migrations", true)
+	db := database.NewDatabase("./tests.sqlite", "../../database/migrations", true)
 	defer db.Close()
 	Init(db)
 

@@ -44,7 +44,7 @@ func NewDatabase(databaseName string, migrationsFolder string, reset bool) *sql.
 		log.Fatal(err)
 	}
 	if migrationsFolder == "" {
-		migrationsFolder = "./migrations"
+		migrationsFolder = "database/migrations"
 	}
 	// Apply migrations
 	allErrors, ok := migrate.UpSync("sqlite3://"+databaseName, migrationsFolder)
