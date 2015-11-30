@@ -21,11 +21,12 @@ import (
 )
 
 const (
-	maxMessages  = 10
-	sqlInsert    = "INSERT INTO Quote (user, content, sender) VALUES ($1, $2, $3)"
-	sqlSelect    = "SELECT content, strftime('%d/%m/%Y @ %H:%M', datetime(date, 'localtime')), sender FROM Quote WHERE user = $1 AND content LIKE $2"
-	sqlSelectAll = "SELECT content, strftime('%d/%m/%Y @ %H:%M', datetime(date, 'localtime')), sender FROM Quote WHERE user = $1"
-	sqlDelete    = "DELETE FROM Quote where user = $1 AND content LIKE $2"
+	maxMessages           = 10
+	sqlInsert             = "INSERT INTO Quote (user, content, sender) VALUES ($1, $2, $3)"
+	sqlSelect             = "SELECT content, strftime('%d/%m/%Y @ %H:%M', datetime(date, 'localtime')), sender FROM Quote WHERE user = $1 AND content LIKE $2"
+	sqlSelectExactContent = "SELECT sender FROM Quote WHERE user = $1 AND content = $2"
+	sqlSelectAll          = "SELECT content, strftime('%d/%m/%Y @ %H:%M', datetime(date, 'localtime')), sender FROM Quote WHERE user = $1"
+	sqlDelete             = "DELETE FROM Quote where user = $1 AND content LIKE $2"
 )
 
 var (
@@ -136,7 +137,22 @@ func handleAddQuoteCmd(event *irc.Event, callback func(*core.ReplyCallbackData))
 		if !strings.Contains(cleanMsg, pattern) {
 			continue
 		}
-		_, err := dbPtr.Exec(sqlInsert, nick, rawMsg, event.Nick)
+
+		// Check if quote already exists in the database
+		rows, err := dbPtr.Query(sqlSelectExactContent, nick, rawMsg)
+		if err != nil {
+			log.Fatalf("%q: %s\n", err, sqlSelectExactContent)
+		}
+		defer rows.Close()
+		if rows.Next() {
+			callback(&core.ReplyCallbackData{
+				Message: fmt.Sprintf("This quote is already present for the user %q", nick),
+				Target:  core.GetTargetFromEvent(event)})
+			return true
+		}
+
+		// Insert quote in the database
+		_, err = dbPtr.Exec(sqlInsert, nick, rawMsg, event.Nick)
 		if err != nil {
 			log.Fatalf("%q: %s\n", err, sqlInsert)
 		}
