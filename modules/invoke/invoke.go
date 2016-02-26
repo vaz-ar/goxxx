@@ -100,12 +100,12 @@ func handleInvokeCmd(event *irc.Event, callback func(*core.ReplyCallbackData)) b
 	err := dbPtr.QueryRow(sqlQuery, recipient).Scan(&delta)
 	switch {
 	case err == sql.ErrNoRows:
-		log.Printf("No line for %q in the Invoke table", recipient)
+		log.Printf("No line for \"%s\" in the Invoke table", recipient)
 	case err != nil:
 		log.Fatalf("%q: %s\n", err, sqlQuery)
 	default:
 		if delta < minDelta {
-			message := fmt.Sprintf("The user %q was already invoked less than %d minutes ago", recipient, minDelta)
+			message := fmt.Sprintf("The user \"%s\" was already invoked less than %d minutes ago", recipient, minDelta)
 			log.Println(message)
 			callback(&core.ReplyCallbackData{Message: message, Target: event.Nick})
 			return true
@@ -117,7 +117,7 @@ func handleInvokeCmd(event *irc.Event, callback func(*core.ReplyCallbackData)) b
 	err = dbPtr.QueryRow(sqlQuery, recipient).Scan(&email)
 	switch {
 	case err == sql.ErrNoRows:
-		message := fmt.Sprintf("No user in the datbase with %q for nick, call the cops! (or maybe just the bot admin)", recipient)
+		message := fmt.Sprintf("No user in the datbase with \"%s\" for nick, call the cops! (or maybe just the bot admin)", recipient)
 		log.Println(message)
 		callback(&core.ReplyCallbackData{Message: message, Target: event.Nick})
 		return true
@@ -138,7 +138,7 @@ func handleInvokeCmd(event *irc.Event, callback func(*core.ReplyCallbackData)) b
 		message = fmt.Sprintf("Your presence has been requested by %s on the %s channel.\n Hurry up!\n", event.Nick, currentChannel)
 	} else {
 		message = fmt.Sprintf(
-			"Your presence has been requested by %s on the %s channel.\n Here is a message from him/her:\n\n%q\n",
+			"Your presence has been requested by %s on the %s channel.\n Here is a message from him/her:\n\n\"%s\"\n",
 			event.Nick,
 			currentChannel,
 			strings.Join(fields[2:], " "))

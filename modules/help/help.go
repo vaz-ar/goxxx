@@ -16,7 +16,7 @@ import (
 )
 
 const (
-	defaultMessage = "You need to specify a module for which you want help. Currently loaded modules are %q."
+	defaultMessage = "You need to specify a module for which you want help. Currently loaded modules are \"%s\"."
 )
 
 var (

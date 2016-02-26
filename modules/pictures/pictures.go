@@ -108,9 +108,9 @@ func handlePictureCmd(event *irc.Event, callback func(*core.ReplyCallbackData)) 
 		resultCount++
 		rows.Scan(&tag, &url, &nsfw)
 		if nsfw == 0 {
-			message = "Picture for %q : %s"
+			message = "Picture for \"%s\" : %s"
 		} else {
-			message = "Picture for %q (#NSFW) : %s"
+			message = "Picture for \"%s\" (#NSFW) : %s"
 		}
 		callback(&core.ReplyCallbackData{
 			Message: fmt.Sprintf(message, tag, url),
@@ -118,7 +118,7 @@ func handlePictureCmd(event *irc.Event, callback func(*core.ReplyCallbackData)) 
 	}
 	if resultCount == 0 {
 		callback(&core.ReplyCallbackData{
-			Message: fmt.Sprintf("No picture found for tag %q", requestedTag),
+			Message: fmt.Sprintf("No picture found for tag \"%s\"", requestedTag),
 			Target:  core.GetTargetFromEvent(event)})
 	}
 
@@ -157,7 +157,7 @@ func handleAddPictureCmd(event *irc.Event, callback func(*core.ReplyCallbackData
 	}
 	if count >= maxPictures {
 		callback(&core.ReplyCallbackData{
-			Message: fmt.Sprintf("There is already too much pictures for the tag %q", tag),
+			Message: fmt.Sprintf("There is already too much pictures for the tag \"%s\"", tag),
 			Target:  core.GetTargetFromEvent(event)})
 		return true
 	}
@@ -170,7 +170,7 @@ func handleAddPictureCmd(event *irc.Event, callback func(*core.ReplyCallbackData
 
 	if rows.Next() {
 		callback(&core.ReplyCallbackData{
-			Message: fmt.Sprintf("This picture is already present for the tag %q", tag),
+			Message: fmt.Sprintf("This picture is already present for the tag \"%s\"", tag),
 			Target:  core.GetTargetFromEvent(event)})
 		return true
 	}
@@ -180,7 +180,7 @@ func handleAddPictureCmd(event *irc.Event, callback func(*core.ReplyCallbackData
 		log.Fatalf("%q: %s\n", err, sqlInsert)
 	}
 	callback(&core.ReplyCallbackData{
-		Message: fmt.Sprintf("Picture %q added for tag %q", url, tag),
+		Message: fmt.Sprintf("Picture \"%s\" added for tag \"%s\"", url, tag),
 		Target:  core.GetTargetFromEvent(event)})
 
 	return true
@@ -202,11 +202,11 @@ func handleRmPictureCmd(event *irc.Event, callback func(*core.ReplyCallbackData)
 	if !helpers.StringInSlice(event.Nick, *administrators) {
 		if len(*administrators) > 1 {
 			callback(&core.ReplyCallbackData{
-				Message: fmt.Sprintf("You need to be an administrator to run this command (Admins: %q)", strings.Join(*administrators, ", ")),
+				Message: fmt.Sprintf("You need to be an administrator to run this command (Admins: \"%s\")", strings.Join(*administrators, ", ")),
 				Target:  core.GetTargetFromEvent(event)})
 		} else if len(*administrators) == 1 {
 			callback(&core.ReplyCallbackData{
-				Message: fmt.Sprintf("You need to be an administrator to run this command (Admin: %q)", (*administrators)[0]),
+				Message: fmt.Sprintf("You need to be an administrator to run this command (Admin: \"%s\")", (*administrators)[0]),
 				Target:  core.GetTargetFromEvent(event)})
 		} else {
 			callback(&core.ReplyCallbackData{
@@ -229,7 +229,7 @@ func handleRmPictureCmd(event *irc.Event, callback func(*core.ReplyCallbackData)
 	}
 	if rowCount != 0 {
 		callback(&core.ReplyCallbackData{
-			Message: fmt.Sprintf("Picture %q removed for tag %q", url, tag),
+			Message: fmt.Sprintf("Picture \"%s\" removed for tag \"%s\"", url, tag),
 			Target:  core.GetTargetFromEvent(event)})
 	}
 	return true

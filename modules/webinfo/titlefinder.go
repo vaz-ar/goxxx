@@ -135,7 +135,7 @@ func handleSearchURLsCmd(event *irc.Event, callback func(*core.ReplyCallbackData
 			title = "No Title"
 		}
 		callback(&core.ReplyCallbackData{
-			Message: fmt.Sprintf(`Link found for %q => %s (%s) [Posted by %s, %s]`, search, title, url, user, date),
+			Message: fmt.Sprintf(`Link found for "%s" => %s (%s) [Posted by %s, %s]`, search, title, url, user, date),
 			Target:  core.GetTargetFromEvent(event)})
 	}
 	return true

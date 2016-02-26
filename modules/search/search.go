@@ -106,7 +106,7 @@ func handleDuckduckGoCmd(event *irc.Event, callback func(*core.ReplyCallbackData
 	results := getDuckduckgoSearchResult(message)
 	if results == nil {
 		callback(&core.ReplyCallbackData{
-			Message: fmt.Sprintf("DuckDuckGo: No result for %q", message),
+			Message: fmt.Sprintf("DuckDuckGo: No result for \"%s\"", message),
 			Target:  core.GetTargetFromEvent(event)})
 		return true
 	}
@@ -114,7 +114,7 @@ func handleDuckduckGoCmd(event *irc.Event, callback func(*core.ReplyCallbackData
 		if index == 0 {
 			// First part of the result is sent to everyone, no nick is sent
 			callback(&core.ReplyCallbackData{
-				Message: fmt.Sprintf("DuckDuckGo: Best result for %q => %s", message, item),
+				Message: fmt.Sprintf("DuckDuckGo: Best result for \"%s\" => %s", message, item),
 				Target:  core.GetTargetFromEvent(event)})
 		} else {
 			// Second and following parts of the result are sent directly to the user
@@ -140,7 +140,7 @@ func handleUrbanDictionnaryCmd(event *irc.Event, callback func(*core.ReplyCallba
 
 	if results == nil {
 		callback(&core.ReplyCallbackData{
-			Message: fmt.Sprintf("Urban Dictionnary: No result for %q", message),
+			Message: fmt.Sprintf("Urban Dictionnary: No result for \"%s\"", message),
 			Target:  core.GetTargetFromEvent(event)})
 		return true
 	}
@@ -148,7 +148,7 @@ func handleUrbanDictionnaryCmd(event *irc.Event, callback func(*core.ReplyCallba
 		if index == 0 {
 			// First part of the result is sent to everyone, no nick is sent
 			callback(&core.ReplyCallbackData{
-				Message: fmt.Sprintf("Urban Dictionnary: Best result for %q => %s", message, item),
+				Message: fmt.Sprintf("Urban Dictionnary: Best result for \"%s\" => %s", message, item),
 				Target:  core.GetTargetFromEvent(event)})
 		} else {
 			// Second and following parts of the result are sent directly to the user
@@ -175,7 +175,7 @@ func handleWikipediaCmd(event *irc.Event, callback func(*core.ReplyCallbackData)
 	results := getWikipediaSearchResult(message, "en")
 	if results == nil {
 		callback(&core.ReplyCallbackData{
-			Message: fmt.Sprintf("Wikipedia: No result for %q", message),
+			Message: fmt.Sprintf("Wikipedia: No result for \"%s\"", message),
 			Target:  core.GetTargetFromEvent(event)})
 		return true
 	}
@@ -183,7 +183,7 @@ func handleWikipediaCmd(event *irc.Event, callback func(*core.ReplyCallbackData)
 		if index == 0 {
 			// First part of the result is sent to everyone, no nick is sent
 			callback(&core.ReplyCallbackData{
-				Message: fmt.Sprintf("Wikipedia result for %q => %s", message, item),
+				Message: fmt.Sprintf("Wikipedia result for \"%s\" => %s", message, item),
 				Target:  core.GetTargetFromEvent(event)})
 		} else {
 			// Second and following parts of the result are sent directly to the user
@@ -208,7 +208,7 @@ func handleWikipediaFRCmd(event *irc.Event, callback func(*core.ReplyCallbackDat
 	results := getWikipediaSearchResult(message, "fr")
 	if results == nil {
 		callback(&core.ReplyCallbackData{
-			Message: fmt.Sprintf("Wikipedia: No result for %q", message),
+			Message: fmt.Sprintf("Wikipedia: No result for \"%s\"", message),
 			Target:  core.GetTargetFromEvent(event)})
 		return true
 	}
@@ -216,7 +216,7 @@ func handleWikipediaFRCmd(event *irc.Event, callback func(*core.ReplyCallbackDat
 		if index == 0 {
 			// First part of the result is sent to everyone, no nick is sent
 			callback(&core.ReplyCallbackData{
-				Message: fmt.Sprintf("Wikipedia result for %q => %s", message, item),
+				Message: fmt.Sprintf("Wikipedia result for \"%s\" => %s", message, item),
 				Target:  core.GetTargetFromEvent(event)})
 		} else {
 			// Second and following parts of the result are sent directly to the user
