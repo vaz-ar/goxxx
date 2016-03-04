@@ -1,3 +1,5 @@
+SHELL := /bin/bash
+
 VERSION=0.1.0
 BINARY=goxxx
 
