@@ -1,20 +1,12 @@
-VERSION=0.0.4
+VERSION=0.1.0
 BINARY=goxxx
 
 # -----------------------------------------------------------------------------------------
 
-# This will only work while go version is < 2
-GO_GTE_15=$(shell [ $$(go version | sed -r 's/^.*[0-9]\.([0-9])\.[0-9].*$$/\1/') -ge 5 ] && echo true || echo false)
-
-ifeq ($(GO_GTE_15), true)
-	LDFLAGS=-ldflags "-X main.GlobalVersion=$(VERSION) -X main.BuildTime=$(BUILD_TIME)"
-else
-	LDFLAGS=-ldflags "-X main.GlobalVersion $(VERSION) -X main.BuildTime $(BUILD_TIME)"
-endif
-
 BUILD_TIME=`date +%FT%T%z`
 SOURCEDIR=.
 SOURCES := $(shell find $(SOURCEDIR) -name '*.go')
+LDFLAGS=-ldflags "-X main.GlobalVersion=$(VERSION) -X main.BuildTime=$(BUILD_TIME)"
 
 # -----------------------------------------------------------------------------------------
 
