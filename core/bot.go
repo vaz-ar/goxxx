@@ -58,10 +58,12 @@ func NewBot(nick, server, channel, channelKey string) *Bot {
 
 	// RPL_WELCOME
 	bot.ircConn.AddCallback("001", func(event *irc.Event) {
-		bot.ircConn.Join(channel + " " + channelKey)
-		// Necessary because the callback for RPL_NAMREPLY is called after joining the channel (NAMES command)
-		// If not called here updateAdminsDone will always contains a value before being read by UpdateAdministrators()
-		<-updateAdminsDone
+		go func(event *irc.Event) {
+			bot.ircConn.Join(channel + " " + channelKey)
+			// Necessary because the callback for RPL_NAMREPLY is called after joining the channel (NAMES command)
+			// If not called here updateAdminsDone will always contains a value before being read by UpdateAdministrators()
+			<-updateAdminsDone
+		}(event)
 	})
 
 	// RPL_NAMREPLY
