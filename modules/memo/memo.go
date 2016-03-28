@@ -61,6 +61,7 @@ func handleMemoCmd(event *irc.Event, callback func(*core.ReplyCallbackData)) boo
 	// fields[1]  => recipient's nick
 	// fields[2:] => message
 	if len(fields) < 3 {
+		log.Println("Memo command received: not enough arguments")
 		return false
 	}
 	memo := data{
@@ -78,6 +79,7 @@ func handleMemoCmd(event *irc.Event, callback func(*core.ReplyCallbackData)) boo
 		callback(&core.ReplyCallbackData{
 			Message: fmt.Sprintf("%s: memo for %s saved", memo.userFrom, memo.userTo),
 			Target:  memo.userFrom})
+		log.Printf("Memo command received: \"%s\" for %s from %s\n", memo.message, memo.userTo, memo.userFrom)
 	}
 	return true
 }
