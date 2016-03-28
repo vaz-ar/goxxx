@@ -52,6 +52,7 @@ type configData struct {
 	server        string
 	modules       []string
 	debug         bool
+	useLogfile    bool
 	emailServer   string
 	emailPort     int
 	emailSender   string
@@ -75,6 +76,7 @@ func getOptions() (config configData, returnCode int) {
 	flag.StringVar(&config.emailPassword, "email_pwd", "", "password for the SMTP server")
 	// Application
 	flag.BoolVar(&config.debug, "debug", false, "Debug mode")
+	flag.BoolVar(&config.useLogfile, "use_logfile", true, "If true logs will go to the logfile, else to the standard output")
 	version := flag.Bool("version", false, "Display goxxx version")
 
 	flag.Usage = func() {
@@ -120,20 +122,25 @@ func getOptions() (config configData, returnCode int) {
 }
 
 func main() {
-	// Set log output to a file
-	logFile, err := os.OpenFile("./goxxx_logs.txt", os.O_RDWR|os.O_CREATE|os.O_APPEND, 0666)
-	if err != nil {
-		log.Fatalf("Error opening file: %v", err)
-	}
-	defer logFile.Close()
-	log.SetOutput(logFile)
-
 	config, returnCode := getOptions()
 	if returnCode == flagsExit {
 		return
-	} else if returnCode == flagsFailure {
+	}
+
+	// Set log output to a file if use_logfile is true
+	if config.useLogfile {
+		logFile, err := os.OpenFile("./goxxx_logs.txt", os.O_RDWR|os.O_CREATE|os.O_APPEND, 0666)
+		if err != nil {
+			log.Fatalf("Error opening file: %v", err)
+		}
+		defer logFile.Close()
+		log.SetOutput(logFile)
+	}
+
+	if returnCode == flagsFailure {
 		log.Fatal("Initialisation failed (getOptions())")
 	}
+
 	if config.debug {
 		// In debug mode we show the file name and the line from where the log come from
 		log.SetFlags(log.LstdFlags | log.Lshortfile)
@@ -173,7 +180,7 @@ func main() {
 			cmd := invoke.GetCommand()
 			bot.AddCmdHandler(cmd, bot.Reply)
 			help.AddMessages(cmd)
-			log.Println("invoke module loaded")
+			log.Println("Invoke module loaded")
 
 		case "memo":
 			memo.Init(db)
@@ -186,7 +193,7 @@ func main() {
 			cmd = memo.GetMemoStatCommand()
 			bot.AddCmdHandler(cmd, bot.Reply)
 			help.AddMessages(cmd)
-			log.Println("memo module loaded")
+			log.Println("Memo module loaded")
 
 		case "search":
 			cmd := search.GetDuckduckGoCmd()
@@ -204,7 +211,7 @@ func main() {
 			cmd = search.GetUrbanDictionnaryCmd()
 			bot.AddCmdHandler(cmd, bot.Reply)
 			help.AddMessages(cmd)
-			log.Println("search module loaded")
+			log.Println("Search module loaded")
 
 		case "webinfo":
 			webinfo.Init(db)
@@ -213,13 +220,13 @@ func main() {
 			cmd := webinfo.GetCommand()
 			bot.AddCmdHandler(cmd, bot.Reply)
 			help.AddMessages(cmd)
-			log.Println("webinfo module loaded")
+			log.Println("Webinfo module loaded")
 
 		case "xkcd":
 			cmd := xkcd.GetCommand()
 			bot.AddCmdHandler(cmd, bot.Reply)
 			help.AddMessages(cmd)
-			log.Println("xkcd module loaded")
+			log.Println("XKCD module loaded")
 
 		case "pictures":
 			pictures.Init(db, bot.Admins)
@@ -235,7 +242,7 @@ func main() {
 			cmd = pictures.GetRmPicCommand()
 			bot.AddCmdHandler(cmd, bot.Reply)
 			help.AddMessages(cmd)
-			log.Println("pictures module loaded")
+			log.Println("Pictures module loaded")
 
 		case "quote":
 			quote.Init(db, bot.Admins)
@@ -252,13 +259,14 @@ func main() {
 			cmd = quote.GetRmQuoteCommand()
 			bot.AddCmdHandler(cmd, bot.Reply)
 			help.AddMessages(cmd)
-			log.Println("quote module loaded")
+			log.Println("Quote module loaded")
 
 		default:
 
 		}
 	}
 	bot.AddCmdHandler(help.GetCommand(), bot.Reply)
+	log.Println("Help module loaded")
 
 	log.Println("Goxxx started")
 
