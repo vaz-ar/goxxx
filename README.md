@@ -14,12 +14,23 @@ $ go get github.com/vaz-ar/goxxx
 
 Build
 =======
+
+Under `$GOPATH/src/github.com/vaz-ar/goxxx`, run:
+
 ```
 $ make
 ```
 
 Usage
 =====
+
+Minimal command to start goxxx is the following:
+
+```
+$ goxxx -channel "#my_channel" -config config.ini
+```
+
+Where `config.ini` is a configuration file (see `sample_config.ini` to write your own file).
 
 To get help about program usage, just run:
 ```
@@ -33,6 +44,19 @@ $ goxxx
 ### Log file
 - The log file will be created in the directory where goxxx is started, and will be named `goxxx_logs.txt`.
 
+### Troubles
+If command fails silently, search in `goxxx_logs.txt` for similar lines:
+
+```
+2016/09/28 17:33:42 unable to open database file
+2016/09/28 17:33:42 Error while applying migrations, exiting ...
+```
+
+You need to set correct permissions on `./storage/`:
+
+```
+$ chmod u+rw storage
+```
 
 Commands
 =====
