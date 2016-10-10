@@ -53,8 +53,8 @@ func GetPicCommand() *core.Command {
 func GetAddPicCommand() *core.Command {
 	return &core.Command{
 		Module:      "pictures",
-		HelpMessage: "\t!addpic <url> <tag> [#NSFW] \t=> Add a picture in the database for <tag> (<url> must have an image extension)",
-		Triggers:    []string{"!addpic"},
+		HelpMessage: "\t!ap/!addpic <url> <tag> [#NSFW] \t=> Add a picture in the database for <tag> (<url> must have an image extension)",
+		Triggers:    []string{"!ap", "!addpic"},
 		Handler:     handleAddPictureCmd}
 }
 
