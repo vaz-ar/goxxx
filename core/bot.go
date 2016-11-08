@@ -11,6 +11,7 @@ import (
 	"github.com/thoj/go-ircevent"
 	"log"
 	"strings"
+	"time"
 )
 
 var (
@@ -29,6 +30,7 @@ type Bot struct {
 	msgReplyCallbacks []func(*ReplyCallbackData)
 	cmdHandlers       map[string]func(*irc.Event, func(*ReplyCallbackData)) bool
 	cmdReplyCallbacks map[string]func(*ReplyCallbackData)
+	lastReplyTime     time.Time
 }
 
 // ReplyCallbackData Structure used by the handlers to send data in a standardized format
@@ -81,6 +83,8 @@ func NewBot(nick, server, channel, channelKey string) *Bot {
 
 	bot.cmdHandlers = make(map[string]func(*irc.Event, func(*ReplyCallbackData)) bool)
 	bot.cmdReplyCallbacks = make(map[string]func(*ReplyCallbackData))
+	bot.lastReplyTime = time.Now()
+
 	return &bot
 }
 
@@ -121,14 +125,24 @@ func (bot *Bot) Stop() {
 
 // ReplyToAll sends a message to the channel where the bot is connected
 func (bot *Bot) ReplyToAll(data *ReplyCallbackData) {
-	bot.ircConn.Privmsg(bot.channel, data.Message)
+	bot.reply(bot.channel, data.Message)
 }
 
 // Reply sends a message to the user or channel specifed by "data.Target".
 func (bot *Bot) Reply(data *ReplyCallbackData) {
 	if data.Target != "" {
-		bot.ircConn.Privmsg(data.Target, data.Message)
+		bot.reply(data.Target, data.Message)
 	}
+}
+
+// reply sends a message and introduces necessary pauses between consecutive messages to deal with flood control
+func (bot *Bot) reply(target string, message string) {
+	elapsedTime := time.Since(bot.lastReplyTime)
+	if elapsedTime < (2 * time.Second) {
+		time.Sleep((2 * time.Second) - elapsedTime)
+	}
+	bot.ircConn.Privmsg(target, message)
+	bot.lastReplyTime = time.Now()
 }
 
 // mainHandler is called on every message posted in the channel where the bot is connected or directly sent to the bot.
