@@ -217,9 +217,14 @@ func main() {
 			webinfo.Init(db)
 			bot.AddMsgHandler(webinfo.HandleURLs, bot.ReplyToAll)
 
-			cmd := webinfo.GetCommand()
+			cmd := webinfo.GetTitleCommand()
 			bot.AddCmdHandler(cmd, bot.Reply)
 			help.AddMessages(cmd)
+
+			cmd = webinfo.GetUrlCommand()
+			bot.AddCmdHandler(cmd, bot.Reply)
+			help.AddMessages(cmd)
+
 			log.Println("Webinfo module loaded")
 
 		case "xkcd":

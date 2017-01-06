@@ -27,6 +27,7 @@ const (
 	maxUrlsCount        = 10
 	sqlSelectExist      = "SELECT user, strftime('%d/%m/%Y @ %H:%M', datetime(date, 'localtime')) FROM Link WHERE url = $1"
 	sqlSelectWhereTitle = "SELECT user, strftime('%d/%m/%Y @ %H:%M', datetime(date, 'localtime')), title, url FROM Link WHERE title LIKE $1"
+	sqlSelectWhereUrl   = "SELECT user, strftime('%d/%m/%Y @ %H:%M', datetime(date, 'localtime')), title, url FROM Link WHERE url LIKE $1"
 	sqlInsert           = "INSERT INTO Link (user, url, title) VALUES ($1, $2, $3)"
 )
 
@@ -36,12 +37,19 @@ var (
 )
 
 // GetCommand returns a Command structure for url search command
-func GetCommand() *core.Command {
+func GetTitleCommand() *core.Command {
 	return &core.Command{
 		Module:      "url",
-		HelpMessage: "\t!url <search terms>\t\t\t\t\t\t=> Return links with titles matching <search terms>",
+		HelpMessage: "\t!urlt <search terms>\t\t\t\t\t\t=> Return links with titles matching <search terms>",
+		Triggers:    []string{"!urlt"},
+		Handler:     handleSearchTitlesCmd}
+}
+func GetUrlCommand() *core.Command {
+	return &core.Command{
+		Module:      "url",
+		HelpMessage: "\t!url <search terms>\t\t\t\t\t\t=> Return links with urls matching <search terms>",
 		Triggers:    []string{"!url"},
-		Handler:     handleSearchURLsCmd}
+		Handler:     handleSearchUrlsCmd}
 }
 
 // Init stores the database pointer.
@@ -110,8 +118,8 @@ func HandleURLs(event *irc.Event, callback func(*core.ReplyCallbackData)) {
 	}
 }
 
-// handleSearchURLsCmd is a command handler that search in the database for page titles matching a pattern
-func handleSearchURLsCmd(event *irc.Event, callback func(*core.ReplyCallbackData)) bool {
+// handleSearchTitlesCmd is a command handler that search in the database for page titles matching a pattern
+func handleSearchTitlesCmd(event *irc.Event, callback func(*core.ReplyCallbackData)) bool {
 	fields := strings.Fields(event.Message())
 	// fields[0]  => Command
 	// fields[1:]  => URL
@@ -136,6 +144,37 @@ func handleSearchURLsCmd(event *irc.Event, callback func(*core.ReplyCallbackData
 		}
 		callback(&core.ReplyCallbackData{
 			Message: fmt.Sprintf(`Link found for "%s" => %s (%s) [Posted by %s, %s]`, search, title, url, user, date),
+			Target:  core.GetTargetFromEvent(event)})
+	}
+	return true
+}
+
+// handleSearchUrlsCmd is a command handler that search in the database for url matching a pattern
+func handleSearchUrlsCmd(event *irc.Event, callback func(*core.ReplyCallbackData)) bool {
+	fields := strings.Fields(event.Message())
+	// fields[0]  => Command
+	// fields[1:]  => URL
+	if len(fields) < 2 {
+		return false
+	}
+	var (
+		user, date, title, url string
+		search                 = strings.Join(fields[1:], " ")
+	)
+	// BUG(vaz-ar) Maybe not necessary to use Query + loop here, see if QueryRow can do the trick
+	rows, err := dbPtr.Query(sqlSelectWhereUrl, "%"+search+"%")
+	if err != nil {
+		log.Fatalf("%q: %s\n", err, sqlSelectWhereUrl)
+	}
+	defer rows.Close()
+
+	for rows.Next() {
+		rows.Scan(&user, &date, &title, &url)
+		if title == "" {
+			title = "No Title"
+		}
+		callback(&core.ReplyCallbackData{
+			Message: fmt.Sprintf(`URLs matching "%s" => %s (%s) [Posted by %s, %s]`, search, title, url, user, date),
 			Target:  core.GetTargetFromEvent(event)})
 	}
 	return true
