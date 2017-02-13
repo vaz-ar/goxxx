@@ -62,16 +62,26 @@ func Init(db *sql.DB) {
 // HandleURLs is a message handler that search for URLs in a message
 func HandleURLs(event *irc.Event, callback func(*core.ReplyCallbackData)) {
 
+	client := &http.Client{}
+
 	for _, currentURL := range findURLs(event.Message()) {
+
 		log.Println("Detected URL:", currentURL.String())
-		response, err := http.Get(currentURL.String())
+
+		req, err := http.NewRequest("GET", currentURL.String(), nil)
+		if err != nil {
+			log.Fatalln(err)
+		}
+		req.Header.Set("User-Agent", "Goxxx/1.0")
+
+		response, err := client.Do(req)
 		if err != nil {
 			log.Println(err)
 			return
 		}
+		defer response.Body.Close()
 
 		doc, err := html.Parse(response.Body)
-		response.Body.Close()
 		if err != nil {
 			log.Println(err)
 			return
