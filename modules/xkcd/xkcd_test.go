@@ -20,7 +20,7 @@ var (
 
 	// Expected results
 	expectedResult = xkcd{
-		Img:   "http://imgs.xkcd.com/comics/error_code.png",
+		Img:   "https://imgs.xkcd.com/comics/error_code.png",
 		Link:  "https://xkcd.com/1024/",
 		Num:   1024,
 		Title: "Error Code"}
