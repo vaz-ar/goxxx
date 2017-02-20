@@ -21,9 +21,10 @@ import (
 )
 
 const (
-	maxMessages           = 10
+	maxMessages           = 20
 	sqlInsert             = "INSERT INTO Quote (user, content, sender) VALUES ($1, $2, $3)"
 	sqlSelect             = "SELECT content, strftime('%d/%m/%Y @ %H:%M', datetime(date, 'localtime')), sender FROM Quote WHERE user = $1 AND content LIKE $2"
+	sqlSelectFromAll      = "SELECT content, strftime('%d/%m/%Y @ %H:%M', datetime(date, 'localtime')), sender FROM Quote WHERE content LIKE $1"
 	sqlSelectExactContent = "SELECT sender FROM Quote WHERE user = $1 AND content = $2"
 	sqlSelectAll          = "SELECT content, strftime('%d/%m/%Y @ %H:%M', datetime(date, 'localtime')), sender FROM Quote WHERE user = $1"
 	sqlDelete             = "DELETE FROM Quote where user = $1 AND content LIKE $2"
@@ -43,6 +44,15 @@ func GetQuoteCommand() *core.Command {
 		HelpMessage: "\t!q/!quote <nick> [<part of message>]",
 		Triggers:    []string{"!q", "!quote"},
 		Handler:     handleQuoteCmd}
+}
+
+// GetQuoteFromAllCommand returns a Command structure for the quote all command
+func GetQuoteFromAllCommand() *core.Command {
+	return &core.Command{
+		Module:      "quote",
+		HelpMessage: "\t!qa/!quoteall [<part of message>]",
+		Triggers:    []string{"!qa", "!quoteall"},
+		Handler:     handleQuoteAllCmd}
 }
 
 // GetAddQuoteCommand returns a Command structure for the addquote command
@@ -101,6 +111,39 @@ func handleQuoteCmd(event *irc.Event, callback func(*core.ReplyCallbackData)) bo
 		rows.Scan(&content, &date, &sender)
 		callback(&core.ReplyCallbackData{
 			Message: fmt.Sprintf("%s [%s, %s, quoted by %s]", content, fields[1], date, sender),
+			Target:  core.GetTargetFromEvent(event)})
+	}
+
+	return true
+}
+
+// handleQuoteAllCmd
+func handleQuoteAllCmd(event *irc.Event, callback func(*core.ReplyCallbackData)) bool {
+	fields := strings.Fields(event.Message())
+	// fields[0]  => Command
+	// fields[1:] => part of the message to search for
+	if len(fields) == 1 {
+		return true
+	}
+	var (
+		rows *sql.Rows
+		err  error
+	)
+
+	// Search with part of the message
+	messagePart := prepareForSearch(strings.Join(fields[1:], " "))
+	rows, err = dbPtr.Query(sqlSelectFromAll, "%"+messagePart+"%")
+
+	if err != nil {
+		log.Fatalf("\"%s\": %s\n", err, sqlSelectFromAll)
+	}
+	defer rows.Close()
+
+	var content, date, sender string
+	for rows.Next() {
+		rows.Scan(&content, &date, &sender)
+		callback(&core.ReplyCallbackData{
+			Message: fmt.Sprintf("%s [%s, quoted by %s]", content, date, sender),
 			Target:  core.GetTargetFromEvent(event)})
 	}
 

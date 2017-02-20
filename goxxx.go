@@ -257,6 +257,10 @@ func main() {
 			bot.AddCmdHandler(cmd, bot.Reply)
 			help.AddMessages(cmd)
 
+			cmd = quote.GetQuoteFromAllCommand()
+			bot.AddCmdHandler(cmd, bot.Reply)
+			help.AddMessages(cmd)
+
 			cmd = quote.GetAddQuoteCommand()
 			bot.AddCmdHandler(cmd, bot.Reply)
 			help.AddMessages(cmd)
