@@ -24,7 +24,7 @@ const (
 	maxMessages           = 20
 	sqlInsert             = "INSERT INTO Quote (user, content, sender) VALUES ($1, $2, $3)"
 	sqlSelect             = "SELECT content, strftime('%d/%m/%Y @ %H:%M', datetime(date, 'localtime')), sender FROM Quote WHERE user = $1 AND content LIKE $2"
-	sqlSelectFromAll      = "SELECT content, strftime('%d/%m/%Y @ %H:%M', datetime(date, 'localtime')), sender FROM Quote WHERE content LIKE $1"
+	sqlSelectFromAll      = "SELECT content, strftime('%d/%m/%Y @ %H:%M', datetime(date, 'localtime')), sender, user FROM Quote WHERE content LIKE $1"
 	sqlSelectExactContent = "SELECT sender FROM Quote WHERE user = $1 AND content = $2"
 	sqlSelectAll          = "SELECT content, strftime('%d/%m/%Y @ %H:%M', datetime(date, 'localtime')), sender FROM Quote WHERE user = $1"
 	sqlDelete             = "DELETE FROM Quote where user = $1 AND content LIKE $2"
@@ -139,11 +139,11 @@ func handleQuoteAllCmd(event *irc.Event, callback func(*core.ReplyCallbackData))
 	}
 	defer rows.Close()
 
-	var content, date, sender string
+	var content, date, sender, user string
 	for rows.Next() {
-		rows.Scan(&content, &date, &sender)
+		rows.Scan(&content, &date, &sender, &user)
 		callback(&core.ReplyCallbackData{
-			Message: fmt.Sprintf("%s [%s, quoted by %s]", content, date, sender),
+			Message: fmt.Sprintf("%s [%s, %s, quoted by %s]", content, user, date, sender),
 			Target:  core.GetTargetFromEvent(event)})
 	}
 
