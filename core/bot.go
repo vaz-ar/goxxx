@@ -148,6 +148,10 @@ func (bot *Bot) reply(target string, message string) {
 // mainHandler is called on every message posted in the channel where the bot is connected or directly sent to the bot.
 func (bot *Bot) mainHandler(event *irc.Event) {
 
+	if strings.TrimSpace(event.Message()) == "" {
+		return
+	}
+
 	cmd := strings.Fields(event.Message())[0]
 	cmdHandler, present := bot.cmdHandlers[cmd]
 	if present {
