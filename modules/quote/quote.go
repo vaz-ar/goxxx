@@ -89,6 +89,7 @@ func handleQuoteCmd(event *irc.Event, callback func(*core.ReplyCallbackData)) bo
 	if len(fields) == 1 {
 		return true
 	}
+
 	var (
 		rows *sql.Rows
 		err  error
@@ -218,7 +219,7 @@ func handleRmQuoteCmd(event *irc.Event, callback func(*core.ReplyCallbackData)) 
 	}
 
 	// update the administrators list
-	core.UpdateAdministrators(event)
+	core.UpdateUserList(event)
 
 	if !helpers.StringInSlice(event.Nick, *administrators) {
 		if len(*administrators) > 1 {

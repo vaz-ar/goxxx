@@ -92,12 +92,13 @@ func handlePictureCmd(event *irc.Event, callback func(*core.ReplyCallbackData)) 
 			Message: "Picture command: No data remaining for the tag value after sanitization.",
 			Target:  core.GetTargetFromEvent(event)})
 		return true
-	} else {
-		rows, err = dbPtr.Query(sqlSelectWhereTagLike, "%"+requestedTag+"%")
-		if err != nil {
-			log.Fatalf("%q: %s\n", err, sqlSelectWhereTagLike)
-		}
 	}
+
+	rows, err = dbPtr.Query(sqlSelectWhereTagLike, "%"+requestedTag+"%")
+	if err != nil {
+		log.Fatalf("%q: %s\n", err, sqlSelectWhereTagLike)
+	}
+
 	defer rows.Close()
 
 	var (
@@ -197,7 +198,7 @@ func handleRmPictureCmd(event *irc.Event, callback func(*core.ReplyCallbackData)
 	}
 
 	// update the administrators list
-	core.UpdateAdministrators(event)
+	core.UpdateUserList(event)
 
 	if !helpers.StringInSlice(event.Nick, *administrators) {
 		if len(*administrators) > 1 {

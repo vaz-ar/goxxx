@@ -8,14 +8,15 @@
 package core
 
 import (
+	"github.com/emirozer/go-helpers"
 	"github.com/thoj/go-ircevent"
-	"log"
+	// "log"
 	"strings"
 	"time"
 )
 
 var (
-	updateAdminsDone = make(chan bool, 1)
+	updateUserListDone = make(chan bool, 1)
 )
 
 // Bot structure that contains connection informations, IRC connection, command handlers and message handlers
@@ -25,6 +26,7 @@ type Bot struct {
 	channel           string
 	channelKey        string
 	Admins            *[]string
+	users             []string
 	ircConn           *irc.Connection
 	msgHandlers       []func(*irc.Event, func(*ReplyCallbackData))
 	msgReplyCallbacks []func(*ReplyCallbackData)
@@ -63,22 +65,30 @@ func NewBot(nick, server, channel, channelKey string) *Bot {
 		go func(event *irc.Event) {
 			bot.ircConn.Join(channel + " " + channelKey)
 			// Necessary because the callback for RPL_NAMREPLY is called after joining the channel (NAMES command)
-			// If not called here updateAdminsDone will always contains a value before being read by UpdateAdministrators()
-			<-updateAdminsDone
+			// If not called here updateUserListDone will always contains a value before being read by UpdateUserList()
+			<-updateUserListDone
 		}(event)
 	})
 
 	// RPL_NAMREPLY
 	bot.ircConn.AddCallback("353", func(event *irc.Event) {
-		var currentAdmins []string
+		var (
+			currentAdmins []string
+			currentUsers  []string
+		)
 		for _, user := range strings.Split(event.Message(), " ") {
 			if strings.HasPrefix(user, "@") {
 				currentAdmins = append(currentAdmins, strings.TrimPrefix(user, "@"))
+				currentUsers = append(currentUsers, strings.TrimPrefix(user, "@"))
+			} else {
+				currentUsers = append(currentUsers, user)
 			}
 		}
 		*bot.Admins = currentAdmins
-		log.Printf("Current admnistrators: %s", strings.Join(currentAdmins, ", "))
-		updateAdminsDone <- true
+		bot.users = currentUsers
+		// log.Printf("Current admnistrators: %s", strings.Join(*bot.Admins, ", "))
+		// log.Printf("Current users: %s", strings.Join(bot.users, ", "))
+		updateUserListDone <- true
 	})
 
 	bot.cmdHandlers = make(map[string]func(*irc.Event, func(*ReplyCallbackData)) bool)
@@ -155,8 +165,15 @@ func (bot *Bot) mainHandler(event *irc.Event) {
 	cmd := strings.Fields(event.Message())[0]
 	cmdHandler, present := bot.cmdHandlers[cmd]
 	if present {
-		go cmdHandler(event, bot.cmdReplyCallbacks[cmd])
-		return
+		go func() {
+			if !helpers.StringInSlice(event.Nick, bot.users) {
+				UpdateUserList(event)
+				if !helpers.StringInSlice(event.Nick, bot.users) {
+					return
+				}
+			}
+			go cmdHandler(event, bot.cmdReplyCallbacks[cmd])
+		}()
 	}
 
 	for i, handler := range bot.msgHandlers {
@@ -164,16 +181,17 @@ func (bot *Bot) mainHandler(event *irc.Event) {
 	}
 }
 
-func UpdateAdministrators(event *irc.Event) {
+// UpdateUserList Update the user list used for access control
+func UpdateUserList(event *irc.Event) {
 	event.Connection.SendRawf("NAMES %s", event.Arguments[0])
-	<-updateAdminsDone
+	<-updateUserListDone
 }
 
+// GetTargetFromEvent If the message originated from a channel then return it, else return the nick that sent the message
 func GetTargetFromEvent(event *irc.Event) string {
 	source := strings.TrimSpace(event.Arguments[0])
 	if strings.HasPrefix(source, "#") {
 		return source
-	} else {
-		return event.Nick
 	}
+	return event.Nick
 }
