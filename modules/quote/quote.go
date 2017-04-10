@@ -273,10 +273,8 @@ func handleDailyQuoteCmd(event *irc.Event, callback func(*core.ReplyCallbackData
 	defer rows.Close()
 
 	if rows.Next() {
-		fmt.Printf("%#v\n", rows)
 		var content, date, sender, user string
 		rows.Scan(&content, &date, &sender, &user)
-		fmt.Println(content, date, sender, user)
 		callback(&core.ReplyCallbackData{
 			Message: fmt.Sprintf("%s [%s, %s, quoted by %s]", content, user, date, sender),
 			Target:  core.GetTargetFromEvent(event)})
@@ -284,7 +282,7 @@ func handleDailyQuoteCmd(event *irc.Event, callback func(*core.ReplyCallbackData
 	}
 
 	callback(&core.ReplyCallbackData{
-		Message: "There was no quote 1 year ago, loosers!",
+		Message: "There was no quote 1 year ago, losers!",
 		Target:  core.GetTargetFromEvent(event)})
 
 	return true
