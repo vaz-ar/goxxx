@@ -56,7 +56,7 @@ func Init(db *sql.DB, sender, account, password, server, channel string, port in
 func GetCommand() *core.Command {
 	return &core.Command{
 		Module:      "invoke",
-		HelpMessage: "\t!invoke <nick> [<message>] \t=> Send an email to an user, with an optionnal message",
+		HelpMessage: "!invoke <nick> [<message>] => Send an email to an user, with an optionnal message",
 		Triggers:    []string{"!invoke"},
 		Handler:     handleInvokeCmd}
 }

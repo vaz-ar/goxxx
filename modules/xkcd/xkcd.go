@@ -36,7 +36,7 @@ type xkcd struct {
 func GetCommand() *core.Command {
 	return &core.Command{
 		Module:      "xkcd",
-		HelpMessage: "\t!xkcd [<comic number>] \t\t=> Return the XKCD comic corresponding to the number. If number is not specified, returns the last comic.",
+		HelpMessage: "!xkcd [<comic number>] => Return the XKCD comic corresponding to the number. If number is not specified, returns the last comic.",
 		Triggers:    []string{"!xkcd"},
 		Handler:     handleXKCDCmd}
 }

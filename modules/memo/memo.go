@@ -35,7 +35,7 @@ type data struct {
 func GetMemoCommand() *core.Command {
 	return &core.Command{
 		Module:      "memo",
-		HelpMessage: "\t!memo/!m <nick> <message> \t=> Leave a memo for another user",
+		HelpMessage: "!memo/!m <nick> <message> => Leave a memo for another user",
 		Triggers:    []string{"!memo", "!m"},
 		Handler:     handleMemoCmd}
 }
@@ -44,7 +44,7 @@ func GetMemoCommand() *core.Command {
 func GetMemoStatCommand() *core.Command {
 	return &core.Command{
 		Module:      "memo",
-		HelpMessage: "\t!memostat/!ms \t\t\t\t\t=> Get the list of the unread memos (List only the memos you left)",
+		HelpMessage: "!memostat/!ms => Get the list of the unread memos (List only the memos you left)",
 		Triggers:    []string{"!memostat", "!ms"},
 		Handler:     handleMemoCmd}
 }

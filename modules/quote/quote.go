@@ -27,6 +27,7 @@ const (
 	sqlSelectFromAll      = "SELECT content, strftime('%d/%m/%Y @ %H:%M', datetime(date, 'localtime')), sender, user FROM Quote WHERE content LIKE $1"
 	sqlSelectExactContent = "SELECT sender FROM Quote WHERE user = $1 AND content = $2"
 	sqlSelectAll          = "SELECT content, strftime('%d/%m/%Y @ %H:%M', datetime(date, 'localtime')), sender FROM Quote WHERE user = $1"
+	sqlSelectFromDay      = "SELECT content, strftime('%d/%m/%Y @ %H:%M', datetime(date, 'localtime')), sender, user FROM Quote WHERE date(date, 'localtime') = date('now', '-1 year', 'localtime') ORDER BY RANDOM() LIMIT 1"
 	sqlDelete             = "DELETE FROM Quote where user = $1 AND content LIKE $2"
 )
 
@@ -41,7 +42,7 @@ var (
 func GetQuoteCommand() *core.Command {
 	return &core.Command{
 		Module:      "quote",
-		HelpMessage: "\t!q/!quote <nick> [<part of message>]",
+		HelpMessage: "!q/!quote <nick> [<part of message>]",
 		Triggers:    []string{"!q", "!quote"},
 		Handler:     handleQuoteCmd}
 }
@@ -50,7 +51,7 @@ func GetQuoteCommand() *core.Command {
 func GetQuoteFromAllCommand() *core.Command {
 	return &core.Command{
 		Module:      "quote",
-		HelpMessage: "\t!qa/!quoteall [<part of message>]",
+		HelpMessage: "!qa/!quoteall [<part of message>]",
 		Triggers:    []string{"!qa", "!quoteall"},
 		Handler:     handleQuoteAllCmd}
 }
@@ -59,7 +60,7 @@ func GetQuoteFromAllCommand() *core.Command {
 func GetAddQuoteCommand() *core.Command {
 	return &core.Command{
 		Module:      "quote",
-		HelpMessage: "\t!aq/!addquote <nick> <part of message>",
+		HelpMessage: "!aq/!addquote <nick> <part of message>",
 		Triggers:    []string{"!aq", "!addquote"},
 		Handler:     handleAddQuoteCmd}
 }
@@ -68,9 +69,18 @@ func GetAddQuoteCommand() *core.Command {
 func GetRmQuoteCommand() *core.Command {
 	return &core.Command{
 		Module:      "quote",
-		HelpMessage: "\t!rmq/!rmquote <nick> <part of the quote> (Admins only)",
+		HelpMessage: "!rmq/!rmquote <nick> <part of the quote> (Admins only)",
 		Triggers:    []string{"!rmq", "!rmquote"},
 		Handler:     handleRmQuoteCmd}
+}
+
+// GetDailyQuoteCommand returns a Command structure for the daily quote command
+func GetDailyQuoteCommand() *core.Command {
+	return &core.Command{
+		Module:      "quote",
+		HelpMessage: "!dq (No parameter needed)",
+		Triggers:    []string{"!dq"},
+		Handler:     handleDailyQuoteCmd}
 }
 
 // Init stores the database pointer and the administrators list.
@@ -126,14 +136,10 @@ func handleQuoteAllCmd(event *irc.Event, callback func(*core.ReplyCallbackData))
 	if len(fields) == 1 {
 		return true
 	}
-	var (
-		rows *sql.Rows
-		err  error
-	)
 
 	// Search with part of the message
 	messagePart := prepareForSearch(strings.Join(fields[1:], " "))
-	rows, err = dbPtr.Query(sqlSelectFromAll, "%"+messagePart+"%")
+	rows, err := dbPtr.Query(sqlSelectFromAll, "%"+messagePart+"%")
 
 	if err != nil {
 		log.Fatalf("\"%s\": %s\n", err, sqlSelectFromAll)
@@ -253,6 +259,34 @@ func handleRmQuoteCmd(event *irc.Event, callback func(*core.ReplyCallbackData)) 
 			Message: fmt.Sprintf("Quote(s) matching \"%%%s%%\" removed for user \"%s\"", quote, user),
 			Target:  core.GetTargetFromEvent(event)})
 	}
+	return true
+}
+
+// handleDailyQuoteCmd
+func handleDailyQuoteCmd(event *irc.Event, callback func(*core.ReplyCallbackData)) bool {
+
+	rows, err := dbPtr.Query(sqlSelectFromDay)
+
+	if err != nil {
+		log.Fatalf("\"%s\": %s\n", err, sqlSelectFromDay)
+	}
+	defer rows.Close()
+
+	if rows.Next() {
+		fmt.Printf("%#v\n", rows)
+		var content, date, sender, user string
+		rows.Scan(&content, &date, &sender, &user)
+		fmt.Println(content, date, sender, user)
+		callback(&core.ReplyCallbackData{
+			Message: fmt.Sprintf("%s [%s, %s, quoted by %s]", content, user, date, sender),
+			Target:  core.GetTargetFromEvent(event)})
+		return true
+	}
+
+	callback(&core.ReplyCallbackData{
+		Message: "There was no quote 1 year ago, loosers!",
+		Target:  core.GetTargetFromEvent(event)})
+
 	return true
 }
 

@@ -59,7 +59,7 @@ type urbanDictionnary struct {
 func GetDuckduckGoCmd() *core.Command {
 	return &core.Command{
 		Module:      "search",
-		HelpMessage: "\t!d/!dg/!ddg <terms to search> \t=> Search on DuckduckGo",
+		HelpMessage: "!d/!dg/!ddg <terms to search> => Search on DuckduckGo",
 		Triggers:    []string{"!d", "!dg", "!ddg"},
 		Handler:     handleDuckduckGoCmd}
 }
@@ -68,7 +68,7 @@ func GetDuckduckGoCmd() *core.Command {
 func GetWikipediaCmd() *core.Command {
 	return &core.Command{
 		Module:      "search",
-		HelpMessage: "\t!w/!wiki <terms to search> \t\t\t=> Search on Wikipedia EN",
+		HelpMessage: "!w/!wiki <terms to search> => Search on Wikipedia EN",
 		Triggers:    []string{"!w", "!wiki"},
 		Handler:     handleWikipediaCmd}
 }
@@ -77,7 +77,7 @@ func GetWikipediaCmd() *core.Command {
 func GetWikipediaFRCmd() *core.Command {
 	return &core.Command{
 		Module:      "search",
-		HelpMessage: "\t!wf/!wfr <terms to search> \t\t\t=> Search on Wikipedia FR",
+		HelpMessage: "!wf/!wfr <terms to search> => Search on Wikipedia FR",
 		Triggers:    []string{"!wf", "!wfr"},
 		Handler:     handleWikipediaCmd}
 }
@@ -86,7 +86,7 @@ func GetWikipediaFRCmd() *core.Command {
 func GetUrbanDictionnaryCmd() *core.Command {
 	return &core.Command{
 		Module:      "search",
-		HelpMessage: "\t!u/!ud <terms to search> \t\t=> Search on Urban Dictionnary",
+		HelpMessage: "!u/!ud <terms to search> => Search on Urban Dictionnary",
 		Triggers:    []string{"!u", "!ud"},
 		Handler:     handleUrbanDictionnaryCmd}
 }

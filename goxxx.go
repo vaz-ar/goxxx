@@ -16,7 +16,7 @@ import (
 	"github.com/vaz-ar/goxxx/core"
 	"github.com/vaz-ar/goxxx/database"
 	"github.com/vaz-ar/goxxx/modules/help"
-	"github.com/vaz-ar/goxxx/modules/invoke"
+	// "github.com/vaz-ar/goxxx/modules/invoke"
 	"github.com/vaz-ar/goxxx/modules/memo"
 	"github.com/vaz-ar/goxxx/modules/pictures"
 	"github.com/vaz-ar/goxxx/modules/quote"
@@ -85,7 +85,7 @@ func getOptions() (config configData, returnCode int) {
 		fmt.Println("Arguments description:")
 		flag.PrintDefaults()
 		fmt.Println("\nCommands description:")
-		fmt.Println("  add_user <nick> <email>: Add an user to the database\n")
+		fmt.Println("add_user <nick> <email>: Add an user to the database")
 	}
 
 	// Hybrid config: use flags and INI file
@@ -166,21 +166,21 @@ func main() {
 	// Initialise packages
 	for _, module := range config.modules {
 		switch strings.TrimSpace(module) {
-		case "invoke":
-			if !invoke.Init(db,
-				config.emailSender,
-				config.emailAccount,
-				config.emailPassword,
-				config.emailServer,
-				config.channel,
-				config.emailPort) {
-				log.Println("Error while initialising invoke package")
-				continue
-			}
-			cmd := invoke.GetCommand()
-			bot.AddCmdHandler(cmd, bot.Reply)
-			help.AddMessages(cmd)
-			log.Println("Invoke module loaded")
+		// case "invoke":
+		// 	if !invoke.Init(db,
+		// 		config.emailSender,
+		// 		config.emailAccount,
+		// 		config.emailPassword,
+		// 		config.emailServer,
+		// 		config.channel,
+		// 		config.emailPort) {
+		// 		log.Println("Error while initialising invoke package")
+		// 		continue
+		// 	}
+		// 	cmd := invoke.GetCommand()
+		// 	bot.AddCmdHandler(cmd, bot.Reply)
+		// 	help.AddMessages(cmd)
+		// 	log.Println("Invoke module loaded")
 
 		case "memo":
 			memo.Init(db)
@@ -221,7 +221,7 @@ func main() {
 			bot.AddCmdHandler(cmd, bot.Reply)
 			help.AddMessages(cmd)
 
-			cmd = webinfo.GetUrlCommand()
+			cmd = webinfo.GetURLCommand()
 			bot.AddCmdHandler(cmd, bot.Reply)
 			help.AddMessages(cmd)
 
@@ -266,6 +266,10 @@ func main() {
 			help.AddMessages(cmd)
 
 			cmd = quote.GetRmQuoteCommand()
+			bot.AddCmdHandler(cmd, bot.Reply)
+			help.AddMessages(cmd)
+
+			cmd = quote.GetDailyQuoteCommand()
 			bot.AddCmdHandler(cmd, bot.Reply)
 			help.AddMessages(cmd)
 			log.Println("Quote module loaded")

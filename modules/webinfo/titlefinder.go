@@ -27,7 +27,7 @@ const (
 	maxUrlsCount        = 10
 	sqlSelectExist      = "SELECT user, strftime('%d/%m/%Y @ %H:%M', datetime(date, 'localtime')) FROM Link WHERE url = $1"
 	sqlSelectWhereTitle = "SELECT user, strftime('%d/%m/%Y @ %H:%M', datetime(date, 'localtime')), title, url FROM Link WHERE title LIKE $1"
-	sqlSelectWhereUrl   = "SELECT user, strftime('%d/%m/%Y @ %H:%M', datetime(date, 'localtime')), title, url FROM Link WHERE url LIKE $1"
+	sqlSelectWhereURL   = "SELECT user, strftime('%d/%m/%Y @ %H:%M', datetime(date, 'localtime')), title, url FROM Link WHERE url LIKE $1"
 	sqlInsert           = "INSERT INTO Link (user, url, title) VALUES ($1, $2, $3)"
 )
 
@@ -36,18 +36,20 @@ var (
 	urlShortener = []string{"t.co", "bit.ly", "goo.gl"} // URL shorteners base URL
 )
 
-// GetCommand returns a Command structure for url search command
+// GetTitleCommand returns a Command structure for the search by title command
 func GetTitleCommand() *core.Command {
 	return &core.Command{
 		Module:      "url",
-		HelpMessage: "\t!urlt <search terms>\t\t\t\t\t\t=> Return links with titles matching <search terms>",
+		HelpMessage: "!urlt <search terms>=> Return links with titles matching <search terms>",
 		Triggers:    []string{"!urlt"},
 		Handler:     handleSearchTitlesCmd}
 }
-func GetUrlCommand() *core.Command {
+
+// GetURLCommand returns a Command structure for the search by URL command
+func GetURLCommand() *core.Command {
 	return &core.Command{
 		Module:      "url",
-		HelpMessage: "\t!url <search terms>\t\t\t\t\t\t=> Return links with urls matching <search terms>",
+		HelpMessage: "!url <search terms>=> Return links with urls matching <search terms>",
 		Triggers:    []string{"!url"},
 		Handler:     handleSearchUrlsCmd}
 }
@@ -172,9 +174,9 @@ func handleSearchUrlsCmd(event *irc.Event, callback func(*core.ReplyCallbackData
 		search                 = strings.Join(fields[1:], " ")
 	)
 	// BUG(vaz-ar) Maybe not necessary to use Query + loop here, see if QueryRow can do the trick
-	rows, err := dbPtr.Query(sqlSelectWhereUrl, "%"+search+"%")
+	rows, err := dbPtr.Query(sqlSelectWhereURL, "%"+search+"%")
 	if err != nil {
-		log.Fatalf("%q: %s\n", err, sqlSelectWhereUrl)
+		log.Fatalf("%q: %s\n", err, sqlSelectWhereURL)
 	}
 	defer rows.Close()
 

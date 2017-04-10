@@ -44,7 +44,7 @@ var (
 func GetPicCommand() *core.Command {
 	return &core.Command{
 		Module:      "pictures",
-		HelpMessage: "\t!p/!pic <search terms> \t=> Search in the database for pictures matching <search terms>",
+		HelpMessage: "!p/!pic <search terms> => Search in the database for pictures matching <search terms>",
 		Triggers:    []string{"!p", "!pic"},
 		Handler:     handlePictureCmd}
 }
@@ -53,7 +53,7 @@ func GetPicCommand() *core.Command {
 func GetAddPicCommand() *core.Command {
 	return &core.Command{
 		Module:      "pictures",
-		HelpMessage: "\t!ap/!addpic <url> <tag> [#NSFW] \t=> Add a picture in the database for <tag> (<url> must have an image extension)",
+		HelpMessage: "!ap/!addpic <url> <tag> [#NSFW] => Add a picture in the database for <tag> (<url> must have an image extension)",
 		Triggers:    []string{"!ap", "!addpic"},
 		Handler:     handleAddPictureCmd}
 }
@@ -62,7 +62,7 @@ func GetAddPicCommand() *core.Command {
 func GetRmPicCommand() *core.Command {
 	return &core.Command{
 		Module:      "pictures",
-		HelpMessage: "\t!rmpic <url> <tag> \t=> Remove a picture in the database for <tag> (Admin only command)",
+		HelpMessage: "!rmpic <url> <tag> => Remove a picture in the database for <tag> (Admin only command)",
 		Triggers:    []string{"!rmpic"},
 		Handler:     handleRmPictureCmd}
 }
