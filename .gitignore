@@ -1,6 +1,8 @@
 *.exe
-/goxxx
-/storage/*
 *.sqlite
 *.txt
 *testing.ini
+
+/storage/*
+/vendor/*
+/build/*

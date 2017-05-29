@@ -1,0 +1,17 @@
+package: github.com/vaz-ar/goxxx
+homepage: https://github.com/vaz-ar/goxxx
+import:
+- package: github.com/emirozer/go-helpers
+- package: github.com/mattes/migrate
+  version: ^v1.3.1
+  subpackages:
+  - driver/sqlite3
+  - migrate
+- package: github.com/mattn/go-sqlite3
+  version: ^1.2.0
+- package: github.com/thoj/go-ircevent
+- package: github.com/vaz-ar/cfgFlags
+- package: golang.org/x/net
+  subpackages:
+  - html
+  - idna
