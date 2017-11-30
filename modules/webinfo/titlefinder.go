@@ -1,6 +1,7 @@
 // The MIT License (MIT)
 //
 // Copyright (c) 2015 Romain LÉTENDART
+// Copyright (c) 2017 Arnaud Vazard
 //
 // See LICENSE file.
 
@@ -8,6 +9,7 @@
 package webinfo
 
 import (
+	"compress/zlib"
 	"database/sql"
 	"fmt"
 	"github.com/emirozer/go-helpers"
@@ -15,6 +17,7 @@ import (
 	"github.com/vaz-ar/goxxx/core"
 	"golang.org/x/net/html"
 	"golang.org/x/net/idna"
+	"io"
 	"log"
 	"net/http"
 	"net/url"
@@ -32,8 +35,9 @@ const (
 )
 
 var (
-	dbPtr        *sql.DB                                // Database pointer
-	urlShortener = []string{"t.co", "bit.ly", "goo.gl"} // URL shorteners base URL
+	dbPtr        *sql.DB                                           // Database pointer
+	urlShortener = []string{"t.co", "bit.ly", "goo.gl", "buff.ly"} // URL shorteners base URL
+	zlibHosts    = []string{"twitter.com"}                         // Host that needs forced zlib decoding
 )
 
 // GetTitleCommand returns a Command structure for the search by title command
@@ -59,8 +63,6 @@ func Init(db *sql.DB) {
 	dbPtr = db
 }
 
-// BUG(romainletendart) Choose a better name for the HandleUrls function
-
 // HandleURLs is a message handler that search for URLs in a message
 func HandleURLs(event *irc.Event, callback func(*core.ReplyCallbackData)) {
 
@@ -82,6 +84,17 @@ func HandleURLs(event *irc.Event, callback func(*core.ReplyCallbackData)) {
 			return
 		}
 		defer response.Body.Close()
+
+		// --- Special case for domains needing zlib decoding
+		var reader io.ReadCloser
+
+		if helpers.StringInSlice(currentURL.Host, zlibHosts) {
+			reader, _ = zlib.NewReader(response.Body)
+			defer reader.Close()
+		} else {
+			reader = response.Body
+		}
+		// ---
 
 		doc, err := html.Parse(response.Body)
 		if err != nil {
@@ -229,8 +242,7 @@ func getTitleFromHTML(document *html.Node) (title string, found bool) {
 
 	// Retrieve the content inside the <title> and post-process it
 	title = strings.TrimSpace(child.FirstChild.Data)
-	// Replace every whitespaces or new lines sequence with a single
-	// whitespace
+	// Replace every whitespaces or new lines sequence with a single whitespace
 	re := regexp.MustCompile("\\s+")
 	title = re.ReplaceAllString(title, " ")
 	found = true

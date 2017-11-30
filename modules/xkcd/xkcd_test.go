@@ -1,6 +1,6 @@
 // The MIT License (MIT)
 //
-// Copyright (c) 2015 Arnaud Vazard
+// Copyright (c) 2017 Arnaud Vazard
 //
 // See LICENSE file.
 package xkcd
