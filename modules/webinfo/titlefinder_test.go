@@ -1,6 +1,6 @@
 // The MIT License (MIT)
 //
-// Copyright (c) 2015 Arnaud Vazard
+// Copyright (c) 2017 Arnaud Vazard
 //
 // See LICENSE file.
 package webinfo
@@ -27,11 +27,11 @@ var (
 	expectedNick     = "Sender"
 
 	messagesWithUrls = []string{
-		"Oh look a this link http://www.matmartinez.net/nsfw/ (It is not NSFW)",
+		"Oh look at this link matias.ma/nsfw/ (It is not NSFW)",
 		"https://golang.org/doc/effective_go.html", // -- 1
 		"Check this one https://diasporafoundation.org/, and this other one cozy.io/en/, and this last one: http://framasoft.net/"}
 	expectedUrls = [][]string{
-		{"http://www.matmartinez.net/nsfw/"},
+		{"http://matias.ma/nsfw/"},
 		{"https://golang.org/doc/effective_go.html"},
 		{"https://diasporafoundation.org/", "http://cozy.io/en/", "http://framasoft.net/"}}
 
